@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="fonts">
+    <file alias="font_nokia">resources/nokiafc22.ttf</file>
+  </qresource>
+</RCC>

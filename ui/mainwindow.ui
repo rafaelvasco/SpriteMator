@@ -1,0 +1,1075 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>768</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1024</width>
+    <height>768</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>SpriteMator</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">/*CUSTOM /////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+QFrame#mainPanel
+{
+	background-color: #121417;
+}
+
+/*THEME ////////////////////////////////////////////////////////////////////////////////////////////////// */
+
+/* ------------------------------------------------------------------------------------------------------ */
+/* ----TOOLTIP------------------------------------------------------------------------------------------- */
+
+
+*
+{
+	color: #ddd;
+	
+	
+}
+
+QToolTip
+{
+     border: 1px solid black;
+     background: #378CBE;
+     opacity: 70;
+}
+
+
+/* ------------------------------------------------------------------------------------------------------ */
+/* ------- WIDGET --------------------------------------------------------------------------------------- */
+
+
+
+/* BG */
+
+QWidget
+{
+    background: #222;
+}
+
+QWidget#QTabWidget::pane
+{
+	background: red;
+}
+
+/* Menubar -&gt; Menu BG */
+QWidget:disabled  
+{
+	
+   background: #111;
+}
+
+
+
+QWidget:item:hover
+{
+	background: #1E1F21;
+}
+
+
+/* Menubar -&gt; Item BG */
+QWidget:item:selected
+{
+    background: #111;
+}
+
+
+/* ------------------------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------------------------ */
+
+QFrame
+{
+	background: #111;
+}
+
+
+/* ------------------------------------------------------------------------------------------------------ */
+/* ------ BUTTON --------------------------------------------------------------------------------------- */
+
+QPushButton
+{
+	
+	background: #222;
+	border: 1px solid #333;
+    font-size: 10px;
+	padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+QPushButton:hover
+{
+	background: #333;
+	border: 1px solid #444;
+	color: #6ED6FF;
+}
+
+QPushButton:pressed
+{
+	background: #222;
+	border: 1px solid #111;
+	color: #4AA9CF;
+}
+
+
+
+/* ------------------------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------------------------ */
+
+QAbstractItemView
+{
+	
+	background: #2D3339;
+	border: 1px solid black;
+}
+
+QAbstractScrollArea
+{
+	background: #222;
+	border: 1px solid #333;
+	padding: 1px;
+}
+
+
+/* ------------------------------------------------------------------------------------------------------ */
+/* --- WINDOW ------------------------------------------------------------------------------------------- */
+
+QMainWindow::separator
+{
+    background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:0 #161616, stop: 0.5 #151515, stop: 0.6 #212121, stop:1 #343434);
+    padding-left: 4px;
+    border: 1px solid #4c4c4c;
+    spacing: 3px; /* spacing between items in the tool bar */
+}
+
+QMainWindow::separator:hover
+{
+
+    background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d7801a, stop:0.5 #b56c17 stop:1 #ffa02f);
+    padding-left: 4px;
+    border: 1px solid #6c6c6c;
+    spacing: 3px; /* spacing between items in the tool bar */
+}
+
+
+/* ---- MENU -------------------------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------------------------------------*/
+
+QMenu::separator
+{
+    height: 2px;
+    background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:0 #161616, stop: 0.5 #151515, stop: 0.6 #212121, stop:1 #343434);
+    padding-left: 4px;
+    margin-left: 10px;
+    margin-right: 5px;
+}
+
+QMenu
+{
+	background: #1D232D;
+    border: 1px solid #333D4F;
+}
+
+QMenu::item
+{
+	margin: 0;
+    padding: 2px 20px 2px 20px;
+}
+
+QMenu::item:selected
+{
+}
+
+
+QMenuBar
+{
+	padding: 0;
+	background: #222;
+	
+}
+
+QMenuBar::item
+{
+    background: transparent;
+}
+
+
+
+
+
+QMenuBar::item:pressed
+{
+    background: #378CBE;
+}
+
+
+
+/* ------------------------------------------------------------------------------------------------------ */
+/* ---- TOOLBAR ----------------------------------------------------------------------------------------- */
+
+QToolBar
+{
+	 background: #333;
+	 border-bottom: 1px solid #444;
+}
+
+QToolBar &gt; QWidget
+{
+	background: transparent;
+	border: none;
+	
+	
+}
+
+QToolBar &gt; QWidget:hover
+{
+	color: #6ED6FF;
+}
+
+QToolBar &gt; QWidget:pressed
+{
+	color: #4AA9CF;
+}
+
+/* -------------------------------------------------------------------------------------------------------*/
+/* ---SCROLL AREA ----------------------------------------------------------------------------------------*/
+
+
+
+
+/* ------------------------------------------------------------------------------------------------------ */
+/* --- SCROLL BAR --------------------------------------------------------------------------------------- */
+
+QScrollBar:horizontal {
+     border: 1px solid black;
+     background: #202123;
+     height: 8px;
+     margin: 0px 16px 0 16px;
+    
+}
+
+QScrollBar::handle:horizontal
+{
+      background: #2E2F33;
+      border: 1px solid black;
+	  min-height: 20px;
+
+      
+}
+
+QScrollBar::handle:horizontal:pressed
+{
+	background: #378CBE;
+}
+
+QScrollBar::add-line:horizontal {
+      border: 1px solid black;
+      background: #2E2F33;
+      width: 14px;
+      subcontrol-position: right;
+      subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:horizontal {
+      border: 1px solid black;
+      background: #2E2F33;
+      width: 14px;
+     subcontrol-position: left;
+     subcontrol-origin: margin;
+}
+
+QScrollBar::right-arrow:horizontal, QScrollBar::left-arrow:horizontal
+{
+      border: 1px solid black;
+      width: 10px;
+      height: 10px;
+      background: #378CBE;
+}
+
+QScrollBar::right-arrow:horizontal:pressed, QScrollBar::left-arrow:horizontal:pressed
+{
+	  background: #4BA4D8;
+}
+
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal
+{
+      background: none;
+}
+
+QScrollBar:vertical
+{
+      border: 1px solid black;
+      background: #202123;;
+      width: 7px;
+      margin: 16px 0 16px 0;
+      
+}
+
+QScrollBar::handle:vertical
+{
+      background: #2E2F33;
+      border: 1px solid black;
+      min-height: 20px;
+     
+}
+
+QScrollBar::handle:vertical:pressed
+{
+	  background: #378CBE;
+}
+
+QScrollBar::add-line:vertical
+{
+      border: 1px solid black;
+      background: #2E2F33;
+      height: 14px;
+      subcontrol-position: bottom;
+      subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:vertical
+{
+     border: 1px solid black;
+      background: #2E2F33;
+      height: 14px;
+      subcontrol-position: top;
+      subcontrol-origin: margin;
+}
+
+QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical
+{
+      border: 1px solid black;
+      width: 10px;
+      height: 10px;
+      background: #378CBE;
+}
+
+QScrollBar::up-arrow:vertical:pressed, QScrollBar::down-arrow:vertical:pressed
+{
+	  background: #4BA4D8;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
+{
+      background: none;
+}
+
+QScrollBar::add-page:vertical:pressed, QScrollBar::sub-page:vertical:pressed
+{
+	  background: #4BA4D8;
+}
+
+
+
+
+
+/* ------------------------------------------------------------------------------------------------------ */
+/* --- CHECK BOX ----------------------------------------------------------------------------------------- */
+
+QCheckBox
+{
+	background: transparent;
+}
+
+QCheckBox:hover
+{
+	color: #6ED6FF;
+}
+
+ QCheckBox::indicator {
+   
+	 width: 15px;
+     height: 15px;
+     background: #111;
+     border: 1px solid #222;
+  
+ }
+
+
+ QCheckBox::indicator:checked {
+    
+     
+	 background: #6ED6FF;
+ }
+
+ QCheckBox::indicator:checked:hover {
+ 
+ 	background: #6ED6FF;
+ 
+ }
+
+ QCheckBox::indicator:checked:pressed {
+ 
+ 	background: #6ED6FF;
+ }
+
+ QCheckBox::indicator:indeterminate {
+ 
+ 	background: #6ED6FF;
+ 
+ }
+
+
+
+/* ------------------------------------------------------------------------------------------------------ */
+/* ----------------- RADIO BUTTON ----------------------------------------------------------------------- */
+
+QRadioButton
+{
+	background: transparent;
+}
+
+QRadioButton:hover
+{
+	color: #6ED6FF;
+}
+
+QRadioButton::indicator {
+     width: 15px;
+     height: 15px;
+     background: #111;
+     border: 1px solid #222;
+ }
+
+QRadioButton::indicator:hover
+{
+	background: #1F1F1F;
+    border: 1px solid #2D2D2D;
+}
+
+ QRadioButton::indicator::checked {
+     
+	 background: #6ED6FF;
+ }
+
+ QRadioButton::indicator:checked:hover {
+ 	
+ 	background: #6ED6FF;
+ }
+
+ QRadioButton::indicator:checked:pressed {
+ 
+	background: #6ED6FF;
+ }
+
+
+/* ------------------------------------------------------------------------------------------------------ */
+/* --- COMBO BOX --------------------------------------------------------------------------------------- */
+ 
+QComboBox
+{
+    background: #111;
+  	border: 1px solid #222;
+}
+
+
+
+QComboBox QAbstractItemView
+{
+	background: #1F1F1F;
+  	border: 1px solid 2D2D2D;
+    selection-background-color: #378CBE;
+    
+}
+
+QComboBox::drop-down
+{
+     subcontrol-origin: padding;
+     subcontrol-position: top right;
+     width: 15px;
+
+      border-left-width: 0px;
+     border-left-color: darkgray;
+     border-left-style: solid; /* just a single line */
+     border-top-right-radius: 3px; /* same radius as the QComboBox */
+     border-bottom-right-radius: 3px;
+ }
+
+QComboBox::down-arrow
+{
+ 	background: #6ED6FF;
+    border: 1px solid #9CE3FF;
+}
+
+
+
+QComboBox::down-arrow:on
+{
+	background: #4AA9CF;
+}
+
+/* ------------------------------------------------------------------------------------------------------ */
+/* --- TEXT EDIT----------------------------------------------------------------------------------------- */
+
+QTextEdit
+{
+    background: #111;
+	border: 1px solid #222;
+	selection-background-color: #378CBE;
+}
+
+QTextEdit:focus
+{
+	border: 1px solid #378CBE;
+}
+
+QPlainTextEdit
+{
+	background: #111;
+	border: 1px solid #222;
+	selection-background-color: #378CBE;
+}
+
+QPlainTextEdit:focus
+{
+	border: 1px solid #378CBE;
+}
+
+QLineEdit
+{
+	background: #111;
+	border: 1px solid #222;
+	selection-background-color: #378CBE;
+}
+
+QLineEdit:focus
+{
+	border: 1px solid #378CBE;
+}
+
+
+/* --------------------------------------------------------------------------------------------------- */
+/* -----GROUP BOX------------------------------------------------------------------------------------- */
+
+QGroupBox
+{
+	background: #222;
+    border: 1px solid #333;
+    margin-top: 1ex; /* leave space at the top for the title */
+}
+
+ QGroupBox::title {
+
+     subcontrol-origin: margin;
+     subcontrol-position: top center; 
+     padding: 5px;
+     background: #333;
+	 border: 1px solid #444;
+ }
+
+
+/* --------------------------------------------------------------------------------------------------- */
+/* ----HEADER ---------------------------------------------------------------------------------------- */
+
+
+QHeaderView::section
+{
+    background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:0 #616161, stop: 0.5 #505050, stop: 0.6 #434343, stop:1 #656565);
+    padding-left: 4px;
+    border: 1px solid #6c6c6c;
+}
+
+
+/* --------------------------------------------------------------------------------------------------- */
+/* ---- DOCK ----------------------------------------------------------------------------------------- */
+
+QDockWidget::title
+{
+    text-align: center;
+    spacing: 3px; /* spacing between items in the tool bar */
+    background-color: #333;
+}
+
+QDockWidget::close-button, QDockWidget::float-button
+{
+    text-align: center;
+    spacing: 1px; /* spacing between items in the tool bar */
+    background-color: #555;
+}
+
+QDockWidget::close-button:hover, QDockWidget::float-button:hover
+{
+    background: #ddd;
+}
+
+
+
+/* --------------------------------------------------------------------------------------------------- */
+/* -------- PROGRESS BAR ----------------------------------------------------------------------------- */
+QProgressBar
+{
+    background: #202123;
+	border: 1px solid black;
+    text-align: center;
+}
+
+QProgressBar::chunk
+{
+    background-color: #378CBE;
+    width: 2.15px;
+    margin: 0.5px;
+}
+
+
+/* --------------------------------------------------------------------------------------------------- */
+/* ------- TAB BAR ----------------------------------------------------------------------------------- */
+
+QTabWidget::pane {
+	
+
+	border: 1px solid #333;   
+
+}
+
+QTabWidget::tab-bar {
+     left: 5px; /* move to the right by 5px */
+ }
+
+
+QTabBar::tab {
+    background: #222;
+   	border-right: 1px solid #333;	
+	border-left: 1px solid #333;
+	border-top: 1px solid #333;    
+	padding-left: 10px;
+    padding-right: 10px;
+    min-width: 8ex;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    margin-right: -3px;
+}
+
+QTabBar::tab:last
+{
+    margin-right: 0; /* the last selected tab has nothing to overlap with on the right */
+}
+
+QTabBar::tab:first:!selected
+{
+ 	margin-left: 0px; /* the last selected tab has nothing to overlap with on the right */
+
+
+}
+
+QTabBar::tab:!selected
+{
+    color: #aaa;
+    
+    
+}
+
+QTabBar::tab:selected
+{
+    margin-bottom: 0px;
+    background: #333;
+	border: 1px solid #444;
+	color: #6ED6FF;
+}
+
+QTabBar::tab:!selected:hover
+{
+    padding-bottom: 3px;
+    
+}
+
+/* --------------------------------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------------------------------- */
+
+QAbstractSpinBox
+{
+	padding-right: 15px; /* make room for the arrows */
+	background: #202123;
+	border: 1px solid black;
+	selection-background-color: #378CBE;
+}
+
+QAbstractSpinBox::up-button {
+     subcontrol-origin: border;
+     subcontrol-position: top right; /* position at the top right corner */
+
+     width: 16px; /* 16 + 2*1px border-width = 15px padding + 3px parent border */
+     background: #2E2F33;
+	 border: 1px solid black;
+ }
+
+
+
+ QAbstractSpinBox::up-button:pressed
+ {
+     background: #378CBE;
+ }
+
+
+ QAbstractSpinBox::down-button
+ {
+     subcontrol-origin: border;
+     subcontrol-position: bottom right; /* position at bottom right corner */
+
+     width: 16px;
+     background: #2E2F33;
+	 border: 1px solid black;
+     
+ }
+
+
+
+ QAbstractSpinBox::down-button:pressed
+ {
+     background: #378CBE;
+ }
+
+
+
+QSlider::handle:horizontal, QSlider::handle:vertical {
+	
+     background: #2E2F33;
+	 border: 1px solid black; 
+}
+
+QSlider::add-page:horizontal, QSlider::add-page:vertical
+ {
+     background: #202123;
+	 border: 1px solid black; 
+}
+
+ QSlider::sub-page:horizontal, QSlider::sub-page:vertical {
+     background: #378CBE;
+     border: 1px solid black;
+ }
+</string>
+  </property>
+  <property name="toolButtonStyle">
+   <enum>Qt::ToolButtonIconOnly</enum>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QSplitter" name="topDownSplitter">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <widget class="QSplitter" name="leftRightSplitter">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <widget class="QFrame" name="leftPanel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>240</width>
+          <height>400</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>240</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+       </widget>
+       <widget class="QFrame" name="mainPanel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>320</width>
+          <height>240</height>
+         </size>
+        </property>
+        <property name="autoFillBackground">
+         <bool>false</bool>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+       </widget>
+       <widget class="QFrame" name="rightPanel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>550</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>450</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QFrame" name="bottomPanel">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>80</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="font">
+    <font>
+     <family>Nokia Cellphone FC</family>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionNew"/>
+   <addaction name="actionOpen"/>
+   <addaction name="actionImport"/>
+   <addaction name="actionSave"/>
+   <addaction name="actionSaveAs"/>
+   <addaction name="actionExport"/>
+   <addaction name="actionClose"/>
+   <addaction name="actionQuit"/>
+  </widget>
+  <action name="actionNew">
+   <property name="text">
+    <string>New</string>
+   </property>
+   <property name="iconText">
+    <string>New</string>
+   </property>
+   <property name="toolTip">
+    <string>New Sprite</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Nokia Cellphone FC</family>
+     <pointsize>12</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
+     <underline>false</underline>
+     <strikeout>false</strikeout>
+     <stylestrategy>NoAntialias</stylestrategy>
+     <kerning>true</kerning>
+    </font>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="text">
+    <string>Quit</string>
+   </property>
+   <property name="toolTip">
+    <string>Close Application</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Nokia Cellphone FC</family>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
+   <property name="shortcut">
+    <string>Esc</string>
+   </property>
+  </action>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Open</string>
+   </property>
+   <property name="toolTip">
+    <string>Open Sprite</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Nokia Cellphone FC</family>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+   <property name="toolTip">
+    <string>Save Sprite</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Nokia Cellphone FC</family>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionSaveAs">
+   <property name="text">
+    <string>SaveAs</string>
+   </property>
+   <property name="toolTip">
+    <string>Save Sprite with another name</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Nokia Cellphone FC</family>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="actionClose">
+   <property name="text">
+    <string>Close</string>
+   </property>
+   <property name="toolTip">
+    <string>Close Sprite</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Nokia Cellphone FC</family>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionExport">
+   <property name="text">
+    <string>Export</string>
+   </property>
+   <property name="toolTip">
+    <string>Export Sprite animations : Either as separate images or as a spritesheet</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Nokia Cellphone FC</family>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
+  </action>
+  <action name="actionImport">
+   <property name="text">
+    <string>Import</string>
+   </property>
+   <property name="toolTip">
+    <string>Create a Sprite from one or more images</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Nokia Cellphone FC</family>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>

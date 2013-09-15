@@ -1,5 +1,6 @@
 =======================================================================
 =======================================================================
+=======================================================================
 Creating the JAR files:
 
 Export a jar file with the Eclipse Export Wizard.  I did this for my desktop version, by right clicking on the project "myapp-desktop" -> Export -> Java -> Runnable Jar File.

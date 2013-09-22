@@ -7,7 +7,7 @@
 # License:          
 #--------------------------------------------------
 from PyQt4.QtCore import QTimer, Qt
-from PyQt4.QtGui import QColor, QPen, QSizePolicy, QVBoxLayout, QHBoxLayout, QPushButton
+from PyQt4.QtGui import QColor, QPen, QSizePolicy, QVBoxLayout, QHBoxLayout, QPushButton, QPainter
 
 from src.display import Display
 
@@ -133,8 +133,10 @@ class AnimationDisplay(Display):
 
         self.update()
 
-    def onDrawObject(self, event, painter):
-
+    def onDrawObject(self, event):
+        
+        painter = QPainter(self)
+        
         if self._animation is not None:
 
             layers = self._animation.frameAt(self._currentFrame).surfaces()

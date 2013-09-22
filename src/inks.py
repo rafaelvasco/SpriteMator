@@ -48,7 +48,6 @@ class Eraser(Ink):
 
     def __init__(self):
         Ink.__init__(self)
-        self._lastCompositionMode = None
 
     def blit(self, x, y, w, h, painter):
 

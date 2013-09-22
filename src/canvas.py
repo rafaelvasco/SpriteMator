@@ -11,6 +11,8 @@ from PyQt4.QtGui import QPainter, QPushButton, QVBoxLayout, QSizePolicy, QHBoxLa
 
 from src.display import  Display
 from src.sprite import Frame
+from src.canvas_overlay import CanvasOverlay
+
 import src.tools as Tools
 import src.inks as Inks
 import src.utils as Utils
@@ -26,14 +28,13 @@ class Canvas(Display):
         self._currentSprite = None
         self._animationDisplay = animationDisplay
         self._currentDrawingSurface = None
-        self._currentCompositionMode = QPainter.CompositionMode_SourceOver
-        self._painter = QPainter()
+        self._overlaySurface = None
+        self._overlaySurface2 = CanvasOverlay(self)
+        
         self._currentTool = Tools.Pen
         self._primaryInk = Inks.Solid()
         self._secondaryInk = Inks.Solid()
-        self._active = False
         self._mousePosition = QPoint()
-        
         
         
         self._mainLayout = QVBoxLayout(self)
@@ -58,10 +59,10 @@ class Canvas(Display):
         self._controlsLayout.addWidget(self._goToPrevFrameBtn)
         self._controlsLayout.addWidget(self._goToNextFrameBtn)
 
-
         self._mainLayout.addLayout(self._controlsLayout)
 
 
+        self.setMouseTracking(True)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setMinimumWidth(320)
         self.setMinimumHeight(240)
@@ -131,6 +132,7 @@ class Canvas(Display):
         self._animationDisplay.setAnimation(self._currentSprite.currentAnimation())
 
         self._updateDrawingSurface()
+        self._updateOverlaySurface()
 
         self.frameChanged.emit(self._currentSprite.currentAnimation().currentFrame())
 
@@ -155,6 +157,7 @@ class Canvas(Display):
         self._currentSprite.addAnimation()
 
         self._updateDrawingSurface()
+        self._updateOverlaySurface()
 
         self._animationDisplay.setAnimation(self._currentSprite.currentAnimation())
 
@@ -169,6 +172,7 @@ class Canvas(Display):
         self._currentSprite.setAnimation(index)
 
         self._updateDrawingSurface()
+        self._updateOverlaySurface()
 
         self.frameChanged.emit(self._currentSprite.currentAnimation().currentFrame())
 
@@ -327,33 +331,61 @@ class Canvas(Display):
     # ----- EVENTS -----------------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
 
-    def onDrawObject(self, event, painter):
+    def onDrawObject(self, event):
 
         if self._currentSprite is None:
             return
-
+        
+        painter = QPainter()
+        
         layers = self._currentSprite.currentAnimation().currentFrame().surfaces()
-
+        
+        painter.begin(self)
         for layer in layers:
             painter.drawImage(0, 0, layer.image())
+        
+        painter.end()
+        #painter.drawImage(0, 0, self._overlaySurface)
+        
+        ink = self._primaryInk 
+        
+        
+        
+        if self._currentTool.isActive():
+            
+            painter.begin(self._currentDrawingSurface)
+            self._currentTool.blit(painter, ink)
+            painter.end()
+        
+        
+        #painter.begin(self._overlaySurface2)
+        
+        #self._currentTool.draw(painter)
+        
+        #painter.end()
+        
 
-        painter.setPen(QColor(255,0,0))
-
-        painter.resetMatrix()
-
-        painter.drawText(10,50, "Current Animation: {0}, Current Frame: {1}, Current Surface: {2}"
-                .format(self._currentSprite.currentAnimation().name(),
-                        self._currentSprite.currentAnimation().currentFrameIndex(),
-                        self._currentSprite.currentAnimation().currentFrame().currentSurfaceIndex()))
-
-        painter.drawText(10, 70, "Current Layer Stack: ")
-
-        layers = self.currentFrame().surfaces()
-        index = 0
-        for layer in layers:
-
-            painter.drawText( 10, 20 * (index) + 100, "Index: " + str(index) + ", Name: " + layer.name())
-            index += 1
+#         painter.drawText(10,50, "Current Animation: {0}, Current Frame: {1}, Current Surface: {2}"
+#                 .format(self._currentSprite.currentAnimation().name(),
+#                         self._currentSprite.currentAnimation().currentFrameIndex(),
+#                         self._currentSprite.currentAnimation().currentFrame().currentSurfaceIndex()))
+# 
+#         painter.drawText(10, 70, "Current Layer Stack: ")
+# 
+#         layers = self.currentFrame().surfaces()
+#         index = 0
+#         for layer in layers:
+# 
+#             painter.drawText( 10, 20 * (index) + 100, "Index: " + str(index) + ", Name: " + layer.name())
+#             index += 1
+            
+        
+    def resizeEvent(self, e):
+        
+        self._overlaySurface2.resize(e.size())
+        e.accept()
+            
+       
 
     def onDelFrameButtonClicked(self):
 
@@ -368,43 +400,31 @@ class Canvas(Display):
             return
 
         button = e.button()
-
+        
         if button != Qt.LeftButton and button != Qt.RightButton:
             return
-
-        self._animationDisplay._startRefreshing()
-
-        self._active = True
-
+        
         self._processMouseEvent(e)
-
-        self._painter.begin(self._currentDrawingSurface)
-
+        
         self._currentTool.onMousePress(self, self._mousePosition, e.button())
-
-        self._painter.end()
+        
+        self._currentTool.setActive(True)
+        
+        self._animationDisplay._startRefreshing()
 
         self.update()
 
     def mouseMoveEvent(self, e):
-
+        
         super().mouseMoveEvent(e)
 
         if self._currentSprite is None:
             return
 
-        if not self._active:
-            return
-
         self._processMouseEvent(e)
-
-        self._painter.begin(self._currentDrawingSurface)
-
-        if self._currentTool.isActive():
-            self._currentTool.onMouseMove(self, self._mousePosition, e.buttons())
-
-        self._painter.end()
-
+  
+        self._currentTool.onMouseMove(self._mousePosition)
+            
         self.update()
 
     def mouseReleaseEvent(self, e):
@@ -417,17 +437,23 @@ class Canvas(Display):
         self._animationDisplay._stopRefreshing()
 
         self._processMouseEvent(e)
-
-        self._painter.begin(self._currentDrawingSurface)
-
+        
+        self._currentTool.setActive(False)
+        
         self._currentTool.onMouseRelease(self, self._mousePosition, e.button())
-
-        self._painter.end()
-
+        
         self.update()
 
-        self._active = False
-
+    def enterEvent(self, e):
+        self.setCursor(Qt.BlankCursor)
+    
+    def leaveEvent(self, e):
+        
+        self._clearOverlaySurface()
+        self.setCursor(Qt.ArrowCursor)
+        
+       
+        
 
     # ---- PRIVATE METHODS ---------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
@@ -448,3 +474,25 @@ class Canvas(Display):
 
         self._currentDrawingSurface = self._currentSprite.currentAnimation().currentFrame().currentSurface().image()
         self.update()
+        
+    def _updateOverlaySurface(self):
+        
+        if self._currentSprite is None:
+            return
+        
+        overlayWidth = self._currentSprite.currentAnimation().frameWidth()
+        overlayHeight = self._currentSprite.currentAnimation().frameHeight()
+        
+        if self._overlaySurface is None:
+            self._overlaySurface = Utils.createImage(overlayWidth, overlayHeight)
+        else:
+            self._overlaySurface.scaled(overlayWidth, overlayHeight, Qt.IgnoreAspectRatio, Qt.FastTransformation)
+            
+    def _clearOverlaySurface(self):
+        
+        if self._currentSprite is None:
+            return
+        
+        painter = QPainter(self._overlaySurface)
+        painter.setCompositionMode(QPainter.CompositionMode_Clear)
+        painter.fillRect(self._overlaySurface.rect(), Qt.white)

@@ -83,10 +83,11 @@ class InputManager(QObject):
             self._processWheel(event.delta())
     
     def isKeyPressed(self, key):
-
-        return self._keyStateMap[key] or False
+        
+        
+        return key in self._keyStateMap and self._keyStateMap[key]
     
     def isMousePressed(self, button):
         
-        return self._mouseStateMap[button] or False
+        return button in self._mouseStateMap and self._mouseStateMap[button] or False
             

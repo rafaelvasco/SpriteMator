@@ -423,16 +423,6 @@ class ColorPalette(QWidget):
                                                 -borderAjust,
                                                 -borderAjust))
 
-
-                if self._activeCell == self._selectedCellA:
-
-                    indicatorAjdust = cellRect.width() // 3
-                    p.fillRect(cellRect.adjusted(indicatorAjdust,
-                                                 indicatorAjdust,
-                                                 -indicatorAjdust,
-                                                 -indicatorAjdust),
-                               self._primaryIndicatorColor)
-
             if self._selectedCellB != -1:
 
 
@@ -447,14 +437,7 @@ class ColorPalette(QWidget):
                                                 -borderAjust,
                                                 -borderAjust))
 
-                if self._activeCell == self._selectedCellB:
-
-                    indicatorAjdust = cellRect.width() // 3
-                    p.fillRect(cellRect.adjusted(indicatorAjdust,
-                                                 indicatorAjdust,
-                                                 -indicatorAjdust,
-                                                 -indicatorAjdust),
-                               self._secondaryIndicatorColor)
+                
 
     def leaveEvent(self, e):
 
@@ -1070,7 +1053,17 @@ class ColorPicker(QWidget):
 
     def switchActiveColor(self):
 
+        if self._activeColorIndex == ColorIndex.Primary:
+            self._activeColorIndex = ColorIndex.Secondary
+            
+        else:
+            self._activeColorIndex = ColorIndex.Primary
+        
+        
+        self._colorBox.setActiveColorIndex(self._activeColorIndex)
         self._palette.switchSlot()
+        
+        self.update()
 
     def _connectEvents(self):
 
@@ -1089,7 +1082,6 @@ class ColorPicker(QWidget):
         self._colorBox.mouseClicked.connect(self._onColorBoxClicked)
         
         InputManager.instance().keyPressed.connect(self._onKeyPressed)
-        InputManager.instance().keyReleased.connect(self._onKeyReleased)
         InputManager.instance().mouseWheel.connect(self._onMouseWheel)
 
     def _synchronizeSliders(self):
@@ -1191,43 +1183,30 @@ class ColorPicker(QWidget):
     
     def _onColorBoxClicked(self, colorboxIndex):
         
-        if colorboxIndex == 0:
-            self._activeColorIndex = ColorIndex.Primary
-        elif colorboxIndex == 1:
-            self._activeColorIndex = ColorIndex.Secondary
+        if colorboxIndex != self._activeColorIndex:
+        
+            if colorboxIndex == 0:
+                self._activeColorIndex = ColorIndex.Primary
+            elif colorboxIndex == 1:
+                self._activeColorIndex = ColorIndex.Secondary
+            
+            self._palette.switchSlot()
     
     def _onKeyPressed(self, key):
         
-        if key == Qt.Key_Space:
+        if key == Qt.Key_C:
             
             self.switchActiveColor()
-    
-        elif key == Qt.Key_Control:
-            
-            self._controlPressed = True
-        
-        elif key == Qt.Key_Alt:
-            
-            self._altPressed = True
-    
-    def _onKeyReleased(self, key):
-        
-        if key == Qt.Key_Control:
-            
-            self._controlPressed = False
-        
-        elif key == Qt.Key_Alt:
-            
-            self._altPressed = False
+   
     
     def _onMouseWheel(self, delta):
-        if self._controlPressed:
+        if InputManager.instance().isKeyPressed(Qt.Key_Control):
             if delta > 0:
                 self.selectNextColorOnPalette()
             elif delta < 0:
                 self.selectPreviousColorOnPalette()
  
-        elif self._altPressed:
+        elif InputManager.instance().isKeyPressed(Qt.Key_Alt):
  
             if delta > 0:
                 self.selectNextRampOnPalette()

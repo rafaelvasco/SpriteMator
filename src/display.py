@@ -170,13 +170,15 @@ class Display(QWidget):
 
 
 
-    def onDrawObject(self, event, painter):
+    def onDrawObject(self, event):
         pass
 
 
     def paintEvent(self, event):
 
-        painter = QPainter(self)
+        painter = QPainter()
+
+        painter.begin(self)
 
         painter.fillRect(self.rect(), self._backgroundColor)
 
@@ -226,8 +228,8 @@ class Display(QWidget):
         painter.setMatrix(self._combinedTransform)
 
         painter.drawTiledPixmap(0, 0, objectWidth, objectHeight, self._checkerTile)
-
-        self.onDrawObject(event, painter)
+        
+        self.onDrawObject(event)
 
     def mousePressEvent(self, e):
 
@@ -268,6 +270,8 @@ class Display(QWidget):
             self.zoom(scaleFactor, self._globalMousePos)
         else:
             self.zoom(1.0 / scaleFactor, self._globalMousePos)
+            
+        
 
 
 

@@ -170,15 +170,13 @@ class Display(QWidget):
 
 
 
-    def onDrawObject(self, event):
-        pass
+    def onDrawObject(self, event, painter):
+        return
 
 
     def paintEvent(self, event):
 
-        painter = QPainter()
-
-        painter.begin(self)
+        painter = QPainter(self)
 
         painter.fillRect(self.rect(), self._backgroundColor)
 
@@ -228,8 +226,8 @@ class Display(QWidget):
         painter.setMatrix(self._combinedTransform)
 
         painter.drawTiledPixmap(0, 0, objectWidth, objectHeight, self._checkerTile)
-        
-        self.onDrawObject(event)
+
+        self.onDrawObject(event, painter)
 
     def mousePressEvent(self, e):
 
@@ -238,6 +236,13 @@ class Display(QWidget):
             self._panning = True
             self._lastPanPoint = e.pos()
             self.setCursor(Qt.ClosedHandCursor)
+
+    def mouseReleaseEvent(self, e):
+        
+        if e.button() == Qt.MiddleButton:
+            
+            self._panning = False
+            self.setCursor(Qt.BlankCursor)
 
 
     def mouseMoveEvent(self, e):
@@ -273,14 +278,7 @@ class Display(QWidget):
             
         
 
-
-
-    def mouseReleaseEvent(self, e):
-
-        if self._panning and e.button() == Qt.MiddleButton:
-
-            self._panning = False
-            self.setCursor(Qt.ArrowCursor)
+   
 
     def keyPressEvent(self, e):
 

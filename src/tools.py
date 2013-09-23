@@ -24,19 +24,19 @@ class Tool():
     def isActive(self):
         return self._active
     
-    def dirtyRect(self):
+    def dirtyRect(self, zoom):
         return None
 
     def setActive(self, active):
         self._active = active
 
-    def onMousePress(self, canvas, pos, button):
+    def onMousePress(self, canvas, objectMousePos, button):
         return
 
-    def onMouseMove(self, pos):
+    def onMouseMove(self, objectMousePos, absoluteMousePos):
         return
     
-    def onMouseRelease(self, canvas, pos, button):
+    def onMouseRelease(self, canvas, objectMousePos, button):
         return
     
     def draw(self, painter):
@@ -56,9 +56,9 @@ class Picker(Tool):
     def __init__(self):
         Tool.__init__(self)
 
-    def onMousePress(self, canvas, pos, button):
+    def onMousePress(self, canvas, objectMousePos, button):
 
-        pickedColor = QColor(canvas._currentDrawingSurface.pixel(pos))
+        pickedColor = QColor(canvas._currentDrawingSurface.pixel(objectMousePos))
         ColorPicker.Instance.setColor(pickedColor)
 
 # ======================================================================================================================
@@ -73,20 +73,24 @@ class Pen(Tool):
         self._currentPos = QPoint(0, 0)
         self._lastPos = QPoint(0, 0)
         self._pointerPos = QPoint(0, 0)
+        self._lastPointerPos = QPoint(0, 0)
         self._size = 16
         self._deltaX = 0
         self._deltaY = 0
         self._drawPen = QPen()
-        self._drawPen.setColor(Qt.black)
+        self._drawPen.setColor(Qt.white)
         self._drawPen.setJoinStyle(Qt.MiterJoin)
+        self._drawPen.setWidth(0)
         self._drawPen.setCapStyle(Qt.SquareCap)
     
-    def dirtyRect(self):
+    def dirtyRect(self, zoom):
         
-        left = self._pointerPos.x() - self._size
-        top = self._pointerPos.y() - self._size 
-        right = self._pointerPos.x() + self._size
-        bottom = self._pointerPos.y() + self._size
+        size = self._size * zoom * 2
+        
+        left = self._pointerPos.x() - size
+        top = self._pointerPos.y() - size
+        right = self._pointerPos.x() + size
+        bottom = self._pointerPos.y() + size
         
         if self._deltaX > 0 :
             left -= self._deltaX
@@ -100,51 +104,62 @@ class Pen(Tool):
         
         return QRect(left, top, right - left, bottom - top)
 
-    def draw(self, painter):
+    def draw(self, painter, zoom):
+        
+        x = self._pointerPos.x()
+        y = self._pointerPos.y()
+        
+        size = self._size * zoom
+        halfSize = size // 2
         
         painter.setPen(self._drawPen)
-        painter.drawRect(self._pointerPos.x() - self._size // 2 ,
-                         self._pointerPos.y() - self._size // 2 ,
-                         self._size,
-                         self._size)
+        
+        
+        
+        painter.drawRect(x - halfSize,
+                         y - halfSize,
+                         size - 1,
+                         size - 1)
 
+    
     def blit(self, painter, ink):
         
         if self._currentPos.x() != self._lastPos.x() or self._currentPos.y() != self._lastPos.y():
             drawing.drawLine(self._lastPos, self._currentPos, self._size, ink, painter)
         
         else:
-            
             ink.blit(self._currentPos.x(), self._currentPos.y(), self._size, self._size, painter)
     
-    def onMousePress(self, canvas, pos, button):
+    def onMousePress(self, canvas, objectMousePos, button):
 
         if self._size > 1:
-            src.utils.snapPoint(pos, self._size)
+            src.utils.snapPoint(objectMousePos, self._size)
 
 
-        self._lastPos.setX(pos.x())
-        self._lastPos.setY(pos.y())
+        self._lastPos.setX(objectMousePos.x())
+        self._lastPos.setY(objectMousePos.y())
 
     
-    def onMouseMove(self, pos):
+    def onMouseMove(self, objectMousePos, absoluteMousePos):
         
-        self._deltaX = pos.x() - self._pointerPos.x()
-        self._deltaY = pos.y() - self._pointerPos.y()
+        self._deltaX = self._pointerPos.x() - self._lastPointerPos.x()
+        self._deltaY = self._pointerPos.y() - self._lastPointerPos.y()
         
-        print(self._deltaX, ' , ' , self._deltaY)
-        
-        self._pointerPos.setX(pos.x())
-        self._pointerPos.setY(pos.y())
         
         if self._size > 1:
-            src.utils.snapPoint(pos, self._size)
+            src.utils.snapPoint(objectMousePos, self._size)
         
         self._lastPos.setX(self._currentPos.x())
         self._lastPos.setY(self._currentPos.y())
         
-        self._currentPos.setX(pos.x())
-        self._currentPos.setY(pos.y())
+        self._lastPointerPos.setX(self._pointerPos.x())
+        self._lastPointerPos.setY(self._pointerPos.y())
+        
+        self._currentPos.setX(objectMousePos.x())
+        self._currentPos.setY(objectMousePos.y())
+        
+        self._pointerPos.setX(absoluteMousePos.x())
+        self._pointerPos.setY(absoluteMousePos.y())
     
 
 # ======================================================================================================================

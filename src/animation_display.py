@@ -133,9 +133,7 @@ class AnimationDisplay(Display):
 
         self.update()
 
-    def onDrawObject(self, event):
-        
-        painter = QPainter(self)
+    def onDrawObject(self, event, painter):
         
         if self._animation is not None:
 

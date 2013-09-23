@@ -7,12 +7,10 @@
 # License:          
 #--------------------------------------------------
 from PyQt4.QtCore import Qt, pyqtSignal, QPoint
-from PyQt4.QtGui import QPainter, QPushButton, QVBoxLayout, QSizePolicy, QHBoxLayout, QColor
+from PyQt4.QtGui import QPainter, QPushButton, QVBoxLayout, QSizePolicy, QHBoxLayout
 
 from src.display import  Display
 from src.sprite import Frame
-from src.canvas_overlay import CanvasOverlay
-
 import src.tools as Tools
 import src.inks as Inks
 import src.utils as Utils
@@ -29,12 +27,15 @@ class Canvas(Display):
         self._animationDisplay = animationDisplay
         self._currentDrawingSurface = None
         self._overlaySurface = None
-        self._overlaySurface2 = CanvasOverlay(self)
         
+        self._currentCompositionMode = QPainter.CompositionMode_SourceOver
+        self._painter = QPainter()
         self._currentTool = Tools.Pen
         self._primaryInk = Inks.Solid()
         self._secondaryInk = Inks.Solid()
-        self._mousePosition = QPoint()
+        
+        self._absoluteMousePosition = QPoint()
+        self._spriteMousePosition = QPoint()
         
         
         self._mainLayout = QVBoxLayout(self)
@@ -60,6 +61,7 @@ class Canvas(Display):
         self._controlsLayout.addWidget(self._goToNextFrameBtn)
 
         self._mainLayout.addLayout(self._controlsLayout)
+
 
 
         self.setMouseTracking(True)
@@ -331,61 +333,44 @@ class Canvas(Display):
     # ----- EVENTS -----------------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
 
-    def onDrawObject(self, event):
+    def onDrawObject(self, event, painter):
 
         if self._currentSprite is None:
             return
-        
-        painter = QPainter()
-        
+
         layers = self._currentSprite.currentAnimation().currentFrame().surfaces()
-        
-        painter.begin(self)
+
         for layer in layers:
             painter.drawImage(0, 0, layer.image())
         
-        painter.end()
-        #painter.drawImage(0, 0, self._overlaySurface)
         
-        ink = self._primaryInk 
+        painter.resetMatrix()
+        painter.setCompositionMode(QPainter.CompositionMode_Difference)
+        painter.drawImage(0, 0, self._overlaySurface)
         
-        
-        
-        if self._currentTool.isActive():
-            
-            painter.begin(self._currentDrawingSurface)
-            self._currentTool.blit(painter, ink)
-            painter.end()
-        
-        
-        #painter.begin(self._overlaySurface2)
-        
-        #self._currentTool.draw(painter)
-        
-        #painter.end()
-        
-
+#         painter.resetMatrix()
+#  
 #         painter.drawText(10,50, "Current Animation: {0}, Current Frame: {1}, Current Surface: {2}"
 #                 .format(self._currentSprite.currentAnimation().name(),
 #                         self._currentSprite.currentAnimation().currentFrameIndex(),
 #                         self._currentSprite.currentAnimation().currentFrame().currentSurfaceIndex()))
-# 
+#  
 #         painter.drawText(10, 70, "Current Layer Stack: ")
-# 
+#  
 #         layers = self.currentFrame().surfaces()
 #         index = 0
 #         for layer in layers:
-# 
+#  
 #             painter.drawText( 10, 20 * (index) + 100, "Index: " + str(index) + ", Name: " + layer.name())
 #             index += 1
             
         
+        
     def resizeEvent(self, e):
         
-        self._overlaySurface2.resize(e.size())
-        e.accept()
-            
-       
+        if self._overlaySurface is not None:
+        
+            self._overlaySurface = self._overlaySurface.scaled(self.width(), self.height())
 
     def onDelFrameButtonClicked(self):
 
@@ -398,19 +383,35 @@ class Canvas(Display):
 
         if self._currentSprite is None:
             return
-
+        
+        if self._panning:
+            self._clearOverlaySurface()
+            self.update()
+            return
+        
         button = e.button()
         
         if button != Qt.LeftButton and button != Qt.RightButton:
             return
         
-        self._processMouseEvent(e)
+        self._updateMouseState(e)
         
-        self._currentTool.onMousePress(self, self._mousePosition, e.button())
+        self._currentTool.onMousePress(self, self._spriteMousePosition, e.button())
         
         self._currentTool.setActive(True)
         
         self._animationDisplay._startRefreshing()
+
+        
+        self._painter.begin(self._currentDrawingSurface)
+        
+        ink = self._primaryInk if button == Qt.LeftButton else self._secondaryInk
+        
+        ink.prepare(self._painter)
+        
+        self._currentTool.blit(self._painter, ink)
+
+        self._painter.end()
 
         self.update()
 
@@ -421,33 +422,98 @@ class Canvas(Display):
         if self._currentSprite is None:
             return
 
-        self._processMouseEvent(e)
-  
-        self._currentTool.onMouseMove(self._mousePosition)
+        self._updateMouseState(e)
+        
+        ink = self._primaryInk if e.buttons() & Qt.LeftButton else self._secondaryInk
+        
+        self._currentTool.onMouseMove(self._spriteMousePosition, self._absoluteMousePosition)
+        
+        if not self._panning:
+        
+            if self._currentTool.isActive():
             
+                self._painter.begin(self._currentDrawingSurface)
+        
+                self._currentTool.blit(self._painter, ink)
+        
+                self._painter.end()
+            
+            
+                
+            self._painter.begin(self._overlaySurface)
+            
+            self._painter.setCompositionMode(QPainter.CompositionMode_Clear)
+            
+            self._painter.fillRect(self._currentTool.dirtyRect(self._zoom), Qt.white)
+            
+            self._painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
+            print('Zoom: ', self._zoom)
+            self._currentTool.draw(self._painter, self._zoom)
+            
+            self._painter.end()
+            
+        
         self.update()
 
     def mouseReleaseEvent(self, e):
-
-        super().mouseReleaseEvent(e)
-
+        
+        
+        
         if self._currentSprite is None:
+            return
+        
+        if self._panning:
+            self._painter.begin(self._overlaySurface)
+            self._currentTool.draw(self._painter, self._zoom)
+            self._painter.end()
+            self.update()
+            super().mouseReleaseEvent(e)
             return
 
         self._animationDisplay._stopRefreshing()
 
-        self._processMouseEvent(e)
+        self._updateMouseState(e)
         
         self._currentTool.setActive(False)
         
-        self._currentTool.onMouseRelease(self, self._mousePosition, e.button())
+        self._currentTool.onMouseRelease(self, self._spriteMousePosition, e.button())
+        
+        ink = self._primaryInk if e.button() == Qt.LeftButton else self._secondaryInk
+        
+        ink.finish(self._painter)
         
         self.update()
-
+        
+        super().mouseReleaseEvent(e)
+    
+    def wheelEvent(self, e):
+        
+        super().wheelEvent(e)
+        
+        self._painter.begin(self._overlaySurface)
+        
+            
+        self._painter.setCompositionMode(QPainter.CompositionMode_Clear)
+            
+        self._painter.fillRect(self._currentTool.dirtyRect(self._zoom), Qt.white)
+        
+        self._painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
+        
+        self._currentTool.draw(self._painter, self._zoom)
+    
+        self._painter.end()
+    
     def enterEvent(self, e):
+        
+        if self._currentSprite is None:
+            return
+        
         self.setCursor(Qt.BlankCursor)
     
     def leaveEvent(self, e):
+        
+        if self._currentSprite is None:
+            return
         
         self._clearOverlaySurface()
         self.setCursor(Qt.ArrowCursor)
@@ -458,14 +524,17 @@ class Canvas(Display):
     # ---- PRIVATE METHODS ---------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
 
-    def _processMouseEvent(self, e):
+    def _updateMouseState(self, e):
 
-        spriteLocalMouse = super().objectMousePos()
+        objectMousePosition = super().objectMousePos()
 
-        spriteLocalMouse.setX(round(spriteLocalMouse.x(), 2))
-        spriteLocalMouse.setY(round(spriteLocalMouse.y(), 2))
+        objectMousePosition.setX(round(objectMousePosition.x(), 2))
+        objectMousePosition.setY(round(objectMousePosition.y(), 2))
         
-        self._mousePosition = spriteLocalMouse
+        self._spriteMousePosition = objectMousePosition
+        
+        self._absoluteMousePosition.setX(e.pos().x())
+        self._absoluteMousePosition.setY(e.pos().y())
 
     def _updateDrawingSurface(self):
 
@@ -480,19 +549,16 @@ class Canvas(Display):
         if self._currentSprite is None:
             return
         
-        overlayWidth = self._currentSprite.currentAnimation().frameWidth()
-        overlayHeight = self._currentSprite.currentAnimation().frameHeight()
         
         if self._overlaySurface is None:
-            self._overlaySurface = Utils.createImage(overlayWidth, overlayHeight)
-        else:
-            self._overlaySurface.scaled(overlayWidth, overlayHeight, Qt.IgnoreAspectRatio, Qt.FastTransformation)
+            self._overlaySurface = Utils.createImage(self.width(), self.height())
             
-    def _clearOverlaySurface(self):
+    def _clearOverlaySurface(self, rect=None):
         
         if self._currentSprite is None:
             return
         
-        painter = QPainter(self._overlaySurface)
-        painter.setCompositionMode(QPainter.CompositionMode_Clear)
-        painter.fillRect(self._overlaySurface.rect(), Qt.white)
+        self._painter.begin(self._overlaySurface)
+        self._painter.setCompositionMode(QPainter.CompositionMode_Clear)
+        self._painter.fillRect(self.rect() if rect is None else rect, Qt.white)
+        self._painter.end()

@@ -11,6 +11,8 @@ from PyQt4.QtGui import QPainter, QPushButton, QVBoxLayout, QSizePolicy, QHBoxLa
 
 from src.display import  Display
 from src.sprite import Frame
+from src.canvas_overlay import CanvasOverlay
+
 import src.tools as Tools
 import src.inks as Inks
 import src.utils as Utils
@@ -27,6 +29,8 @@ class Canvas(Display):
         self._animationDisplay = animationDisplay
         self._currentDrawingSurface = None
         self._overlaySurface = None
+        self._overlaySurface2 = CanvasOverlay(self)
+        
         
         self._currentCompositionMode = QPainter.CompositionMode_SourceOver
         self._painter = QPainter()
@@ -343,10 +347,11 @@ class Canvas(Display):
         for layer in layers:
             painter.drawImage(0, 0, layer.image())
         
+        #self._overlaySurface2.setUpdatesEnabled(True)
         
-        painter.resetMatrix()
-        painter.setCompositionMode(QPainter.CompositionMode_Difference)
-        painter.drawImage(0, 0, self._overlaySurface)
+        #painter.resetMatrix()
+        #painter.setCompositionMode(QPainter.CompositionMode_Difference)
+        #painter.drawImage(0, 0, self._overlaySurface)
         
 #         painter.resetMatrix()
 #  
@@ -368,9 +373,11 @@ class Canvas(Display):
         
     def resizeEvent(self, e):
         
-        if self._overlaySurface is not None:
+        self._overlaySurface2.resize(self.size())
         
-            self._overlaySurface = self._overlaySurface.scaled(self.width(), self.height())
+        #if self._overlaySurface is not None:
+        
+        #    self._overlaySurface = self._overlaySurface.scaled(self.width(), self.height())
 
     def onDelFrameButtonClicked(self):
 
@@ -440,17 +447,17 @@ class Canvas(Display):
             
             
                 
-            self._painter.begin(self._overlaySurface)
+            #self._painter.begin(self._overlaySurface)
             
-            self._painter.setCompositionMode(QPainter.CompositionMode_Clear)
+            #self._painter.setCompositionMode(QPainter.CompositionMode_Clear)
             
-            self._painter.fillRect(self._currentTool.dirtyRect(self._zoom), Qt.white)
+            #self._painter.fillRect(self._currentTool.dirtyRect(self._zoom), Qt.white)
             
-            self._painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
-            print('Zoom: ', self._zoom)
-            self._currentTool.draw(self._painter, self._zoom)
+            #self._painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
+            #print('Zoom: ', self._zoom)
+            #self._currentTool.draw(self._painter, self._zoom)
             
-            self._painter.end()
+            #self._painter.end()
             
         
         self.update()
@@ -462,13 +469,13 @@ class Canvas(Display):
         if self._currentSprite is None:
             return
         
-        if self._panning:
-            self._painter.begin(self._overlaySurface)
-            self._currentTool.draw(self._painter, self._zoom)
-            self._painter.end()
-            self.update()
-            super().mouseReleaseEvent(e)
-            return
+#         if self._panning:
+#             self._painter.begin(self._overlaySurface)
+#             self._currentTool.draw(self._painter, self._zoom)
+#             self._painter.end()
+#             self.update()
+#             super().mouseReleaseEvent(e)
+#             return
 
         self._animationDisplay._stopRefreshing()
 
@@ -490,18 +497,12 @@ class Canvas(Display):
         
         super().wheelEvent(e)
         
-        self._painter.begin(self._overlaySurface)
-        
-            
-        self._painter.setCompositionMode(QPainter.CompositionMode_Clear)
-            
-        self._painter.fillRect(self._currentTool.dirtyRect(self._zoom), Qt.white)
-        
-        self._painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
-        
-        self._currentTool.draw(self._painter, self._zoom)
-    
-        self._painter.end()
+#         self._painter.begin(self._overlaySurface)
+#         self._painter.setCompositionMode(QPainter.CompositionMode_Clear)
+#         self._painter.fillRect(self._currentTool.dirtyRect(self._zoom), Qt.white)
+#         self._painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
+#         self._currentTool.draw(self._painter, self._zoom)
+#         self._painter.end()
     
     def enterEvent(self, e):
         

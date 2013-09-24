@@ -15,6 +15,7 @@ class CanvasOverlay(QWidget):
         self._canvas = parent
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
         self.setAutoFillBackground(True)
+        #self.setUpdatesEnabled(False)
         
     def paintEvent(self, e):
         

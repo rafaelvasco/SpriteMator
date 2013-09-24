@@ -78,7 +78,7 @@ class Pen(Tool):
         self._deltaX = 0
         self._deltaY = 0
         self._drawPen = QPen()
-        self._drawPen.setColor(Qt.white)
+        self._drawPen.setColor(Qt.black)
         self._drawPen.setJoinStyle(Qt.MiterJoin)
         self._drawPen.setWidth(0)
         self._drawPen.setCapStyle(Qt.SquareCap)

@@ -9,18 +9,17 @@
 
 import sys
 
-
+from PyQt4.QtCore import Qt, QEvent
 from PyQt4.QtGui import QApplication
 
 from src.main_window import MainWindow
 from src.sprite import Sprite
-from src.input_manager import InputManager
 
 
 import src.utils as utils
 
 class Application(QApplication):
-
+    
     def __init__(self, args):
         
         super(Application, self).__init__(args)
@@ -146,7 +145,6 @@ class Application(QApplication):
         self._view.close()
 
     # ------------------------------------------------------------------------------------------------------------------
-    # VIEW EVENTS ------------------------------------------------------------------------------------------------------
 
     def _connectWithView(self):
 
@@ -159,12 +157,52 @@ class Application(QApplication):
         self._view.actionClose.triggered.connect(self.closeSprite)
         self._view.actionQuit.triggered.connect(self.terminate)
 
+    # GLOBAL INPUT EVENTS ------------------------------------------------------------------------------------------------
     
+    def _onKeyPressed(self, event):
+        
+        key = event.key()
+        
+        if key == Qt.Key_Space:
+            
+            self._view.colorPicker().switchActiveColor()
+        
+        elif key == Qt.Key_C:
+            
+            self._view.canvas().clear()
+    
+    def _onMousePressed(self, event):
+        pass
+    
+    def _onMouseWheel(self, event):
+        
+        if event.modifiers() & Qt.ControlModifier:
+            
+            if event.delta() > 0:
+                self._view.colorPicker().selectNextColorOnPalette()
+            elif event.delta() < 0:
+                self._view.colorPicker().selectPreviousColorOnPalette()
+        
+        elif event.modifiers() & Qt.AltModifier:
+            
+            if event.delta() > 0:
+                self._view.colorPicker().selectNextRampOnPalette()
+            elif event.delta() < 0:
+                self._view.colorPicker().selectPreviousRampOnPalette()
+            
     # ------------------------------------------------------------------------------------------------------------------
     
     def notify(self, receiver, event):
         
-        InputManager.instance()._receiveApplicationEvent(event)
+        
+        if event.type() == QEvent.MouseButtonPress:
+            self._onMousePressed(event)
+        
+        if event.type() == QEvent.KeyPress and not event.isAutoRepeat():
+            self._onKeyPressed(event)
+        
+        if event.type() == QEvent.Wheel:
+            self._onMouseWheel(event)
             
         return super(Application, self).notify(receiver, event)
     

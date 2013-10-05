@@ -9,11 +9,10 @@
 
 
 from PyQt4.QtCore import QPointF, QPoint, Qt, QSize
-from PyQt4.QtGui import QWidget, QPainter, QImage, QPixmap, QMatrix, QColor
+from PyQt4.QtGui import QWidget, QPainter, QMatrix, QColor
 
 
 import src.utils as utils
-from src.input_manager import InputManager
 
 class Display(QWidget):
 
@@ -37,9 +36,9 @@ class Display(QWidget):
         self._currentFocusPoint = QPointF()
         self._keyTranslationVector = QPoint()
         self._currentObjectSize = QSize()
-
-        self._checkerTile = self._generateCheckerboardTile(16, QColor(222,222,222), QColor(253,253,253))
-
+        
+        self._checkerTile = utils.generateCheckerTile(16, QColor(222,222,222), QColor(253,253,253))
+        
         self.setMouseTracking(True)
         self.resetOrigin()
 
@@ -49,7 +48,13 @@ class Display(QWidget):
 
     def objectMousePos(self):
         return self._invertedCombinedTransform.map(self._globalMousePos)
-
+    
+    def viewMousePos(self):
+        
+        objectMousePos = self.objectMousePos()
+        objSize = self._currentObjectSize
+        return QPointF(objectMousePos.x() - objSize.width() // 2,
+                       objectMousePos.y() - objSize.height() // 2)
 
     def isFitInView(self):
         return self._fitInView
@@ -162,6 +167,17 @@ class Display(QWidget):
 
         self._translationTransform.translate(dx, dy)
         self.update()
+        
+    def panTo(self, x, y):
+        
+        if self._fitInView:
+
+            self._fitInView = False
+            
+        self._translationTransform.reset()
+        self._translationTransform.translate(x, y)
+        self.update()
+        
 
 
     # def resizeEvent(self, e):
@@ -199,6 +215,7 @@ class Display(QWidget):
             centerTranslateY = round(viewHeight / 2 - objectHeight / 2)
 
             self._viewportTransform.translate(centerTranslateX, centerTranslateY)
+            
         else:
             finalScaleX = viewWidth / objectWidth
             finalScaleY = viewHeight / objectHeight
@@ -222,7 +239,7 @@ class Display(QWidget):
 
         self._combinedTransform = self._viewportTransform * self._translationTransform * self._scaleTransform
         self._invertedCombinedTransform = self._combinedTransform.inverted()[0]
-
+        
         painter.setMatrix(self._combinedTransform)
 
         painter.drawTiledPixmap(0, 0, objectWidth, objectHeight, self._checkerTile)
@@ -249,7 +266,9 @@ class Display(QWidget):
 
         self._globalMousePos.setX(e.pos().x())
         self._globalMousePos.setY(e.pos().y())
-
+        
+       
+        
         if not self._panning:
             return
 
@@ -261,12 +280,17 @@ class Display(QWidget):
             self.pan(delta.x(), delta.y())
 
         self._lastPanPoint = e.pos()
+        
+        
 
 
     def wheelEvent(self, e):
         
-        if (InputManager.instance().isKeyPressed(Qt.Key_Control) or 
-            InputManager.instance().isKeyPressed(Qt.Key_Alt)):
+#         if (InputManager.instance().isKeyPressed(Qt.Key_Control) or 
+#             InputManager.instance().isKeyPressed(Qt.Key_Alt)):
+#             return
+        
+        if e.modifiers() & (Qt.ControlModifier | Qt.AltModifier):
             return
         
         scaleFactor = 2.0
@@ -329,32 +353,5 @@ class Display(QWidget):
         elif e.key() == Qt.Key_5:
 
             self.zoomTo(5.0)
-
-
-    def _generateCheckerboardTile(self, size, color1, color2):
-
-        tileSize = size * 2
-
-        tile = QImage(tileSize, tileSize, QImage.Format_ARGB32_Premultiplied)
-
-        painter = QPainter()
-
-        painter.begin(tile)
-
-        painter.fillRect(0, 0, tileSize, tileSize, color1)
-        painter.fillRect(0, 0, size, size, color2)
-        painter.fillRect(size,size,size,size, color2)
-
-        painter.end()
-
-        tilePixmap = QPixmap.fromImage(tile)
-
-        return tilePixmap
-
-
-
-
-
-
 
 

@@ -5,7 +5,7 @@
 # Date:             31/03/13
 # License:          
 #--------------------------------------------------
-from PyQt4.QtCore import QPoint, Qt, QRect
+from PyQt4.QtCore import QPoint, Qt
 from PyQt4.QtGui import QColor, QPen
 
 import src.drawing as drawing
@@ -24,9 +24,6 @@ class Tool():
     def isActive(self):
         return self._active
     
-    def dirtyRect(self, zoom):
-        return None
-
     def setActive(self, active):
         self._active = active
 
@@ -83,27 +80,7 @@ class Pen(Tool):
         self._drawPen.setWidth(0)
         self._drawPen.setCapStyle(Qt.SquareCap)
     
-    def dirtyRect(self, zoom):
-        
-        size = self._size * zoom * 2
-        
-        left = self._pointerPos.x() - size
-        top = self._pointerPos.y() - size
-        right = self._pointerPos.x() + size
-        bottom = self._pointerPos.y() + size
-        
-        if self._deltaX > 0 :
-            left -= self._deltaX
-        else:
-            right -= self._deltaX
-            
-        if self._deltaY > 0:
-            top -= self._deltaY
-        else:
-            bottom -= self._deltaY
-        
-        return QRect(left, top, right - left, bottom - top)
-
+   
     def draw(self, painter, zoom):
         
         x = self._pointerPos.x()
@@ -114,20 +91,23 @@ class Pen(Tool):
         
         painter.setPen(self._drawPen)
         
-        
-        
         painter.drawRect(x - halfSize,
                          y - halfSize,
                          size - 1,
                          size - 1)
 
     
-    def blit(self, painter, ink):
+    def blit(self, painter, ink, press=None):
         
-        if self._currentPos.x() != self._lastPos.x() or self._currentPos.y() != self._lastPos.y():
-            drawing.drawLine(self._lastPos, self._currentPos, self._size, ink, painter)
+        deltaX = self._currentPos.x() - self._lastPos.x()
+        deltaY = self._currentPos.y() - self._lastPos.y()
         
-        else:
+        if deltaX != 0 or deltaY != 0:
+            drawing.drawLine(self._lastPos , self._currentPos, self._size, ink, painter)
+            
+        
+        elif press is not None:
+            print('Blit')
             ink.blit(self._currentPos.x(), self._currentPos.y(), self._size, self._size, painter)
     
     def onMousePress(self, canvas, objectMousePos, button):
@@ -141,9 +121,6 @@ class Pen(Tool):
 
     
     def onMouseMove(self, objectMousePos, absoluteMousePos):
-        
-        self._deltaX = self._pointerPos.x() - self._lastPointerPos.x()
-        self._deltaY = self._pointerPos.y() - self._lastPointerPos.y()
         
         
         if self._size > 1:

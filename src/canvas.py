@@ -23,7 +23,7 @@ class Canvas(Display):
 
     def __init__(self, animationDisplay):
 
-        Display.__init__(self)
+        super(Canvas, self).__init__()
 
         self._currentSprite = None
         self._animationDisplay = animationDisplay
@@ -36,7 +36,7 @@ class Canvas(Display):
         self._painter = QPainter()
         self._currentTool = Tools.Pen
         self._primaryInk = Inks.Solid()
-        self._secondaryInk = Inks.Solid()
+        self._secondaryInk = Inks.Eraser()
         
         self._absoluteMousePosition = QPoint()
         self._spriteMousePosition = QPoint()
@@ -72,7 +72,9 @@ class Canvas(Display):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setMinimumWidth(320)
         self.setMinimumHeight(240)
-
+        self.setAttribute(Qt.WA_StaticContents)
+        self.setAttribute(Qt.WA_NoSystemBackground)
+        
 
 
 
@@ -314,16 +316,22 @@ class Canvas(Display):
 
         if self._currentSprite is None:
             return
+        
+        if index is None:
+            surface = self._currentDrawingSurface
+        else:
+            surface = self._currentSprite.currentAnimation().currentFrame().surfaceAt(index).image()
 
         painter = QPainter()
-
-        painter.begin(self._currentDrawingSurface)
+        
+        painter.begin(surface)
 
         painter.setCompositionMode(QPainter.CompositionMode_Clear)
-        painter.fillRect(0, 0, self._currentDrawingSurface.width(), self._currentDrawingSurface.height(), Qt.white)
+        painter.fillRect(0, 0, surface.width(), surface.height(), Qt.white)
 
         painter.end()
-
+        
+        self.update()
 
     def resize(self, width, height, index=None):
 
@@ -408,7 +416,6 @@ class Canvas(Display):
         self._currentTool.setActive(True)
         
         self._animationDisplay._startRefreshing()
-
         
         self._painter.begin(self._currentDrawingSurface)
         
@@ -416,7 +423,7 @@ class Canvas(Display):
         
         ink.prepare(self._painter)
         
-        self._currentTool.blit(self._painter, ink)
+        self._currentTool.blit(self._painter, ink, True)
 
         self._painter.end()
 
@@ -428,8 +435,12 @@ class Canvas(Display):
 
         if self._currentSprite is None:
             return
-
+        
         self._updateMouseState(e)
+        
+        viewMousePosition = self.viewMousePos()
+        
+        self._animationDisplay.panTo(-viewMousePosition.x(), -viewMousePosition.y())
         
         ink = self._primaryInk if e.buttons() & Qt.LeftButton else self._secondaryInk
         
@@ -444,21 +455,6 @@ class Canvas(Display):
                 self._currentTool.blit(self._painter, ink)
         
                 self._painter.end()
-            
-            
-                
-            #self._painter.begin(self._overlaySurface)
-            
-            #self._painter.setCompositionMode(QPainter.CompositionMode_Clear)
-            
-            #self._painter.fillRect(self._currentTool.dirtyRect(self._zoom), Qt.white)
-            
-            #self._painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
-            #print('Zoom: ', self._zoom)
-            #self._currentTool.draw(self._painter, self._zoom)
-            
-            #self._painter.end()
-            
         
         self.update()
 
@@ -469,13 +465,6 @@ class Canvas(Display):
         if self._currentSprite is None:
             return
         
-#         if self._panning:
-#             self._painter.begin(self._overlaySurface)
-#             self._currentTool.draw(self._painter, self._zoom)
-#             self._painter.end()
-#             self.update()
-#             super().mouseReleaseEvent(e)
-#             return
 
         self._animationDisplay._stopRefreshing()
 
@@ -497,12 +486,6 @@ class Canvas(Display):
         
         super().wheelEvent(e)
         
-#         self._painter.begin(self._overlaySurface)
-#         self._painter.setCompositionMode(QPainter.CompositionMode_Clear)
-#         self._painter.fillRect(self._currentTool.dirtyRect(self._zoom), Qt.white)
-#         self._painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
-#         self._currentTool.draw(self._painter, self._zoom)
-#         self._painter.end()
     
     def enterEvent(self, e):
         
@@ -536,6 +519,7 @@ class Canvas(Display):
         
         self._absoluteMousePosition.setX(e.pos().x())
         self._absoluteMousePosition.setY(e.pos().y())
+        
 
     def _updateDrawingSurface(self):
 

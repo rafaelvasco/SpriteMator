@@ -16,8 +16,7 @@ class AnimationDisplay(Display):
 
     def __init__(self):
 
-
-        Display.__init__(self)
+        super(AnimationDisplay, self).__init__()
         self._animation = None
         self._playing = False
         self._refreshing = False

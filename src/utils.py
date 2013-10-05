@@ -11,7 +11,7 @@ import os
 import math
 
 from PyQt4.QtCore import Qt, QDir, QByteArray, QBuffer, QIODevice
-from PyQt4.QtGui import QImage, QFileDialog, QMatrix
+from PyQt4.QtGui import QImage, QFileDialog, QMatrix, QPainter, QPixmap
 
 
 
@@ -126,5 +126,25 @@ def multiplyMatrix(m1, m2):
 					round(m1_dx * m2_21 + m1_dy * m2_22 + m2_dy))
 
 # -----------------------------------------------------------------------------
+
+def generateCheckerTile(size, color1, color2):
+    
+        tileSize = size * 2
+
+        tile = QImage(tileSize, tileSize, QImage.Format_ARGB32_Premultiplied)
+
+        painter = QPainter()
+
+        painter.begin(tile)
+
+        painter.fillRect(0, 0, tileSize, tileSize, color1)
+        painter.fillRect(0, 0, size, size, color2)
+        painter.fillRect(size,size,size,size, color2)
+
+        painter.end()
+
+        tilePixmap = QPixmap.fromImage(tile)
+
+        return tilePixmap
 
 

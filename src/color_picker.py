@@ -13,13 +13,12 @@ from PyQt4.QtGui import QBrush, QPen, QWidget, QPainter, QColor, QVBoxLayout, QS
                         QLinearGradient, QPolygon, QImage, QPixmap, QFont
 
 
-import src.utils
-from src.input_manager import InputManager
+import src.utils as utils
 
 # ======================================================================================================================
 
 
-ColorIndex = src.utils.enum('Primary', 'Secondary')
+ColorIndex = utils.enum('Primary', 'Secondary')
 
 
 
@@ -486,7 +485,7 @@ class ColorPalette(QWidget):
 class ColorSlider(QWidget):
 
 
-    Orientation = src.utils.enum('HORIZONTAL', 'VERTICAL')
+    Orientation = utils.enum('HORIZONTAL', 'VERTICAL')
 
     valueChanged = pyqtSignal(int)
 
@@ -516,37 +515,35 @@ class ColorSlider(QWidget):
         return fullSpectrumSlider
 
 
-    def __init__(self, minValue, maxValue):
+    def __init__(self, minValue, maxValue, alpha=None):
         super(ColorSlider, self).__init__()
 
         self._value = minValue
         self._minValue = minValue
         self._maxValue = maxValue
-
-
         self._pickerWidth = 8
         self._sliding = False
-        self._lastX = 0
         self._pickRect = QRect()
         self._slideStep = 10
         self._orientation = self.Orientation.HORIZONTAL
-
         self._label = ""
-
         self._gradient = None
-
         self._font = QFont()
         self._font.setFamily("flxpixl")
         self._font.setPointSize(12)
+        self._pickerPixmap = None
+        self._background = None
+        
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
         self._updateGradient()
         self._positionPicker()
-
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-
-        self.pickerPixmap = None
-
         self._generatePicker()
+        
+        
+        
+        if alpha is not None:
+            self._background = utils.generateCheckerTile(8, QColor(150, 150, 150), QColor(175,175,175))
 
     def label(self):
 
@@ -682,7 +679,9 @@ class ColorSlider(QWidget):
         else:
 
             self._pickRect = QRect(13, pos, self._pickerWidth, 18)
-
+    
+    
+  
     def _generatePicker(self):
 
         image = QImage(8,18, QImage.Format_ARGB32_Premultiplied)
@@ -706,7 +705,7 @@ class ColorSlider(QWidget):
 
         p.end()
 
-        self.pickerPixmap = QPixmap.fromImage(image)
+        self._pickerPixmap = QPixmap.fromImage(image)
 
         image = None
 
@@ -745,7 +744,7 @@ class ColorSlider(QWidget):
 
     def wheelEvent(self, e):
 
-        self.setValue(self._value + src.utils.sign(e.delta())*self._slideStep)
+        self.setValue(self._value + utils.sign(e.delta())*self._slideStep)
 
         self.valueChanged.emit(self._value)
 
@@ -761,6 +760,9 @@ class ColorSlider(QWidget):
         # Paint border
 
         barRect = self.rect().adjusted(0, 15, 0, -1)
+        
+        if self._background is not None:
+            p.drawTiledPixmap(barRect, self._background)
 
         pen = QPen()
         pen.setColor(Qt.black)
@@ -782,7 +784,7 @@ class ColorSlider(QWidget):
 
         # Paint Picker
 
-        p.drawPixmap(self._pickRect, self.pickerPixmap)
+        p.drawPixmap(self._pickRect, self._pickerPixmap)
 
         # Draw Label
 
@@ -861,7 +863,12 @@ class ColorPicker(QWidget):
         self._blueSlider.setLabel("Blue")
         self._blueSlider.setStartColor(QColor("black"))
         self._blueSlider.setEndColor(QColor("blue"))
-
+        
+        self._alphaSlider = ColorSlider(0, 255, True)
+        self._alphaSlider.setLabel("Alpha")
+        self._alphaSlider.setStartColor(QColor("black"))
+        self._alphaSlider.setEndColor(QColor("black"))
+        self._alphaSlider.setValue(255)
 
         # Set Initial Colors
 
@@ -888,6 +895,7 @@ class ColorPicker(QWidget):
         self._layout.addWidget(self._redSlider)
         self._layout.addWidget(self._greenSlider)
         self._layout.addWidget(self._blueSlider)
+        self._layout.addWidget(self._alphaSlider)
 
 
         self.setLayout(self._layout)
@@ -915,14 +923,14 @@ class ColorPicker(QWidget):
 
         self._primarySelectedColor = c
         self.primaryColorChanged.emit(self._primarySelectedColor)
-        self._synchronizeSliders()
+        self._updateSliders()
         self.update()
 
     def setSecondaryColor(self, c):
 
         self._secondarySelectedColor = c
         self.secondaryColorChanged.emit(self._secondarySelectedColor)
-        self._synchronizeSliders()
+        self._updateSliders()
         self.update()
 
 
@@ -940,8 +948,7 @@ class ColorPicker(QWidget):
             self._secondarySelectedColor.setHsv(h, self._secondarySelectedColor.saturation(), self._secondarySelectedColor.value())
             self.secondaryColorChanged.emit(self._secondarySelectedColor)
 
-        self._synchronizeSliders()
-        self._synchronizePalette()
+        self._updateSliders()
         self.update()
 
     def setColorSat(self, s, colorIndex = None):
@@ -958,8 +965,7 @@ class ColorPicker(QWidget):
             self._secondarySelectedColor.setHsv(self._secondarySelectedColor.hue(), s, self._secondarySelectedColor.value())
             self.secondaryColorChanged.emit(self._secondarySelectedColor)
 
-        self._synchronizeSliders()
-        self._synchronizePalette()
+        self._updateSliders()
         self.update()
 
     def setColorVal(self, v, colorIndex = None):
@@ -976,8 +982,7 @@ class ColorPicker(QWidget):
             self._secondarySelectedColor.setHsv(self._secondarySelectedColor.hue(), self._secondarySelectedColor.saturation(), v)
             self.secondaryColorChanged.emit(self._secondarySelectedColor)
 
-        self._synchronizeSliders()
-        self._synchronizePalette()
+        self._updateSliders()
         self.update()
 
     def setColorRed(self, r, colorIndex = None):
@@ -994,8 +999,7 @@ class ColorPicker(QWidget):
             self._secondarySelectedColor.setRed(r)
             self.secondaryColorChanged.emit(self._secondarySelectedColor)
 
-        self._synchronizeSliders()
-        self._synchronizePalette()
+        self._updateSliders()
         self.update()
 
     def setColorGreen(self, g, colorIndex = None):
@@ -1013,8 +1017,7 @@ class ColorPicker(QWidget):
             self.secondaryColorChanged.emit(self._secondarySelectedColor)
 
 
-        self._synchronizeSliders()
-        self._synchronizePalette()
+        self._updateSliders()
         self.update()
 
     def setColorBlue(self, b, colorIndex = None):
@@ -1031,10 +1034,25 @@ class ColorPicker(QWidget):
             self._secondarySelectedColor.setBlue(b)
             self.secondaryColorChanged.emit(self._secondarySelectedColor)
 
-        self._synchronizeSliders()
-        self._synchronizePalette()
+        self._updateSliders()
         self.update()
-
+    
+    
+    def setColorAlpha(self, a, colorIndex = None):
+        
+        colorIndex = colorIndex or ColorIndex.Primary
+        
+        if colorIndex == ColorIndex.Primary:
+            
+            self._primarySelectedColor.setAlpha(a)
+            self.primaryColorChanged.emit(self._primarySelectedColor)
+        
+        elif colorIndex == ColorIndex.Secondary:
+            
+            self._secondarySelectedColor.setAlpha(a)
+            self.secondaryColorChanged.emit(self._secondarySelectedColor)
+            
+        self.update()
     def selectNextColorOnPalette(self):
 
         self._palette.moveColorSelection(1)
@@ -1079,12 +1097,12 @@ class ColorPicker(QWidget):
         self._greenSlider.valueChanged.connect(self._onGreenSliderValueChanged)
         self._blueSlider.valueChanged.connect(self._onBlueSliderValueChanged)
         
+        self._alphaSlider.valueChanged.connect(self._onAlphaSliderValueChanged)
+        
         self._colorBox.mouseClicked.connect(self._onColorBoxClicked)
         
-        InputManager.instance().keyPressed.connect(self._onKeyPressed)
-        InputManager.instance().mouseWheel.connect(self._onMouseWheel)
 
-    def _synchronizeSliders(self):
+    def _updateSliders(self):
 
         color = (self._primarySelectedColor
                  if self._activeColorIndex == ColorIndex.Primary
@@ -1115,19 +1133,19 @@ class ColorPicker(QWidget):
         self._redSlider.setValue(color.red())
         self._greenSlider.setValue(color.green())
         self._blueSlider.setValue(color.blue())
+        
+        # ALPHA
+        
+        alphaColor = color
+        
+        alphaColor.setAlpha(0)
+        self._alphaSlider.setStartColor(alphaColor)
+        
+        alphaColor.setAlpha(255)
+        self._alphaSlider.setEndColor(alphaColor)
 
-    def _synchronizePalette(self):
 
-        if self._palette.locked():
-            return
-
-        if self._activeColorIndex == ColorIndex.Primary:
-
-            self._palette.setColor(self._primarySelectedColor)
-
-        elif self._activeColorIndex == ColorIndex.Secondary:
-
-            self._palette.setColor(self._secondarySelectedColor)
+   
 
     def _onPaletteColorHovered(self, color):
 
@@ -1181,6 +1199,11 @@ class ColorPicker(QWidget):
 
         self.setColorBlue(value, self._activeColorIndex)
     
+    def _onAlphaSliderValueChanged(self, value):
+        
+        self.setColorAlpha(value, self._activeColorIndex)
+    
+    
     def _onColorBoxClicked(self, colorboxIndex):
         
         if colorboxIndex != self._activeColorIndex:
@@ -1192,23 +1215,4 @@ class ColorPicker(QWidget):
             
             self._palette.switchSlot()
     
-    def _onKeyPressed(self, key):
-        
-        if key == Qt.Key_C:
-            
-            self.switchActiveColor()
-   
-    
-    def _onMouseWheel(self, delta):
-        if InputManager.instance().isKeyPressed(Qt.Key_Control):
-            if delta > 0:
-                self.selectNextColorOnPalette()
-            elif delta < 0:
-                self.selectPreviousColorOnPalette()
- 
-        elif InputManager.instance().isKeyPressed(Qt.Key_Alt):
- 
-            if delta > 0:
-                self.selectNextRampOnPalette()
-            elif delta < 0:
-                self.selectPreviousRampOnPalette()
+#

@@ -15,13 +15,10 @@ class CanvasOverlay(QWidget):
         self._canvas = parent
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
         self.setAutoFillBackground(True)
-        #self.setUpdatesEnabled(False)
         
     def paintEvent(self, e):
         
         painter = QPainter(self)
-        
-        print('paint cursor')
         self._canvas._currentTool.draw(painter, self._canvas._zoom)
         
     

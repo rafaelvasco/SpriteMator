@@ -37,7 +37,7 @@ class Sprite(object):
         return newSprite
 
     @staticmethod
-    def loadFromFile(self, file):
+    def loadFromFile(file):
 
         with open(file, 'rb') as spriteFile:
             newSprite = pickle.load(spriteFile)

@@ -17,9 +17,9 @@ import src.utils as utils
 class Display(QWidget):
 
 
-    def __init__(self):
+    def __init__(self, parent=None):
 
-        QWidget.__init__(self, None)
+        QWidget.__init__(self, parent)
 
         self._viewportTransform = QMatrix()
         self._translationTransform = QMatrix()
@@ -111,7 +111,7 @@ class Display(QWidget):
     def zoom(self, factor, origin):
 
         self._zoom *= factor
-
+        
         if self._fitInView:
 
             self._fitInView = False
@@ -121,8 +121,8 @@ class Display(QWidget):
             self._zoom = 1.0
             return
 
-        if self._zoom > 30.0:
-            self._zoom = 30.0
+        if self._zoom > 32.0:
+            self._zoom = 32.0
             return
 
         x,y = origin.x(), origin.y()
@@ -286,23 +286,14 @@ class Display(QWidget):
 
     def wheelEvent(self, e):
         
-#         if (InputManager.instance().isKeyPressed(Qt.Key_Control) or 
-#             InputManager.instance().isKeyPressed(Qt.Key_Alt)):
-#             return
-        
         if e.modifiers() & (Qt.ControlModifier | Qt.AltModifier):
             return
         
-        scaleFactor = 2.0
-
         if e.delta() > 0:
-            self.zoom(scaleFactor, self._globalMousePos)
+            self.zoom(2.0, self._globalMousePos)
         else:
-            self.zoom(1.0 / scaleFactor, self._globalMousePos)
+            self.zoom(0.5, self._globalMousePos)
             
-        
-
-   
 
     def keyPressEvent(self, e):
 

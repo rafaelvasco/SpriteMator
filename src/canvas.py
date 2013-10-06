@@ -7,66 +7,40 @@
 # License:          
 #--------------------------------------------------
 from PyQt4.QtCore import Qt, pyqtSignal, QPoint
-from PyQt4.QtGui import QPainter, QPushButton, QVBoxLayout, QSizePolicy, QHBoxLayout
+from PyQt4.QtGui import QPainter, QColor, QSizePolicy, QFont
 
 from src.display import  Display
 from src.sprite import Frame
 from src.canvas_overlay import CanvasOverlay
+from src.toolbox import ToolBox
 
-import src.tools as Tools
-import src.inks as Inks
 import src.utils as Utils
+from src import tools, inks
 
 class Canvas(Display):
 
     frameChanged = pyqtSignal(Frame)
 
-    def __init__(self, animationDisplay):
+    def __init__(self, animationDisplay, parent=None):
 
-        super(Canvas, self).__init__()
+        super(Canvas, self).__init__(parent)
 
         self._currentSprite = None
         self._animationDisplay = animationDisplay
         self._currentDrawingSurface = None
-        self._overlaySurface = None
-        self._overlaySurface2 = CanvasOverlay(self)
+        self._overlaySurface = CanvasOverlay(self)
         
         
         self._currentCompositionMode = QPainter.CompositionMode_SourceOver
         self._painter = QPainter()
-        self._currentTool = Tools.Pen
-        self._primaryInk = Inks.Solid()
-        self._secondaryInk = Inks.Eraser()
+        
+        self._tools = {}
+        self._inks = {}
+        
+        self._toolBox = ToolBox(self)
         
         self._absoluteMousePosition = QPoint()
         self._spriteMousePosition = QPoint()
-        
-        
-        self._mainLayout = QVBoxLayout(self)
-        self._mainLayout.setAlignment(Qt.AlignBottom)
-        self._controlsLayout = QHBoxLayout()
-
-        self._addFrameBtn = QPushButton('Add Frame')
-        self._addFrameBtn.clicked.connect(self.addFrame)
-
-        self._delFrameBtn = QPushButton('Remove Frame')
-        self._delFrameBtn.clicked.connect(self.onDelFrameButtonClicked)
-
-
-        self._goToNextFrameBtn = QPushButton('>')
-        self._goToNextFrameBtn.clicked.connect(self.goToNextFrame)
-
-        self._goToPrevFrameBtn = QPushButton('<')
-        self._goToPrevFrameBtn.clicked.connect(self.goToPreviousFrame)
-
-        self._controlsLayout.addWidget(self._addFrameBtn)
-        self._controlsLayout.addWidget(self._delFrameBtn)
-        self._controlsLayout.addWidget(self._goToPrevFrameBtn)
-        self._controlsLayout.addWidget(self._goToNextFrameBtn)
-
-        self._mainLayout.addLayout(self._controlsLayout)
-
-
 
         self.setMouseTracking(True)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -75,11 +49,21 @@ class Canvas(Display):
         self.setAttribute(Qt.WA_StaticContents)
         self.setAttribute(Qt.WA_NoSystemBackground)
         
-
-
+        self._loadTools()
+        self._loadInks()
+        
+        self._currentTool = self.tool('Pen')
+        
+        self._primaryInk = self.ink('Solid')
+        self._secondaryInk = self.ink('Eraser')
+        
+      
 
     # TODO: Do get sets of Tools and Inks
-
+    
+    def currentTool(self):
+        
+        return self._currentTool
 
     def primaryInk(self):
         return self._primaryInk
@@ -121,8 +105,16 @@ class Canvas(Display):
         self._currentSprite.currentAnimation().currentFrame() is not None):
 
             return self._currentSprite.currentAnimation().currentFrame().currentSurfaceIndex()
-
-
+    
+    
+    def tool(self, name):
+        
+        return self._tools[name]
+    
+    def ink(self, name):
+        
+        return self._inks[name]
+    
     # ----- PUBLIC API -------------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -140,11 +132,10 @@ class Canvas(Display):
         self._animationDisplay.setAnimation(self._currentSprite.currentAnimation())
 
         self._updateDrawingSurface()
-        self._updateOverlaySurface()
 
         self.frameChanged.emit(self._currentSprite.currentAnimation().currentFrame())
 
-
+        self.setCursor(Qt.BlankCursor)
 
 
 
@@ -155,7 +146,8 @@ class Canvas(Display):
         self._currentDrawingSurface = None
         self._currentSprite = None
         self.update()
-
+        
+        self.setCursor(Qt.ArrowCursor)
 
     def addAnimation(self):
 
@@ -355,25 +347,23 @@ class Canvas(Display):
         for layer in layers:
             painter.drawImage(0, 0, layer.image())
         
-        #self._overlaySurface2.setUpdatesEnabled(True)
         
-        #painter.resetMatrix()
-        #painter.setCompositionMode(QPainter.CompositionMode_Difference)
-        #painter.drawImage(0, 0, self._overlaySurface)
+       
+        painter.resetMatrix()
         
-#         painter.resetMatrix()
-#  
-#         painter.drawText(10,50, "Current Animation: {0}, Current Frame: {1}, Current Surface: {2}"
+        self._toolBox.draw(painter)
+  
+#         painter.drawText(20,20, Test"
 #                 .format(self._currentSprite.currentAnimation().name(),
 #                         self._currentSprite.currentAnimation().currentFrameIndex(),
 #                         self._currentSprite.currentAnimation().currentFrame().currentSurfaceIndex()))
-#  
+#   
 #         painter.drawText(10, 70, "Current Layer Stack: ")
-#  
+#   
 #         layers = self.currentFrame().surfaces()
 #         index = 0
 #         for layer in layers:
-#  
+#   
 #             painter.drawText( 10, 20 * (index) + 100, "Index: " + str(index) + ", Name: " + layer.name())
 #             index += 1
             
@@ -381,12 +371,8 @@ class Canvas(Display):
         
     def resizeEvent(self, e):
         
-        self._overlaySurface2.resize(self.size())
+        self._overlaySurface.resize(self.size())
         
-        #if self._overlaySurface is not None:
-        
-        #    self._overlaySurface = self._overlaySurface.scaled(self.width(), self.height())
-
     def onDelFrameButtonClicked(self):
 
         self.removeFrame()
@@ -399,10 +385,7 @@ class Canvas(Display):
         if self._currentSprite is None:
             return
         
-        if self._panning:
-            self._clearOverlaySurface()
-            self.update()
-            return
+    
         
         button = e.button()
         
@@ -499,15 +482,31 @@ class Canvas(Display):
         if self._currentSprite is None:
             return
         
-        self._clearOverlaySurface()
         self.setCursor(Qt.ArrowCursor)
-        
+        self._animationDisplay.resetView()
        
         
 
     # ---- PRIVATE METHODS ---------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
+    
+    def _loadTools(self):
 
+        # Default Tools
+        
+        self._tools['Pen'] = tools.Pen()
+        self._tools['Picker'] = tools.Picker()
+        
+    
+    def _loadInks(self):
+        
+        # Default Inks
+        
+        self._inks['Solid'] = inks.Solid()
+        self._inks['Eraser'] = inks.Eraser()
+        
+    
+    
     def _updateMouseState(self, e):
 
         objectMousePosition = super().objectMousePos()
@@ -529,21 +528,3 @@ class Canvas(Display):
         self._currentDrawingSurface = self._currentSprite.currentAnimation().currentFrame().currentSurface().image()
         self.update()
         
-    def _updateOverlaySurface(self):
-        
-        if self._currentSprite is None:
-            return
-        
-        
-        if self._overlaySurface is None:
-            self._overlaySurface = Utils.createImage(self.width(), self.height())
-            
-    def _clearOverlaySurface(self, rect=None):
-        
-        if self._currentSprite is None:
-            return
-        
-        self._painter.begin(self._overlaySurface)
-        self._painter.setCompositionMode(QPainter.CompositionMode_Clear)
-        self._painter.fillRect(self.rect() if rect is None else rect, Qt.white)
-        self._painter.end()

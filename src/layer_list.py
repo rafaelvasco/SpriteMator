@@ -18,9 +18,9 @@ class LayerList(QWidget):
     layerSelected = pyqtSignal(int)
     layerMoved = pyqtSignal(int, int)
 
-    def __init__(self):
+    def __init__(self, parent=None):
 
-        super(LayerList, self).__init__()
+        super(LayerList, self).__init__(parent)
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 

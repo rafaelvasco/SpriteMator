@@ -501,7 +501,7 @@ class ColorSlider(QWidget):
     @staticmethod
     def hueSlider():
 
-        fullSpectrumSlider = ColorSlider(0,360)
+        fullSpectrumSlider = ColorSlider(0,359)
 
         fullSpectrumSlider.setColorAt(0.0, QColor(255,0,0))
         fullSpectrumSlider.setColorAt(0.16, QColor(255,255,0))
@@ -817,8 +817,8 @@ class ColorPicker(QWidget):
 
 
     """docstring for ColorPicker"""
-    def __init__(self):
-        super(ColorPicker, self).__init__()
+    def __init__(self, parent=None):
+        super(ColorPicker, self).__init__(parent)
 
         ColorPicker.Instance = self
 

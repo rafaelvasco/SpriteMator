@@ -8,8 +8,7 @@
 # Copyright:   (c) Rafael 2013
 # Licence:     <your licence>
 #-----------------------------------------------------------------------------------------------------------------------
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QMainWindow, QVBoxLayout, QDockWidget
+from PyQt4.QtGui import QMainWindow, QVBoxLayout, QDockWidget, QFont
 
 from ui.mainwindow_ui import Ui_MainWindow
 from src.animation_display import AnimationDisplay
@@ -28,12 +27,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QMainWindow.__init__(self)
 
         self.setupUi(self)
-
+        
+        
+        
         self._colorPicker = ColorPicker()
 
         self._animationDisplay = AnimationDisplay()
 
-        self._animationDisplayDock = QDockWidget()
+        self._canvas = Canvas(self._animationDisplay)
+        self._canvas.primaryInk().setColor(self._colorPicker.primaryColor())
+        self._canvas.secondaryInk().setColor(self._colorPicker.secondaryColor())
+
+        self._layerList = LayerList()
+
+        self._animationDisplayDock = QDockWidget(self.previewFrame)
 
         self._animationDisplayDock.setFeatures(QDockWidget.DockWidgetFloatable)
         self._animationDisplayDock.setWindowTitle("Animation Display")
@@ -41,20 +48,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._animationDisplayLastWidth = 0
         self._animationDisplayLastHeight = 0
-
-
-
-        self._canvas = Canvas(self._animationDisplay)
-
-        self._layerList = LayerList()
-
-        self._canvas.primaryInk().setColor(self._colorPicker.primaryColor())
-        self._canvas.secondaryInk().setColor(self._colorPicker.secondaryColor())
-
-
+        
 
         # --------------------------------------------------------------------------------------------------------------
-
+        
+        self._initializeComponents()
         self._initializeLayout()
         self._initializeEvents()
 
@@ -71,37 +69,56 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def animationDisplay(self):
         return self._animationDisplay
-
+    
+    def _initializeComponents(self):
+        
+        toolbarFont = QFont('Nokia Cellphone FC')
+        toolbarFont.setPointSize(12)
+        
+        self.actionNew.setFont(toolbarFont)
+        self.actionOpen.setFont(toolbarFont)
+        self.actionClose.setFont(toolbarFont)
+        self.actionExport.setFont(toolbarFont)
+        self.actionImport.setFont(toolbarFont)
+        self.actionQuit.setFont(toolbarFont)
+        self.actionSave.setFont(toolbarFont)
+        self.actionSaveAs.setFont(toolbarFont)
+        
     def _initializeLayout(self):
 
-        leftPanelLayout = QVBoxLayout()
-        leftPanelLayout.setAlignment(Qt.AlignVCenter)
-        leftPanelLayout.setContentsMargins(7,7,7,7)
-        leftPanelLayout.addWidget(self._colorPicker)
-
-        self.leftPanel.setLayout(leftPanelLayout)
-
+        
+        
         # --------------------------------------------------------------------------------------------------------------
 
-        centerPanelLayout = QVBoxLayout()
-        centerPanelLayout.setContentsMargins(0,0,0,0)
-        centerPanelLayout.addWidget(self._canvas)
+        canvasLayout = QVBoxLayout()
+        canvasLayout.setContentsMargins(0,0,0,0)
+        canvasLayout.addWidget(self._canvas)
 
-        self.mainPanel.setLayout(centerPanelLayout)
-
-        # --------------------------------------------------------------------------------------------------------------
-
-        rightPanelLayout = QVBoxLayout()
-        rightPanelLayout.setContentsMargins(7,7,7,7)
-        rightPanelLayout.setAlignment(Qt.AlignVCenter)
-
-        rightPanelLayout.addWidget(self._animationDisplayDock)
-
-        rightPanelLayout.addWidget(self._layerList)
-
-        self.rightPanel.setLayout(rightPanelLayout)
+        self.canvasFrame.setLayout(canvasLayout)
 
         # --------------------------------------------------------------------------------------------------------------
+        
+        colorPickerLayout = QVBoxLayout()
+        colorPickerLayout.setContentsMargins(0, 0, 0, 0)
+        colorPickerLayout.addWidget(self._colorPicker)
+        
+        self.colorPickerFrame.setLayout(colorPickerLayout)
+        
+        # ---------------------------------------------------------------------------------------------------------------
+        
+        animationPreviewLayout = QVBoxLayout()
+        animationPreviewLayout.setContentsMargins(0,0,0,0)
+        animationPreviewLayout.addWidget(self._animationDisplayDock)
+        
+        self.previewFrame.setLayout(animationPreviewLayout)
+        # --------------------------------------------------------------------------------------------------------------
+
+        layerListLayout = QVBoxLayout()
+        layerListLayout.setContentsMargins(0,0,0,0)
+        layerListLayout.addWidget(self._layerList)
+        
+        self.layerListFrame.setLayout(layerListLayout)
+        
 
     def _initializeEvents(self):
 

@@ -10,7 +10,7 @@
 import sys
 
 from PyQt4.QtCore import Qt, QEvent
-from PyQt4.QtGui import QApplication
+from PyQt4.QtGui import QApplication, QFontDatabase
 
 from src.main_window import MainWindow
 from src.sprite import Sprite
@@ -24,8 +24,10 @@ class Application(QApplication):
         
         super(Application, self).__init__(args)
         
-        self._view = MainWindow()
+        self._loadFonts()
         
+        self._view = MainWindow()
+                
         self.setQuitOnLastWindowClosed(True)
         
         self._currentSprite = None
@@ -34,6 +36,8 @@ class Application(QApplication):
         self._connectWithView()
         
         self._view.show()
+        
+        
         
         sys.exit(self.exec_())
 
@@ -205,7 +209,11 @@ class Application(QApplication):
             self._onMouseWheel(event)
             
         return super(Application, self).notify(receiver, event)
-    
+        
+        
+    def _loadFonts(self):
+        
+        QFontDatabase.addApplicationFont(":/fonts/font_nokia")
 # ======================================================================================================================
 
 if __name__ == '__main__':

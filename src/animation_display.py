@@ -14,9 +14,9 @@ from src.display import Display
 
 class AnimationDisplay(Display):
 
-    def __init__(self):
+    def __init__(self, parent=None):
 
-        super(AnimationDisplay, self).__init__()
+        super(AnimationDisplay, self).__init__(parent)
         self._animation = None
         self._playing = False
         self._refreshing = False

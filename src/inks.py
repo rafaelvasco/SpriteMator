@@ -24,7 +24,9 @@ class Ink(object):
 
     def setColor(self, c):
         self._color = c
-
+        
+    def name(self):
+        return self._name
 
     def prepare(self, painter):
         return
@@ -39,7 +41,9 @@ class Ink(object):
 class Solid(Ink):
 
     def __init__(self):
-        Ink.__init__(self)
+        
+        super(Solid, self).__init__()
+        self._name = 'Solid'
 
     def blit(self, x, y, w, h, painter):
         painter.fillRect(x, y, w, h, self._color)
@@ -47,7 +51,8 @@ class Solid(Ink):
 class Eraser(Ink):
 
     def __init__(self):
-        Ink.__init__(self)
+        super(Eraser, self).__init__()
+        self._name = 'Eraser'
 
     def blit(self, x, y, w, h, painter):
 

@@ -12,14 +12,15 @@ import src.drawing as drawing
 import src.utils
 from src.color_picker import ColorPicker
 
-class Tool():
+class Tool(object):
     
 
     def __init__(self):
 
         self._name = ''
         self._active = False
-
+        
+        self._properties = {}
 
     def isActive(self):
         return self._active
@@ -44,15 +45,44 @@ class Tool():
     
     def name(self):
         return self._name
-
-
+    
+    def addProperty(self, name, value):
+        
+        self._properties[name] = ToolProperty(name, value)
+        
+    def property(self, name):
+        
+        return self._properties[name]
+    
+    def propertyValue(self, name):
+        
+        return self._properties[name].value()
+        
+class ToolProperty(object):
+    
+    def __init__(self, name, value):
+        
+        self._name = name
+        self._value = value
+        
+        
+    def name(self):
+        
+        return self._name
+    
+    def value(self):
+        
+        return self._value
+        
 # ======================================================================================================================
 
 class Picker(Tool):
 
     def __init__(self):
-        Tool.__init__(self)
-
+        
+        super(Picker, self).__init__()
+        self._name = 'Picker'
+        
     def onMousePress(self, canvas, objectMousePos, button):
 
         pickedColor = QColor(canvas._currentDrawingSurface.pixel(objectMousePos))
@@ -64,14 +94,16 @@ class Pen(Tool):
 
     def __init__(self):
 
-        Tool.__init__(self)
+        super(Pen, self).__init__()
         self._name = 'Pen'
 
         self._currentPos = QPoint(0, 0)
         self._lastPos = QPoint(0, 0)
         self._pointerPos = QPoint(0, 0)
         self._lastPointerPos = QPoint(0, 0)
-        self._size = 16
+        
+        self.addProperty('size', 16)
+        
         self._deltaX = 0
         self._deltaY = 0
         self._drawPen = QPen()
@@ -86,7 +118,8 @@ class Pen(Tool):
         x = self._pointerPos.x()
         y = self._pointerPos.y()
         
-        size = self._size * zoom
+        size = self.propertyValue('size') * zoom
+        
         halfSize = size // 2
         
         painter.setPen(self._drawPen)
@@ -102,18 +135,21 @@ class Pen(Tool):
         deltaX = self._currentPos.x() - self._lastPos.x()
         deltaY = self._currentPos.y() - self._lastPos.y()
         
+        size = self.propertyValue('size')
+        
         if deltaX != 0 or deltaY != 0:
-            drawing.drawLine(self._lastPos , self._currentPos, self._size, ink, painter)
+            drawing.drawLine(self._lastPos , self._currentPos, size, ink, painter)
             
         
         elif press is not None:
-            print('Blit')
-            ink.blit(self._currentPos.x(), self._currentPos.y(), self._size, self._size, painter)
+            ink.blit(self._currentPos.x(), self._currentPos.y(), size, size, painter)
     
     def onMousePress(self, canvas, objectMousePos, button):
-
-        if self._size > 1:
-            src.utils.snapPoint(objectMousePos, self._size)
+        
+        size = self.propertyValue('size')
+        
+        if size > 1:
+            src.utils.snapPoint(objectMousePos, size)
 
 
         self._lastPos.setX(objectMousePos.x())
@@ -122,9 +158,10 @@ class Pen(Tool):
     
     def onMouseMove(self, objectMousePos, absoluteMousePos):
         
+        size = self.propertyValue('size')
         
-        if self._size > 1:
-            src.utils.snapPoint(objectMousePos, self._size)
+        if size > 1:
+            src.utils.snapPoint(objectMousePos, size)
         
         self._lastPos.setX(self._currentPos.x())
         self._lastPos.setY(self._currentPos.y())
@@ -140,6 +177,3 @@ class Pen(Tool):
     
 
 # ======================================================================================================================
-
-Pen = Pen()
-Picker = Picker()

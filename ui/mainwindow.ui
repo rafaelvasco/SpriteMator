@@ -775,7 +775,7 @@ QSlider::add-page:horizontal, QSlider::add-page:vertical
         </property>
         <property name="minimumSize">
          <size>
-          <width>240</width>
+          <width>245</width>
           <height>400</height>
          </size>
         </property>
@@ -794,6 +794,18 @@ QSlider::add-page:horizontal, QSlider::add-page:vertical
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
         </property>
+        <layout class="QVBoxLayout" name="verticalLayout_2" stretch="5">
+         <item>
+          <widget class="QFrame" name="colorPickerFrame">
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
        <widget class="QFrame" name="mainPanel">
         <property name="sizePolicy">
@@ -820,6 +832,67 @@ QSlider::add-page:horizontal, QSlider::add-page:vertical
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
         </property>
+        <layout class="QVBoxLayout" name="verticalLayout" stretch="12,1">
+         <item>
+          <widget class="QFrame" name="canvasFrame">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="styleSheet">
+            <string notr="true"/>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="canvasControlsFrame">
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,1,1,1">
+            <item>
+             <widget class="QPushButton" name="btnAddFrame">
+              <property name="text">
+               <string>Add Frame</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnRemoveFrame">
+              <property name="text">
+               <string>Remove Frame</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnGoPrevFrame">
+              <property name="text">
+               <string>&lt;</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnGoNextFrame">
+              <property name="text">
+               <string>&gt;</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
        </widget>
        <widget class="QFrame" name="rightPanel">
         <property name="sizePolicy">
@@ -849,6 +922,34 @@ QSlider::add-page:horizontal, QSlider::add-page:vertical
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
         </property>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <widget class="QFrame" name="previewFrame">
+           <property name="styleSheet">
+            <string notr="true"/>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="layerListFrame">
+           <property name="styleSheet">
+            <string notr="true"/>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </widget>
       <widget class="QFrame" name="bottomPanel">
@@ -891,12 +992,6 @@ QSlider::add-page:horizontal, QSlider::add-page:vertical
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <property name="font">
-    <font>
-     <family>Nokia Cellphone FC</family>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
    <property name="windowTitle">
     <string>toolBar</string>
    </property>
@@ -931,19 +1026,6 @@ QSlider::add-page:horizontal, QSlider::add-page:vertical
    <property name="toolTip">
     <string>New Sprite</string>
    </property>
-   <property name="font">
-    <font>
-     <family>Nokia Cellphone FC</family>
-     <pointsize>12</pointsize>
-     <weight>50</weight>
-     <italic>false</italic>
-     <bold>false</bold>
-     <underline>false</underline>
-     <strikeout>false</strikeout>
-     <stylestrategy>NoAntialias</stylestrategy>
-     <kerning>true</kerning>
-    </font>
-   </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
    </property>
@@ -954,12 +1036,6 @@ QSlider::add-page:horizontal, QSlider::add-page:vertical
    </property>
    <property name="toolTip">
     <string>Close Application</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>Nokia Cellphone FC</family>
-     <pointsize>12</pointsize>
-    </font>
    </property>
    <property name="shortcut">
     <string>Esc</string>
@@ -972,12 +1048,6 @@ QSlider::add-page:horizontal, QSlider::add-page:vertical
    <property name="toolTip">
     <string>Open Sprite</string>
    </property>
-   <property name="font">
-    <font>
-     <family>Nokia Cellphone FC</family>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
    </property>
@@ -988,12 +1058,6 @@ QSlider::add-page:horizontal, QSlider::add-page:vertical
    </property>
    <property name="toolTip">
     <string>Save Sprite</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>Nokia Cellphone FC</family>
-     <pointsize>12</pointsize>
-    </font>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -1006,12 +1070,6 @@ QSlider::add-page:horizontal, QSlider::add-page:vertical
    <property name="toolTip">
     <string>Save Sprite with another name</string>
    </property>
-   <property name="font">
-    <font>
-     <family>Nokia Cellphone FC</family>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
    </property>
@@ -1022,12 +1080,6 @@ QSlider::add-page:horizontal, QSlider::add-page:vertical
    </property>
    <property name="toolTip">
     <string>Close Sprite</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>Nokia Cellphone FC</family>
-     <pointsize>12</pointsize>
-    </font>
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
@@ -1040,12 +1092,6 @@ QSlider::add-page:horizontal, QSlider::add-page:vertical
    <property name="toolTip">
     <string>Export Sprite animations : Either as separate images or as a spritesheet</string>
    </property>
-   <property name="font">
-    <font>
-     <family>Nokia Cellphone FC</family>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
    <property name="shortcut">
     <string>Ctrl+E</string>
    </property>
@@ -1056,12 +1102,6 @@ QSlider::add-page:horizontal, QSlider::add-page:vertical
    </property>
    <property name="toolTip">
     <string>Create a Sprite from one or more images</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>Nokia Cellphone FC</family>
-     <pointsize>12</pointsize>
-    </font>
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>

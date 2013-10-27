@@ -9,9 +9,10 @@
 
 import os
 import math
+import random
 
-from PyQt4.QtCore import Qt, QDir, QByteArray, QBuffer, QIODevice
-from PyQt4.QtGui import QImage, QFileDialog, QMatrix, QPainter, QPixmap
+from PyQt4.QtCore import Qt, QDir, QByteArray, QBuffer, QIODevice, QPoint
+from PyQt4.QtGui import QImage, QFileDialog, QMatrix, QPainter, QPixmap, QColor
 
 
 
@@ -41,9 +42,9 @@ def snap(value, increment):
 
 
 def snapPoint(point, increment):
-
-    point.setX(round(math.floor(point.x() / increment) * increment))
-    point.setY(round(math.floor(point.y() / increment) * increment))
+    
+    return QPoint(round(math.floor(point.x() / increment) * increment), round(math.floor(point.y() / increment) * increment))
+    
 
 # -----------------------------------------------------------------------------
 
@@ -147,4 +148,15 @@ def generateCheckerTile(size, color1, color2):
 
         return tilePixmap
 
+# ------------------------------------------------------------------------------
 
+def randomColor(hue=None, sat=None, val=None):
+    
+    hue = random.randint(0, 255) if hue is None else hue
+    sat = random.randint(0, 255) if sat is None else sat
+    val = random.randint(0, 255) if val is None else val
+    
+    color = QColor()
+    color.setHsv(hue, sat, val)
+    
+    return color

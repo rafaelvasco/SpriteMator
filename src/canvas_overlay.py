@@ -9,16 +9,30 @@ from PyQt4.QtGui import QWidget, QPainter
 
 class CanvasOverlay(QWidget):
     
-    def __init__(self, parent):
+    def __init__(self, canvas):
         
-        QWidget.__init__(self, parent)
-        self._canvas = parent
+        super(CanvasOverlay, self).__init__(canvas)
+        self._canvas = canvas
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
         self.setAutoFillBackground(True)
+        self._drawEnabled = True
+    
+    
+    def turnOn(self):
+        self._drawEnabled = True
+        self.update()
+        
+    def turnOff(self):
+        self._drawEnabled = False
+        self.update()
         
     def paintEvent(self, e):
         
-        painter = QPainter(self)
-        self._canvas._currentTool.draw(painter, self._canvas._zoom)
+        if not self._drawEnabled or self._canvas._currentTool is None:
+            return
         
-    
+        painter = QPainter(self)
+        painter.setCompositionMode(QPainter.CompositionMode_Difference)
+        
+        self._canvas._currentTool.draw(painter, self._canvas)
+   

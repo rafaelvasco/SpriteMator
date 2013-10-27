@@ -9,7 +9,7 @@
 
 
 
-def drawLine(start, end, size, ink, painter):
+def drawLine(start, end, size, ink, color, painter):
 
     x1 = start.x()
     y1 = start.y()
@@ -26,7 +26,7 @@ def drawLine(start, end, size, ink, painter):
 
     while True:
 
-        ink.blit(x1, y1, size, size, painter)
+        ink.blit(x1, y1, size, size, color, painter)
 
         if x1 == x2 and y1 == y2:
             break

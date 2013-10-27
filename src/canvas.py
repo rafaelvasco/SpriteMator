@@ -7,16 +7,18 @@
 # License:          
 #--------------------------------------------------
 from PyQt4.QtCore import Qt, pyqtSignal, QPoint
-from PyQt4.QtGui import QPainter, QColor, QSizePolicy, QFont
+from PyQt4.QtGui import QPainter, QSizePolicy, QColor
 
 from src.display import  Display
 from src.sprite import Frame
 from src.canvas_overlay import CanvasOverlay
-from src.toolbox import ToolBox
 
 import src.utils as Utils
 from src import tools, inks
+from src.toolbox import ToolBox
 
+
+    
 class Canvas(Display):
 
     frameChanged = pyqtSignal(Frame)
@@ -24,87 +26,78 @@ class Canvas(Display):
     def __init__(self, animationDisplay, parent=None):
 
         super(Canvas, self).__init__(parent)
-
-        self._currentSprite = None
-        self._animationDisplay = animationDisplay
-        self._currentDrawingSurface = None
-        self._overlaySurface = CanvasOverlay(self)
         
-        
-        self._currentCompositionMode = QPainter.CompositionMode_SourceOver
-        self._painter = QPainter()
         
         self._tools = {}
         self._inks = {}
         
-        self._toolBox = ToolBox(self)
+        
+        self._sprite = None
+        self._drawingSurface = None
+        self._currentTool = None
+        self._primaryInk = None
+        self._secondaryInk = None
+        self._primaryColor = None
+        self._secondaryColor = None
+        self._pixelSize = 0
         
         self._absoluteMousePosition = QPoint()
         self._spriteMousePosition = QPoint()
+        self._lastButtonPressed = None
+        
+        # ======================================
+        
+        self._loadTools()
+        self._loadInks()
+        
+        self._initializeCanvasState()
+        
+        self._animationDisplay = animationDisplay
+        self._overlaySurface = CanvasOverlay(self)
+
+        self._toolBox = ToolBox(self)
+        self._initializeToolBox()
 
         self.setMouseTracking(True)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setMinimumWidth(320)
         self.setMinimumHeight(240)
-        self.setAttribute(Qt.WA_StaticContents)
+
         self.setAttribute(Qt.WA_NoSystemBackground)
-        
-        self._loadTools()
-        self._loadInks()
-        
-        self._currentTool = self.tool('Pen')
-        
-        self._primaryInk = self.ink('Solid')
-        self._secondaryInk = self.ink('Eraser')
-        
-      
-
-    # TODO: Do get sets of Tools and Inks
     
-    def currentTool(self):
+    
+    def primaryColor(self):
         
-        return self._currentTool
-
+        return self._primaryColor
+    
+    def setPrimaryColor(self, color):
+        
+        self._primaryColor = color
+        
+    def secondaryColor(self):
+        
+        return self._secondaryColor
+    
+    def setSecondaryColor(self, color):
+        
+        self._secondaryColor = color
+        
+    
     def primaryInk(self):
+        
         return self._primaryInk
-
+    
+    def setPrimaryInk(self, ink):
+        
+        self._primaryInk = ink
+        
     def secondaryInk(self):
+        
         return self._secondaryInk
-
-    def currentSprite(self):
-        return self._currentSprite
-
-    def currentAnimation(self):
-
-        if self._currentSprite is not None:
-
-            return self._currentSprite.currentAnimation()
-
-        return None
-
-    def currentFrame(self):
-
-        if self._currentSprite is not None and self._currentSprite.currentAnimation() is not None:
-
-            return self._currentSprite.currentAnimation().currentFrame()
-
-        return None
-
-    def currentLayer(self):
-
-        if (self._currentSprite is not None and
-        self._currentSprite.currentAnimation() is not None and
-        self._currentSprite.currentAnimation().currentFrame() is not None):
-
-            return self._currentSprite.currentAnimation().currentFrame().currentSurface()
-
-    def currentLayerIndex(self):
-
-        if (self._currentSprite is not None and
-        self._currentSprite.currentAnimation() is not None and
-        self._currentSprite.currentAnimation().currentFrame() is not None):
-
-            return self._currentSprite.currentAnimation().currentFrame().currentSurfaceIndex()
+    
+    def setSecondaryInk(self, ink):
+        
+        self._secondaryInk = ink
     
     
     def tool(self, name):
@@ -115,25 +108,44 @@ class Canvas(Display):
         
         return self._inks[name]
     
+    def currentLayer(self):
+        
+        if self.spriteLoaded():
+
+            return self._sprite.currentAnimation().currentFrame().currentSurface()
+        
+        return None
+        
+    def currentLayerIndex(self):
+
+        if self.spriteLoaded():
+
+            return self._sprite.currentAnimation().currentFrame().currentSurfaceIndex()
+        
+        return None
+    
+    def spriteLoaded(self):
+        
+        return self._sprite is not None
+    
     # ----- PUBLIC API -------------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
 
     def setSprite(self, sprite):
-
-        if self._currentSprite is not None:
+        
+        if self.spriteLoaded():
             self.unloadSprite()
+        
+        self._sprite = sprite
 
-        self._currentSprite = sprite
+        super().setObjectSize(sprite.currentAnimation().frameWidth(),
+                              sprite.currentAnimation().frameHeight())
 
-
-        super().setObjectSize(self._currentSprite.currentAnimation().frameWidth(),
-                              self._currentSprite.currentAnimation().frameHeight())
-
-        self._animationDisplay.setAnimation(self._currentSprite.currentAnimation())
+        self._animationDisplay.setAnimation(sprite.currentAnimation())
 
         self._updateDrawingSurface()
 
-        self.frameChanged.emit(self._currentSprite.currentAnimation().currentFrame())
+        self.frameChanged.emit(self._sprite.currentAnimation().currentFrame())
 
         self.setCursor(Qt.BlankCursor)
 
@@ -143,161 +155,180 @@ class Canvas(Display):
 
         self.resetView()
         self.setObjectSize(0, 0)
-        self._currentDrawingSurface = None
-        self._currentSprite = None
-        self.update()
         
+        self._sprite = None
+        self._drawingSurface = None
+        
+        self.update()
         self.setCursor(Qt.ArrowCursor)
 
     def addAnimation(self):
 
-        if self._currentSprite is None:
+        if not self.spriteLoaded():
             return
-
-        self._currentSprite.addAnimation()
+        
+        
+        self._sprite.addAnimation()
 
         self._updateDrawingSurface()
         self._updateOverlaySurface()
 
-        self._animationDisplay.setAnimation(self._currentSprite.currentAnimation())
+        self._animationDisplay.setAnimation(self._sprite.currentAnimation())
 
-        self.frameChanged.emit(self._currentSprite.currentAnimation().currentFrame())
+        self.frameChanged.emit(self._sprite.currentAnimation().currentFrame())
 
 
     def setAnimation(self, index):
 
-        if self._currentSprite is None:
+        if not self.spriteLoaded():
             return
-
-        self._currentSprite.setAnimation(index)
+        
+        self._sprite.setAnimation(index)
 
         self._updateDrawingSurface()
         self._updateOverlaySurface()
 
-        self.frameChanged.emit(self._currentSprite.currentAnimation().currentFrame())
+        self.frameChanged.emit(self._sprite.currentAnimation().currentFrame())
 
 
 
     def addFrame(self):
 
-        if self._currentSprite is None:
+        if not self.spriteLoaded():
             return
-
-        currentAnimation = self._currentSprite.currentAnimation()
+        
+        currentAnimation = self._sprite.currentAnimation()
 
         currentAnimation.addEmptyFrame(currentAnimation.frameWidth(), currentAnimation.frameHeight())
 
         self._updateDrawingSurface()
 
         if not self._animationDisplay.isPlaying():
-            self._animationDisplay.goToFrame(self._currentSprite.currentAnimation().currentFrameIndex())
+            self._animationDisplay.goToFrame(currentAnimation.currentFrameIndex())
 
-        self.frameChanged.emit(self._currentSprite.currentAnimation().currentFrame())
+        self.frameChanged.emit(currentAnimation.currentFrame())
 
     def removeFrame(self, index=None):
 
-        if self._currentSprite is None:
+        if not self.spriteLoaded():
             return
+        
+        animation = self._sprite.currentAnimation()
+        
+        animation.removeFrame(index)
 
-        self._currentSprite.currentAnimation().removeFrame(index)
-
-        if self._currentSprite.currentAnimation().frameCount() == 0:
+        if animation.frameCount() == 0:
 
             self.addFrame()
 
         self._updateDrawingSurface()
 
-        self._animationDisplay.goToFrame(self._currentSprite.currentAnimation().currentFrameIndex())
+        self._animationDisplay.goToFrame(animation.currentFrameIndex())
 
-        self.frameChanged.emit(self._currentSprite.currentAnimation().currentFrame())
+        self.frameChanged.emit(animation.currentFrame())
 
     def setFrame(self, index):
 
-        if self._currentSprite is None:
+        if not self.spriteLoaded():
             return
-
-        self._currentSprite.currentAnimation().setFrame(index)
+        
+        animation = self._sprite.currentAnimation()
+        
+        animation.setFrame(index)
 
         self._updateDrawingSurface()
 
         if not self._animationDisplay.isPlaying():
             self._animationDisplay.goToFrame(index)
 
-        self.frameChanged.emit(self._currentSprite.currentAnimation().currentFrame())
+        self.frameChanged.emit(animation.currentFrame())
 
 
 
     def goToNextFrame(self):
 
-        if self._currentSprite is None:
+        if not self.spriteLoaded():
+            return
+        
+        animation = self._sprite.currentAnimation()
+
+        if animation.isOnLastFrame():
             return
 
-        if self._currentSprite.currentAnimation().isOnLastFrame():
-            return
-
-        self._currentSprite.currentAnimation().goToNextFrame()
+        animation.goToNextFrame()
         self._updateDrawingSurface()
 
         if not self._animationDisplay.isPlaying():
-            self._animationDisplay.goToFrame(self._currentSprite.currentAnimation().currentFrameIndex())
+            self._animationDisplay.goToFrame(animation.currentFrameIndex())
 
-        self.frameChanged.emit(self._currentSprite.currentAnimation().currentFrame())
+        self.frameChanged.emit(animation.currentFrame())
 
     def goToPreviousFrame(self):
 
-        if self._currentSprite is None:
+        if not self.spriteLoaded():
+            return
+        
+        animation = self._sprite.currentAnimation()
+
+        if animation.isOnFirstFrame():
             return
 
-        if self._currentSprite.currentAnimation().isOnFirstFrame():
-            return
-
-        self._currentSprite.currentAnimation().goToPreviousFrame()
+        animation.goToPreviousFrame()
         self._updateDrawingSurface()
 
         if not self._animationDisplay.isPlaying():
-            self._animationDisplay.goToFrame(self._currentSprite.currentAnimation().currentFrameIndex())
+            self._animationDisplay.goToFrame(animation.currentFrameIndex())
 
-        self.frameChanged.emit(self._currentSprite.currentAnimation().currentFrame())
+        self.frameChanged.emit(animation.currentFrame())
 
     def addLayer(self, sourceImage=None, at=None):
 
-        if self._currentSprite is None:
+        if not self.spriteLoaded():
             return
-
+        
+        
+        animation = self._sprite.currentAnimation()
+        
         if sourceImage is None:
 
-            width = self._currentSprite.currentAnimation().frameWidth()
-            height = self._currentSprite.currentAnimation().frameHeight()
+            width = animation.frameWidth()
+            height = animation.frameHeight()
             sourceImage = Utils.createImage(width, height)
 
-        self._currentSprite.currentAnimation().currentFrame().addSurface(sourceImage, at)
+        animation.currentFrame().addSurface(sourceImage, at)
         self._updateDrawingSurface()
-        self.frameChanged.emit(self._currentSprite.currentAnimation().currentFrame())
+        self.frameChanged.emit(animation.currentFrame())
 
 
     def deleteLayer(self, index):
 
-        if self._currentSprite is None:
+        if not self.spriteLoaded():
             return
+        
+        animation = self._sprite.currentAnimation()
 
-        self._currentSprite.currentAnimation().currentFrame().deleteSurface(index)
+        animation.currentFrame().deleteSurface(index)
         self._updateDrawingSurface()
-        self.frameChanged.emit(self._currentSprite.currentAnimation().currentFrame())
+        self.frameChanged.emit(animation.currentFrame())
 
     def setLayer(self, index):
 
-        if self._currentSprite is None:
+        if not self.spriteLoaded():
             return
+        
+        animation = self._sprite.currentAnimation()
 
-        self._currentSprite.currentAnimation().currentFrame().setSurface(index)
+        animation.currentFrame().setSurface(index)
         self._updateDrawingSurface()
 
     def moveLayer(self, fromIndex, toIndex):
 
-        if self._currentSprite is None:
+        if not self.spriteLoaded():
             return
+        
+        animation = self._sprite.currentAnimation()
 
-        self._currentSprite.currentAnimation().currentFrame().moveSurface(fromIndex, toIndex)
+        animation.currentFrame().moveSurface(fromIndex, toIndex)
 
         self._updateDrawingSurface()
 
@@ -306,13 +337,15 @@ class Canvas(Display):
 
     def clear(self, index=None):
 
-        if self._currentSprite is None:
+        if not self.spriteLoaded():
             return
         
+        animation = self._sprite.currentAnimation()
+
         if index is None:
-            surface = self._currentDrawingSurface
+            surface = self._drawingSurface
         else:
-            surface = self._currentSprite.currentAnimation().currentFrame().surfaceAt(index).image()
+            surface = animation.currentFrame().surfaceAt(index).image()
 
         painter = QPainter()
         
@@ -339,21 +372,15 @@ class Canvas(Display):
 
     def onDrawObject(self, event, painter):
 
-        if self._currentSprite is None:
+        if not self.spriteLoaded():
             return
 
-        layers = self._currentSprite.currentAnimation().currentFrame().surfaces()
+        layers = self._sprite.currentAnimation().currentFrame().surfaces()
 
         for layer in layers:
             painter.drawImage(0, 0, layer.image())
-        
-        
        
-        painter.resetMatrix()
-        
-        self._toolBox.draw(painter)
-  
-#         painter.drawText(20,20, Test"
+       
 #                 .format(self._currentSprite.currentAnimation().name(),
 #                         self._currentSprite.currentAnimation().currentFrameIndex(),
 #                         self._currentSprite.currentAnimation().currentFrame().currentSurfaceIndex()))
@@ -372,6 +399,7 @@ class Canvas(Display):
     def resizeEvent(self, e):
         
         self._overlaySurface.resize(self.size())
+        self._toolBox.resize(self.width(), 40)
         
     def onDelFrameButtonClicked(self):
 
@@ -382,33 +410,24 @@ class Canvas(Display):
 
         super().mousePressEvent(e)
 
-        if self._currentSprite is None:
+        if not self.spriteLoaded():
             return
-        
-    
-        
-        button = e.button()
-        
-        if button != Qt.LeftButton and button != Qt.RightButton:
-            return
-        
-        self._updateMouseState(e)
-        
-        self._currentTool.onMousePress(self, self._spriteMousePosition, e.button())
-        
-        self._currentTool.setActive(True)
         
         self._animationDisplay._startRefreshing()
         
-        self._painter.begin(self._currentDrawingSurface)
+        self._updateMouseState(e)
         
-        ink = self._primaryInk if button == Qt.LeftButton else self._secondaryInk
+        tool = self._currentTool
         
-        ink.prepare(self._painter)
+        tool.onMousePress(self)
         
-        self._currentTool.blit(self._painter, ink, True)
+        painter = QPainter()
+        
+        painter.begin(self._drawingSurface)
+        
+        tool.blit(painter, self)
 
-        self._painter.end()
+        painter.end()
 
         self.update()
 
@@ -416,7 +435,7 @@ class Canvas(Display):
         
         super().mouseMoveEvent(e)
 
-        if self._currentSprite is None:
+        if not self.spriteLoaded():
             return
         
         self._updateMouseState(e)
@@ -425,27 +444,28 @@ class Canvas(Display):
         
         self._animationDisplay.panTo(-viewMousePosition.x(), -viewMousePosition.y())
         
-        ink = self._primaryInk if e.buttons() & Qt.LeftButton else self._secondaryInk
+        tool = self._currentTool
         
-        self._currentTool.onMouseMove(self._spriteMousePosition, self._absoluteMousePosition)
+        tool.onMouseMove(self)
+        
+        painter = QPainter()
+        
         
         if not self._panning:
         
-            if self._currentTool.isActive():
+            if tool.isActive():
             
-                self._painter.begin(self._currentDrawingSurface)
+                painter.begin(self._drawingSurface)
         
-                self._currentTool.blit(self._painter, ink)
+                tool.blit(painter, self)
         
-                self._painter.end()
+                painter.end()
         
         self.update()
 
     def mouseReleaseEvent(self, e):
         
-        
-        
-        if self._currentSprite is None:
+        if not self.spriteLoaded():
             return
         
 
@@ -453,13 +473,11 @@ class Canvas(Display):
 
         self._updateMouseState(e)
         
-        self._currentTool.setActive(False)
+        tool = self._currentTool
         
-        self._currentTool.onMouseRelease(self, self._spriteMousePosition, e.button())
+        tool.setActive(False)
         
-        ink = self._primaryInk if e.button() == Qt.LeftButton else self._secondaryInk
-        
-        ink.finish(self._painter)
+        tool.onMouseRelease(self)
         
         self.update()
         
@@ -469,24 +487,34 @@ class Canvas(Display):
         
         super().wheelEvent(e)
         
-    
     def enterEvent(self, e):
-        
-        if self._currentSprite is None:
-            return
-        
         self.setCursor(Qt.BlankCursor)
-    
-    def leaveEvent(self, e):
-        
-        if self._currentSprite is None:
-            return
-        
-        self.setCursor(Qt.ArrowCursor)
-        self._animationDisplay.resetView()
+        self._overlaySurface.turnOn()
        
+    def leaveEvent(self, e):
+        self.setCursor(Qt.ArrowCursor)
+        self._overlaySurface.turnOff()
+    
+    def _onToolBoxMouseEntered(self):
         
-
+        self._overlaySurface.turnOff()
+    
+    def _onToolBoxMouseLeft(self):
+         
+        self._overlaySurface.turnOn()
+        
+    def _onToolBoxToolChanged(self, toolName):
+        
+        self.setCurrentTool(toolName)
+    
+    def _onToolBoxPrimaryInkChanged(self, inkName):
+        
+        self.setPrimaryInk(inkName)
+    
+    def _onToolBoxSecondaryInkChanged(self, inkName):
+        
+        self.setSecondaryInk(inkName)
+    
     # ---- PRIVATE METHODS ---------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     
@@ -497,6 +525,7 @@ class Canvas(Display):
         self._tools['Pen'] = tools.Pen()
         self._tools['Picker'] = tools.Picker()
         
+        
     
     def _loadInks(self):
         
@@ -504,17 +533,47 @@ class Canvas(Display):
         
         self._inks['Solid'] = inks.Solid()
         self._inks['Eraser'] = inks.Eraser()
+    
+    def _initializeCanvasState(self):
         
-    
-    
+        self._pixelSize = 16
+        self._primaryColor = QColor('black')
+        self._secondaryColor = QColor('white')
+        self._currentTool = self.tool('Pen')
+        self._primaryInk = self.ink('Solid')
+        self._secondaryInk = self.ink('Eraser')
+        
+    def _initializeToolBox(self):
+        
+        self._toolBox.mouseEntered.connect(self._onToolBoxMouseEntered)
+        self._toolBox.mouseLeft.connect(self._onToolBoxMouseLeft)
+        
+        self._toolBox.registerTool(self.tool('Pen'), setAsCurrent=True)
+        self._toolBox.registerTool(self.tool('Picker'))
+        
+        self._toolBox.registerInk(self.ink('Solid'), putOnSlot=1)
+        self._toolBox.registerInk(self.ink('Eraser'), putOnSlot=2)
+        
+        self._toolBox.toolChanged.connect(self._onToolBoxToolChanged)
+        self._toolBox.primaryInkChanged.connect(self._onToolBoxPrimaryInkChanged)
+        self._toolBox.secondaryInkChanged.connect(self._onToolBoxSecondaryInkChanged)
+        
+        
     def _updateMouseState(self, e):
-
+        
+        if e.type() == 2  and e.button() is not None:
+            
+            self._lastButtonPressed = e.button()
+            
+        
         objectMousePosition = super().objectMousePos()
 
         objectMousePosition.setX(round(objectMousePosition.x(), 2))
         objectMousePosition.setY(round(objectMousePosition.y(), 2))
         
-        self._spriteMousePosition = objectMousePosition
+        
+        self._spriteMousePosition.setX(objectMousePosition.x())
+        self._spriteMousePosition.setY(objectMousePosition.y())
         
         self._absoluteMousePosition.setX(e.pos().x())
         self._absoluteMousePosition.setY(e.pos().y())
@@ -522,9 +581,9 @@ class Canvas(Display):
 
     def _updateDrawingSurface(self):
 
-        if self._currentSprite is None:
+        if not self.spriteLoaded():
             return
-
-        self._currentDrawingSurface = self._currentSprite.currentAnimation().currentFrame().currentSurface().image()
+        
+        self._drawingSurface = self._sprite.currentAnimation().currentFrame().currentSurface().image()
         self.update()
         

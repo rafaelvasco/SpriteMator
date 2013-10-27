@@ -17,24 +17,11 @@ class Ink(object):
     def __init__(self):
 
         self._name = ''
-        self._color = None
 
-    def color(self):
-        return self._color
-
-    def setColor(self, c):
-        self._color = c
-        
     def name(self):
         return self._name
 
-    def prepare(self, painter):
-        return
-
-    def blit(self, x, y, w, h, painter):
-        return
-
-    def finish(self, painter):
+    def blit(self, x, y, w, h, color, painter):
         return
 
 
@@ -45,8 +32,8 @@ class Solid(Ink):
         super(Solid, self).__init__()
         self._name = 'Solid'
 
-    def blit(self, x, y, w, h, painter):
-        painter.fillRect(x, y, w, h, self._color)
+    def blit(self, x, y, w, h, color, painter):
+        painter.fillRect(x, y, w, h, color)
 
 class Eraser(Ink):
 
@@ -54,7 +41,7 @@ class Eraser(Ink):
         super(Eraser, self).__init__()
         self._name = 'Eraser'
 
-    def blit(self, x, y, w, h, painter):
+    def blit(self, x, y, w, h, color, painter):
 
         if painter.compositionMode() != QPainter.CompositionMode_Clear:
             painter.setCompositionMode(QPainter.CompositionMode_Clear)

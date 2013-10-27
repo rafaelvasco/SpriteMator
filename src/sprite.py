@@ -287,7 +287,8 @@ class Frame(object):
         self._animation = animation
 
         self.addSurface(image)
-
+    
+    
     def surfaces(self):
         return self._surfaces
 

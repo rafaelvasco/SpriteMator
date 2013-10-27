@@ -10,15 +10,18 @@
 import sys
 
 from PyQt4.QtCore import Qt, QEvent
-from PyQt4.QtGui import QApplication, QFontDatabase
+from PyQt4.QtGui import QApplication, QFontDatabase, QFont
 
 from src.main_window import MainWindow
 from src.sprite import Sprite
+from src.resources_cache import ResourcesCache
 
 
 import src.utils as utils
 
 class Application(QApplication):
+    
+    resources = {}
     
     def __init__(self, args):
         
@@ -31,6 +34,7 @@ class Application(QApplication):
         self.setQuitOnLastWindowClosed(True)
         
         self._currentSprite = None
+        
         self._loadedSprites = []
 
         self._connectWithView()
@@ -214,6 +218,13 @@ class Application(QApplication):
     def _loadFonts(self):
         
         QFontDatabase.addApplicationFont(":/fonts/font_nokia")
+        
+        nokiaFont = QFont("Nokia Cellphone FC")
+        nokiaFont.setPointSize(12)
+        
+        
+        ResourcesCache.registerResource("NokiaFont", nokiaFont)
+        
 # ======================================================================================================================
 
 if __name__ == '__main__':

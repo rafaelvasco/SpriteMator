@@ -11,11 +11,13 @@
 from PyQt4.QtGui import QMainWindow, QVBoxLayout, QDockWidget, QFont
 
 from ui.mainwindow_ui import Ui_MainWindow
+
 from src.animation_display import AnimationDisplay
 from src.canvas import Canvas
 from src.color_picker import ColorPicker
 from src.layer_list import LayerList
 
+from src.resources_cache import ResourcesCache
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -33,12 +35,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._colorPicker = ColorPicker()
 
         self._animationDisplay = AnimationDisplay()
-
         self._canvas = Canvas(self._animationDisplay)
-        self._canvas.primaryInk().setColor(self._colorPicker.primaryColor())
-        self._canvas.secondaryInk().setColor(self._colorPicker.secondaryColor())
-
-        self._layerList = LayerList()
+        
+        self._canvas.setPrimaryColor(self._colorPicker.primaryColor())
+        self._canvas.setSecondaryColor(self._colorPicker.secondaryColor())
 
         self._animationDisplayDock = QDockWidget(self.previewFrame)
 
@@ -49,6 +49,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._animationDisplayLastWidth = 0
         self._animationDisplayLastHeight = 0
         
+        self._layerList = LayerList()
 
         # --------------------------------------------------------------------------------------------------------------
         
@@ -72,8 +73,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     def _initializeComponents(self):
         
-        toolbarFont = QFont('Nokia Cellphone FC')
-        toolbarFont.setPointSize(12)
+        toolbarFont = ResourcesCache.get("NokiaFont")
         
         self.actionNew.setFont(toolbarFont)
         self.actionOpen.setFont(toolbarFont)
@@ -92,6 +92,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         canvasLayout = QVBoxLayout()
         canvasLayout.setContentsMargins(0,0,0,0)
+        
         canvasLayout.addWidget(self._canvas)
 
         self.canvasFrame.setLayout(canvasLayout)
@@ -134,12 +135,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _onColorPickerPrimaryColorChanged(self, color):
 
-        self._canvas._primaryInk.setColor(color)
+        self._canvas.setPrimaryColor(color)
 
     def _onColorPickerSecondaryColorChanged(self, color):
 
-        self._canvas._secondaryInk.setColor(color)
-
+        self._canvas.setSecondaryColor(color)
+        
+        
     def _onCanvasFrameChanged(self, frame):
 
         self._layerList.clear()
@@ -149,7 +151,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for layer in layers:
 
             self._layerList.addLayer(layer)
-
+        
         self._layerList.setSelectedIndex(self._canvas.currentLayerIndex())
 
     def _onLayerListLayerAdded(self):

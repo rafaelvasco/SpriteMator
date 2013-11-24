@@ -832,7 +832,7 @@ QSlider::add-page:horizontal, QSlider::add-page:vertical
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout" stretch="12,1">
+        <layout class="QVBoxLayout" name="verticalLayout" stretch="12">
          <item>
           <widget class="QFrame" name="canvasFrame">
            <property name="sizePolicy">
@@ -850,46 +850,6 @@ QSlider::add-page:horizontal, QSlider::add-page:vertical
            <property name="frameShadow">
             <enum>QFrame::Raised</enum>
            </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QFrame" name="canvasControlsFrame">
-           <property name="frameShape">
-            <enum>QFrame::StyledPanel</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Raised</enum>
-           </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,1,1,1">
-            <item>
-             <widget class="QPushButton" name="btnAddFrame">
-              <property name="text">
-               <string>Add Frame</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btnRemoveFrame">
-              <property name="text">
-               <string>Remove Frame</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btnGoPrevFrame">
-              <property name="text">
-               <string>&lt;</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btnGoNextFrame">
-              <property name="text">
-               <string>&gt;</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
           </widget>
          </item>
         </layout>

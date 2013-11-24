@@ -29,13 +29,11 @@ class ColorBox(QWidget):
     def __init__(self, colorA = None, colorB = None):
         super(ColorBox, self).__init__()
 
-
-
-        self._previewColor = None
-        self._primaryColor = colorA
-        self._secondaryColor = colorB
+        self._previewColor = QColor()
+        self._primaryColor = QColor(colorA)
+        self._secondaryColor = QColor(colorB)
         self._activeColorIndex = ColorIndex.Primary
-
+        self._background = utils.generateCheckerTile(8, QColor(150, 150, 150), QColor(175,175,175))
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
     def setActiveColorIndex(self, index):
@@ -46,25 +44,36 @@ class ColorBox(QWidget):
         return self._primaryColor
 
     def setPrimaryColor(self, v):
-
-        self._primaryColor = v
+        print('Color Box set Primary Color')
+        if self._primaryColor is None:
+            self._primaryColor = QColor()
+        
+        self._primaryColor.setRgba(v.rgba())
 
     def secondaryColor(self):
 
         return self._secondaryColor
 
     def setSecondaryColor(self, v):
-
-        self._secondaryColor = v
+        print('Color Box set Secondary Color')
+        if self._secondaryColor is None:
+            self._secondaryColor = QColor()
+        
+        self._secondaryColor.setRgba(v.rgba())
         
     def previewColor(self):
 
         return self._previewColor
 
     def setPreviewColor(self, v):
-
-        self._previewColor = v
-    
+        
+        if self._previewColor is None:
+            self._previewColor = QColor()
+        
+        if v is not None:
+            self._previewColor.setRgba(v.rgba())
+        else:
+            self._previewColor = None
     
     def mousePressEvent(self, e):
         
@@ -83,19 +92,30 @@ class ColorBox(QWidget):
     def paintEvent(self, e):
 
         p = QPainter(self)
-
+        
         paintRect = e.rect()
 
         halfWidth = paintRect.width() / 2
         paintRect.adjust(0, 0, -halfWidth, -2)
 
         if self._primaryColor:
+            
+            if self._primaryColor.alpha() < 255:
+                p.drawTiledPixmap(paintRect, self._background)
+                
+                
             p.fillRect(paintRect, self._primaryColor)
             if self._activeColorIndex == ColorIndex.Primary:
                 p.fillRect(paintRect.adjusted(0, paintRect.height(), 0, paintRect.height() + 2), QColor("red"))
 
         if self._secondaryColor:
-            p.fillRect(paintRect.translated(halfWidth, 0), self._secondaryColor)
+            
+            secondBoxRect = paintRect.translated(halfWidth, 0)
+            
+            if self._primaryColor.alpha() < 255:
+                p.drawTiledPixmap(secondBoxRect, self._background)
+            
+            p.fillRect(secondBoxRect, self._secondaryColor)
             if self._activeColorIndex == ColorIndex.Secondary:
                 p.fillRect(paintRect.adjusted(paintRect.width(), paintRect.height(), paintRect.width(), paintRect.height() + 2), QColor("red"))
 
@@ -125,7 +145,7 @@ class ColorRamp:
         for i in range(0, 16):
 
             value = min((16 * (16 - i)),255)
-            blackWhite._colArray[i] = QColor.fromHsv(0, 0, value )
+            blackWhite._colArray[i].setHsv(0, 0, value)
 
         return blackWhite
 
@@ -150,8 +170,10 @@ class ColorRamp:
         return self._colArray[index]
 
     def setColorAt(self, index, color):
-
-        self._colArray[index] = color
+        
+        if self._colArray[index] is None:
+            self._colArray[index] = QColor()
+        self._colArray[index].setRgb(color.rgb())
 
     def colorCount(self):
 
@@ -248,7 +270,7 @@ class ColorPalette(QWidget):
         return self._ramps[rampIndex].colorAt(15 - colIndex)
 
     def setColor(self, color):
-
+        print('Color Pallete Set Color')
         rampIndex = self._cellToRampIndex(self._activeCell)
         colIndex = self._activeCell % 16
 
@@ -808,8 +830,6 @@ class ColorPicker(QWidget):
 
     Instance = None
 
-    colorChanged = pyqtSignal(QColor, int)
-
     primaryColorChanged = pyqtSignal(QColor)
     secondaryColorChanged = pyqtSignal(QColor)
 
@@ -870,14 +890,15 @@ class ColorPicker(QWidget):
         self._alphaSlider.setEndColor(QColor("black"))
         self._alphaSlider.setValue(255)
 
-        # Set Initial Colors
-
-        self.setPrimaryColor(QColor("black"))
-        self.setSecondaryColor(QColor("white"))
+       
 
         # Initialize Color Box
         self._colorBox = ColorBox(self._primarySelectedColor, self._secondarySelectedColor)
 
+        # Set Initial Colors
+
+        self.setPrimaryColor(QColor('black'))
+        self.setSecondaryColor(QColor('white'))
 
         # Initialize Layout
 
@@ -920,139 +941,146 @@ class ColorPicker(QWidget):
         return self._secondarySelectedColor
 
     def setPrimaryColor(self, c):
-
-        self._primarySelectedColor = c
-        self.primaryColorChanged.emit(self._primarySelectedColor)
-        self._updateSliders()
-        self.update()
+        print('Color Picker Set Primary Color')
+        if self._primarySelectedColor is None:
+            self._primarySelectedColor = QColor()
+        
+        self._primarySelectedColor.setRgba(c.rgba())
+        self._onPrimaryColorChanged(updateAlphaValue=True)
+        
+        
 
     def setSecondaryColor(self, c):
-
-        self._secondarySelectedColor = c
-        self.secondaryColorChanged.emit(self._secondarySelectedColor)
-        self._updateSliders()
-        self.update()
+        print('Color Picker Set Secondary Color')
+        if self._secondarySelectedColor is None:
+            self._secondarySelectedColor = QColor()
+        
+        self._secondarySelectedColor.setRgba(c.rgba())
+        self._onSecondaryColorChanged(updateAlphaValue=True)
 
 
     def setColorHue(self, h, colorIndex = None):
-
+        
+        print('Color Picker Set Color Hue')
         colorIndex = colorIndex or ColorIndex.Primary
-
+        
+        storeAlpha = self._primarySelectedColor.alpha()
+        
         if colorIndex == ColorIndex.Primary:
-
+            
+            
             self._primarySelectedColor.setHsv(h, self._primarySelectedColor.saturation(), self._primarySelectedColor.value())
-            self.primaryColorChanged.emit(self._primarySelectedColor)
+            self._primarySelectedColor.setAlpha(storeAlpha)
+            
+            self._onPrimaryColorChanged(updateAlphaValue=False)
 
         elif colorIndex == ColorIndex.Secondary:
-
+            
             self._secondarySelectedColor.setHsv(h, self._secondarySelectedColor.saturation(), self._secondarySelectedColor.value())
-            self.secondaryColorChanged.emit(self._secondarySelectedColor)
+            self._secondarySelectedColor.setAlpha(storeAlpha)
+            
+            self._onSecondaryColorChanged()
 
-        self._updateSliders()
-        self.update()
 
     def setColorSat(self, s, colorIndex = None):
-
+        print('Color Picker Set Color Sat')
         colorIndex = colorIndex or ColorIndex.Primary
+
+        storeAlpha = self._primarySelectedColor.alpha()
 
         if colorIndex == ColorIndex.Primary:
 
             self._primarySelectedColor.setHsv(self._primarySelectedColor.hue(), s, self._primarySelectedColor.value())
-            self.primaryColorChanged.emit(self._primarySelectedColor)
+            self._primarySelectedColor.setAlpha(storeAlpha)
+            self._onPrimaryColorChanged(updateAlphaValue=False)
 
         elif colorIndex == ColorIndex.Secondary:
 
             self._secondarySelectedColor.setHsv(self._secondarySelectedColor.hue(), s, self._secondarySelectedColor.value())
-            self.secondaryColorChanged.emit(self._secondarySelectedColor)
+            self._secondarySelectedColor.setAlpha(storeAlpha)
+            self._onSecondaryColorChanged(updateAlphaValue=False)
 
-        self._updateSliders()
-        self.update()
 
     def setColorVal(self, v, colorIndex = None):
-
+        print('Color Picker Set Color Val')
         colorIndex = colorIndex or ColorIndex.Primary
-
+        
+        storeAlpha = self._primarySelectedColor.alpha()
+        
         if colorIndex == ColorIndex.Primary:
 
             self._primarySelectedColor.setHsv(self._primarySelectedColor.hue(), self._primarySelectedColor.saturation(), v)
-            self.primaryColorChanged.emit(self._primarySelectedColor)
+            self._primarySelectedColor.setAlpha(storeAlpha)
+            self._onPrimaryColorChanged(updateAlphaValue=False)
 
         elif colorIndex == ColorIndex.Secondary:
 
             self._secondarySelectedColor.setHsv(self._secondarySelectedColor.hue(), self._secondarySelectedColor.saturation(), v)
-            self.secondaryColorChanged.emit(self._secondarySelectedColor)
+            self._secondarySelectedColor.setAlpha(storeAlpha)
+            self._onSecondaryColorChanged(updateAlphaValue=False)
 
-        self._updateSliders()
-        self.update()
 
     def setColorRed(self, r, colorIndex = None):
-
+        print('Color Picker Set Color Red')
         colorIndex = colorIndex or ColorIndex.Primary
 
         if colorIndex == ColorIndex.Primary:
 
             self._primarySelectedColor.setRed(r)
-            self.primaryColorChanged.emit(self._primarySelectedColor)
+            self._onPrimaryColorChanged(updateAlphaValue=False)
 
         elif colorIndex == ColorIndex.Secondary:
 
             self._secondarySelectedColor.setRed(r)
-            self.secondaryColorChanged.emit(self._secondarySelectedColor)
+            self._onSecondaryColorChanged(updateAlphaValue=False)
 
-        self._updateSliders()
-        self.update()
 
     def setColorGreen(self, g, colorIndex = None):
-
+        print('Color Picker Set Color Green')
         colorIndex = colorIndex or ColorIndex.Primary
 
         if colorIndex == ColorIndex.Primary:
 
             self._primarySelectedColor.setGreen(g)
-            self.primaryColorChanged.emit(self._primarySelectedColor)
+            self._onPrimaryColorChanged(updateAlphaValue=False)
 
         elif colorIndex == ColorIndex.Secondary:
 
             self._secondarySelectedColor.setGreen(g)
-            self.secondaryColorChanged.emit(self._secondarySelectedColor)
+            self._onSecondaryColorChanged(updateAlphaValue=False)
 
 
-        self._updateSliders()
-        self.update()
 
     def setColorBlue(self, b, colorIndex = None):
-
+        print('Color Picker Set Color Blue')
         colorIndex = colorIndex or ColorIndex.Primary
 
         if colorIndex == ColorIndex.Primary:
 
             self._primarySelectedColor.setBlue(b)
-            self.primaryColorChanged.emit(self._primarySelectedColor)
+            self._onPrimaryColorChanged(updateAlphaValue=False)
 
         elif colorIndex == ColorIndex.Secondary:
 
             self._secondarySelectedColor.setBlue(b)
-            self.secondaryColorChanged.emit(self._secondarySelectedColor)
+            self._onSecondaryColorChanged(updateAlphaValue=False)
 
-        self._updateSliders()
-        self.update()
     
     
     def setColorAlpha(self, a, colorIndex = None):
-        
+        print('Color Picker Set Color Alpha')
         colorIndex = colorIndex or ColorIndex.Primary
         
         if colorIndex == ColorIndex.Primary:
             
             self._primarySelectedColor.setAlpha(a)
-            self.primaryColorChanged.emit(self._primarySelectedColor)
+            self._onPrimaryColorChanged(updateAlphaValue=False)
         
         elif colorIndex == ColorIndex.Secondary:
             
             self._secondarySelectedColor.setAlpha(a)
-            self.secondaryColorChanged.emit(self._secondarySelectedColor)
+            self._onSecondaryColorChanged(updateAlphaValue=False)
             
-        self.update()
     def selectNextColorOnPalette(self):
 
         self._palette.moveColorSelection(1)
@@ -1102,8 +1130,8 @@ class ColorPicker(QWidget):
         self._colorBox.mouseClicked.connect(self._onColorBoxClicked)
         
 
-    def _updateSliders(self):
-
+    def _updateSliders(self, updateAlphaValue=None):
+        print('Update Sliders')
         color = (self._primarySelectedColor
                  if self._activeColorIndex == ColorIndex.Primary
                  else self._secondarySelectedColor)
@@ -1136,17 +1164,44 @@ class ColorPicker(QWidget):
         
         # ALPHA
         
-        alphaColor = color
+        alphaColor = QColor(color)
         
         alphaColor.setAlpha(0)
         self._alphaSlider.setStartColor(alphaColor)
         
         alphaColor.setAlpha(255)
         self._alphaSlider.setEndColor(alphaColor)
-
-
+        
+        if updateAlphaValue:
+        
+            self._alphaSlider.setValue(color.alpha())
+    
    
-
+        
+    
+    def _onPrimaryColorChanged(self, updateAlphaValue=None):
+        print('Color Picker onPrimaryColor Changed')
+        
+        print('Color ALPHA: ', self._primarySelectedColor.alpha())
+        
+        self._colorBox.setPrimaryColor(self._primarySelectedColor)
+        
+        self._updateSliders(updateAlphaValue)
+        
+        self.update()
+        
+        self.primaryColorChanged.emit(self._primarySelectedColor)
+    
+    def _onSecondaryColorChanged(self, updateAlphaValue=None):
+        print('Color Picker onSecondaryColorChanged')
+        self._colorBox.setSecondaryColor(self._secondarySelectedColor)
+        
+        self._updateSliders(updateAlphaValue)
+        
+        self.update()
+        
+        self.secondaryColorChanged.emit(self._secondarySelectedColor)
+    
     def _onPaletteColorHovered(self, color):
 
         self._colorBox.setPreviewColor(color)
@@ -1159,18 +1214,16 @@ class ColorPicker(QWidget):
 
     def _onPaletteColorChanged(self, color, colorIndex):
 
-
+        print('Color Picker onPalette Color Changed')
         if colorIndex == ColorIndex.Primary:
             self.setPrimaryColor(color)
             self._activeColorIndex = ColorIndex.Primary
-            self._colorBox.setPrimaryColor(color)
             self._colorBox.setActiveColorIndex(ColorIndex.Primary)
 
         elif colorIndex == ColorIndex.Secondary:
 
             self.setSecondaryColor(color)
             self._activeColorIndex = ColorIndex.Secondary
-            self._colorBox.setSecondaryColor(color)
             self._colorBox.setActiveColorIndex(ColorIndex.Secondary)
 
 

@@ -6,7 +6,7 @@
 # License:          
 #--------------------------------------------------
 from PyQt4.QtCore import QPoint, Qt
-from PyQt4.QtGui import QColor, QPen
+from PyQt4.QtGui import QPen, QColor
 
 import src.drawing as drawing
 import src.utils as utils
@@ -26,6 +26,14 @@ class Tool(object):
         self._absoluteMousePos = QPoint()
         self._lastButtonPressed = None
         self._snapPos = False
+        
+        self._drawPen = QPen()
+        self._drawPen.setColor(Qt.white)
+        self._drawPen.setJoinStyle(Qt.MiterJoin)
+        self._drawPen.setWidth(0)
+        self._drawPen.setCapStyle(Qt.SquareCap)
+        
+        self._drawBrush = None
     
     def name(self):
         return self._name
@@ -45,8 +53,12 @@ class Tool(object):
     def setSnap(self, snap):
         
         self._snapPos = snap
+        
 
-    def onMousePress(self, canvas):
+    def _processMousePress(self, canvas, mouseEvent):
+            
+        if mouseEvent.button() != Qt.LeftButton and mouseEvent.button() != Qt.RightButton:
+            return
             
         self.setActive(True)
         
@@ -69,15 +81,14 @@ class Tool(object):
         self._currentMousePos.setX(spritePos.x())
         self._currentMousePos.setY(spritePos.y())
         
+        self.onMousePress(canvas, mouseEvent)
 
-    def onMouseMove(self, canvas):
+    def _processMouseMove(self, canvas, mouseEvent):
         
         spritePos = canvas._spriteMousePosition
-        absPos = canvas._absoluteMousePosition
+        absPos = mouseEvent.pos()
         
         size = canvas._pixelSize
-        
-        
         
         self._lastMousePos.setX(self._currentMousePos.x())
         self._lastMousePos.setY(self._currentMousePos.y())
@@ -92,14 +103,24 @@ class Tool(object):
         self._absoluteMousePos.setX(absPos.x())
         self._absoluteMousePos.setY(absPos.y())
         
-        #print('Last Pos: ', self._lastMousePos)
-        #print('Curr Pos: ', self._currentMousePos)
-        
+        self.onMouseMove(canvas, mouseEvent)
     
-    
-    def onMouseRelease(self, canvas):
+    def _processMouseRelease(self, canvas, mouseEvent):
         
         self.setActive(False)
+        
+        self.onMouseRelease(canvas, mouseEvent)
+        
+    def onMousePress(self, canvas, mouseEvent):
+        return
+    
+    def onMouseMove(self, canvas, mouseEvent):
+        return 
+    
+    def onMouseRelease(self, canvas, mouseEvent):
+        return
+        
+        
     
     def draw(self, painter, canvas):
         return
@@ -120,27 +141,7 @@ class Picker(Tool):
         
         super(Picker, self).__init__()
         self._name = 'Picker'
-        
-
-# ======================================================================================================================
-
-class Pen(Tool):
-
-    def __init__(self):
-
-        super(Pen, self).__init__()
-        
-        self._deltaX = 0
-        self._deltaY = 0
-        self._drawPen = QPen()
-        self._drawPen.setColor(Qt.white)
-        self._drawPen.setJoinStyle(Qt.MiterJoin)
-        self._drawPen.setWidth(0)
-        self._drawPen.setCapStyle(Qt.SquareCap)
-        
-        self.setSnap(True)
-        self.setName('Pen')
-        
+    
     def draw(self, painter, canvas):
         
         x = self._absoluteMousePos.x()
@@ -157,7 +158,86 @@ class Pen(Tool):
                          y - halfSize,
                          size - 1,
                          size - 1)
+    
+    def onMousePress(self, canvas, mouseEvent):
+        
+        pickedColor = QColor(canvas._drawingSurface.pixel(self._pressMousePos))
+        canvas.colorPicked.emit(pickedColor,  mouseEvent)
+        
 
+# ======================================================================================================================
+
+class Pen(Tool):
+
+    def __init__(self):
+
+        super(Pen, self).__init__()
+        
+        self._deltaX = 0
+        self._deltaY = 0
+        
+        
+        self.setSnap(True)
+        self.setName('Pen')
+        
+    def draw(self, painter, canvas):
+        
+        x = self._absoluteMousePos.x()
+        y = self._absoluteMousePos.y()
+        
+        size = canvas._pixelSize * canvas._zoom
+        
+        if size <= 0.0:
+            
+            return
+        
+        if size == 1.0:
+            
+            painter.fillRect(x,y,1,1,Qt.white)
+            
+            painter.setPen(Qt.white)
+            
+            painter.drawLine(x, y - 4, x, y - 8)
+            painter.drawLine(x, y + 4, x, y + 8)
+            
+            painter.drawLine(x - 4, y , x - 8, y)
+            painter.drawLine(x + 4, y , x + 8, y)
+        
+        elif size == 2.0:
+            
+            painter.fillRect(x - 1, y - 1, 2, 2, Qt.white)
+            
+            painter.setPen(Qt.white)
+            
+            painter.drawLine(x - 2, y - 8, x + 1 , y - 8)
+            painter.drawLine(x - 2, y + 7, x + 1 , y + 7)
+            
+            painter.drawLine(x - 8, y - 2, x - 8 , y + 1)
+            painter.drawLine(x + 7, y - 2, x + 7 , y + 1)
+            
+        elif size == 4.0:
+            
+            painter.setPen(Qt.white)
+            
+            painter.drawRect(x - 2, y - 2, 4, 4)
+            
+            painter.drawLine(x - 2, y - 8, x + 2, y - 8)
+            painter.drawLine(x - 2, y + 8, x + 2, y + 8)
+            
+            painter.drawLine(x - 8, y - 2, x - 8, y + 2)
+            painter.drawLine(x + 8, y - 2, x + 8, y + 2)
+            
+        else:
+            
+            painter.setPen(Qt.white)
+            
+            halfSize = size // 2
+            sizeBy8 = size // 8
+            
+            painter.drawRect(x - halfSize, y - halfSize, size, size)
+            
+            painter.drawLine(x, y - sizeBy8, x, y + sizeBy8)
+            painter.drawLine(x - sizeBy8, y, x + sizeBy8, y)
     
     def blit(self, painter, canvas):
         
@@ -169,10 +249,8 @@ class Pen(Tool):
             color = canvas._primaryColor
         
         elif lastButtonPressed == Qt.RightButton:
-            
             ink = canvas._secondaryInk
             color = canvas._secondaryColor
-        
         
         deltaX = self._currentMousePos.x() - self._lastMousePos.x()
         deltaY = self._currentMousePos.y() - self._lastMousePos.y()

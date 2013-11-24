@@ -8,7 +8,9 @@
 # Copyright:   (c) Rafael 2013
 # Licence:     <your licence>
 #-----------------------------------------------------------------------------------------------------------------------
-from PyQt4.QtGui import QMainWindow, QVBoxLayout, QDockWidget, QFont
+
+from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QMainWindow, QVBoxLayout, QDockWidget
 
 from ui.mainwindow_ui import Ui_MainWindow
 
@@ -126,6 +128,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._colorPicker.primaryColorChanged.connect(self._onColorPickerPrimaryColorChanged)
         self._colorPicker.secondaryColorChanged.connect(self._onColorPickerSecondaryColorChanged)
         self._canvas.frameChanged.connect(self._onCanvasFrameChanged)
+        self._canvas.colorPicked.connect(self._onCanvasColorPicked)
+        
         self._layerList.layerAdded.connect(self._onLayerListLayerAdded)
         self._layerList.layerSelected.connect(self._onLayerListLayerSelected)
         self._layerList.layerMoved.connect(self._onLayerListItemOrderChanged)
@@ -140,7 +144,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _onColorPickerSecondaryColorChanged(self, color):
 
         self._canvas.setSecondaryColor(color)
+    
+    def _onCanvasColorPicked(self, color, event):
         
+        if event.button() == Qt.LeftButton:
+            
+            self._colorPicker.setPrimaryColor(color)
+        else:
+            
+            self._colorPicker.setSecondaryColor(color)
         
     def _onCanvasFrameChanged(self, frame):
 

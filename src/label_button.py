@@ -19,9 +19,13 @@ class LabelButton(QLabel):
         self.setAttribute(Qt.WA_NoSystemBackground)
         
         if text is not None:
-        
-            self.setText(text)
             
+            self.setText(text)
+        else:
+            
+            self.setText("Button")
+            
+        
         
     def mouseReleaseEvent(self, e):
         

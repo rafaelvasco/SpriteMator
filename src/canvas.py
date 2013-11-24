@@ -7,7 +7,7 @@
 # License:          
 #--------------------------------------------------
 from PyQt4.QtCore import Qt, pyqtSignal, QPoint
-from PyQt4.QtGui import QPainter, QSizePolicy, QColor
+from PyQt4.QtGui import QPainter, QSizePolicy, QColor, QMouseEvent
 
 from src.display import  Display
 from src.sprite import Frame
@@ -22,6 +22,7 @@ from src.toolbox import ToolBox
 class Canvas(Display):
 
     frameChanged = pyqtSignal(Frame)
+    colorPicked = pyqtSignal(QColor, QMouseEvent)
 
     def __init__(self, animationDisplay, parent=None):
 
@@ -40,6 +41,8 @@ class Canvas(Display):
         self._primaryColor = None
         self._secondaryColor = None
         self._pixelSize = 0
+        self._drawGrid = True
+        
         
         self._absoluteMousePosition = QPoint()
         self._spriteMousePosition = QPoint()
@@ -54,8 +57,10 @@ class Canvas(Display):
         
         self._animationDisplay = animationDisplay
         self._overlaySurface = CanvasOverlay(self)
+        self._overlaySurface.turnOff()
 
         self._toolBox = ToolBox(self)
+        self._toolBox.setVisible(False)
         self._initializeToolBox()
 
         self.setMouseTracking(True)
@@ -81,24 +86,25 @@ class Canvas(Display):
     def setSecondaryColor(self, color):
         
         self._secondaryColor = color
-        
     
     def primaryInk(self):
         
         return self._primaryInk
     
-    def setPrimaryInk(self, ink):
-        
-        self._primaryInk = ink
+    def setPrimaryInk(self, inkName):
+        self._primaryInk = self.ink(inkName)
         
     def secondaryInk(self):
         
         return self._secondaryInk
     
-    def setSecondaryInk(self, ink):
+    def setSecondaryInk(self, inkName):
         
-        self._secondaryInk = ink
+        self._secondaryInk = self.ink(inkName)
     
+    def setCurrentTool(self, name):
+        
+        self._currentTool = self.tool(name)
     
     def tool(self, name):
         
@@ -136,6 +142,8 @@ class Canvas(Display):
         if self.spriteLoaded():
             self.unloadSprite()
         
+        self._toolBox.setVisible(True)
+        
         self._sprite = sprite
 
         super().setObjectSize(sprite.currentAnimation().frameWidth(),
@@ -149,10 +157,10 @@ class Canvas(Display):
 
         self.setCursor(Qt.BlankCursor)
 
-
-
     def unloadSprite(self):
-
+        
+        self._toolBox.setVisible(False)
+        
         self.resetView()
         self.setObjectSize(0, 0)
         
@@ -177,7 +185,6 @@ class Canvas(Display):
 
         self.frameChanged.emit(self._sprite.currentAnimation().currentFrame())
 
-
     def setAnimation(self, index):
 
         if not self.spriteLoaded():
@@ -189,8 +196,6 @@ class Canvas(Display):
         self._updateOverlaySurface()
 
         self.frameChanged.emit(self._sprite.currentAnimation().currentFrame())
-
-
 
     def addFrame(self):
 
@@ -242,8 +247,6 @@ class Canvas(Display):
             self._animationDisplay.goToFrame(index)
 
         self.frameChanged.emit(animation.currentFrame())
-
-
 
     def goToNextFrame(self):
 
@@ -299,7 +302,6 @@ class Canvas(Display):
         self._updateDrawingSurface()
         self.frameChanged.emit(animation.currentFrame())
 
-
     def deleteLayer(self, index):
 
         if not self.spriteLoaded():
@@ -331,9 +333,6 @@ class Canvas(Display):
         animation.currentFrame().moveSurface(fromIndex, toIndex)
 
         self._updateDrawingSurface()
-
-
-
 
     def clear(self, index=None):
 
@@ -379,32 +378,31 @@ class Canvas(Display):
 
         for layer in layers:
             painter.drawImage(0, 0, layer.image())
-       
-       
-#                 .format(self._currentSprite.currentAnimation().name(),
-#                         self._currentSprite.currentAnimation().currentFrameIndex(),
-#                         self._currentSprite.currentAnimation().currentFrame().currentSurfaceIndex()))
-#   
-#         painter.drawText(10, 70, "Current Layer Stack: ")
-#   
-#         layers = self.currentFrame().surfaces()
-#         index = 0
-#         for layer in layers:
-#   
-#             painter.drawText( 10, 20 * (index) + 100, "Index: " + str(index) + ", Name: " + layer.name())
-#             index += 1
-            
         
+        if self._drawGrid and self._zoom >= 4.0:
+            
+            
+            w = self._drawingSurface.width()
+            h = self._drawingSurface.height()
+            painter.setPen(QColor(0,0,0,80))
+            
+            for x in range(0, w):
+                #xz = x * self._pixelSize
+                painter.drawLine(x, 0, x, h)
+                
+            for y in range(0, h):
+                #yz = y * self._pixelSize
+                painter.drawLine(0, y, w, y)  
+                    
         
     def resizeEvent(self, e):
         
         self._overlaySurface.resize(self.size())
-        self._toolBox.resize(self.width(), 40)
+        self._toolBox.updateSize(self.width(), self.height())
         
     def onDelFrameButtonClicked(self):
 
         self.removeFrame()
-
 
     def mousePressEvent(self, e):
 
@@ -419,15 +417,19 @@ class Canvas(Display):
         
         tool = self._currentTool
         
-        tool.onMousePress(self)
+        tool._processMousePress(self, e)
         
-        painter = QPainter()
+        if tool.isActive():
         
-        painter.begin(self._drawingSurface)
-        
-        tool.blit(painter, self)
-
-        painter.end()
+            painter = QPainter()
+            
+            painter.begin(self._drawingSurface)
+            
+            
+            
+            tool.blit(painter, self)
+    
+            painter.end()
 
         self.update()
 
@@ -446,14 +448,13 @@ class Canvas(Display):
         
         tool = self._currentTool
         
-        tool.onMouseMove(self)
-        
-        painter = QPainter()
-        
+        tool._processMouseMove(self, e)
         
         if not self._panning:
         
             if tool.isActive():
+                
+                painter = QPainter()
             
                 painter.begin(self._drawingSurface)
         
@@ -475,9 +476,7 @@ class Canvas(Display):
         
         tool = self._currentTool
         
-        tool.setActive(False)
-        
-        tool.onMouseRelease(self)
+        tool._processMouseRelease(self, e)
         
         self.update()
         
@@ -485,21 +484,38 @@ class Canvas(Display):
     
     def wheelEvent(self, e):
         
+        if not self.spriteLoaded():
+            return
+        
         super().wheelEvent(e)
         
     def enterEvent(self, e):
+        
+        if not self.spriteLoaded():
+            return
+        
         self.setCursor(Qt.BlankCursor)
         self._overlaySurface.turnOn()
        
     def leaveEvent(self, e):
+        
+        if not self.spriteLoaded():
+            return
+        
         self.setCursor(Qt.ArrowCursor)
         self._overlaySurface.turnOff()
     
     def _onToolBoxMouseEntered(self):
         
+        if not self.spriteLoaded():
+            return
+        
         self._overlaySurface.turnOff()
     
     def _onToolBoxMouseLeft(self):
+         
+        if not self.spriteLoaded():
+            return
          
         self._overlaySurface.turnOn()
         
@@ -524,8 +540,6 @@ class Canvas(Display):
         
         self._tools['Pen'] = tools.Pen()
         self._tools['Picker'] = tools.Picker()
-        
-        
     
     def _loadInks(self):
         
@@ -536,7 +550,7 @@ class Canvas(Display):
     
     def _initializeCanvasState(self):
         
-        self._pixelSize = 16
+        self._pixelSize = 4
         self._primaryColor = QColor('black')
         self._secondaryColor = QColor('white')
         self._currentTool = self.tool('Pen')
@@ -558,7 +572,6 @@ class Canvas(Display):
         self._toolBox.primaryInkChanged.connect(self._onToolBoxPrimaryInkChanged)
         self._toolBox.secondaryInkChanged.connect(self._onToolBoxSecondaryInkChanged)
         
-        
     def _updateMouseState(self, e):
         
         if e.type() == 2  and e.button() is not None:
@@ -574,10 +587,6 @@ class Canvas(Display):
         
         self._spriteMousePosition.setX(objectMousePosition.x())
         self._spriteMousePosition.setY(objectMousePosition.y())
-        
-        self._absoluteMousePosition.setX(e.pos().x())
-        self._absoluteMousePosition.setY(e.pos().y())
-        
 
     def _updateDrawingSurface(self):
 

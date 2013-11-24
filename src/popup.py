@@ -15,6 +15,7 @@ class Popup(QWidget):
         
         self._visible = False
         self._parent = parent
+        self._content = content
         
         layout = QGridLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -46,7 +47,13 @@ class Popup(QWidget):
             animation.setEndValue(self.pos())
             
             animation.start()
+    
+    def setSize(self, width, height):
         
+        self.resize(width, height)
+        self._content.resize(width, height)
+        
+    
     def popout(self):
         
         if self._visible:

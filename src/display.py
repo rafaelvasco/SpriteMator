@@ -37,7 +37,7 @@ class Display(QWidget):
         self._keyTranslationVector = QPoint()
         self._currentObjectSize = QSize()
         
-        self._checkerTile = utils.generateCheckerTile(16, QColor(222,222,222), QColor(253,253,253))
+        self._checkerTile = utils.generateCheckerTile(8, QColor(222,222,222), QColor(253,253,253))
         
         self.setMouseTracking(True)
         self.resetOrigin()
@@ -247,7 +247,10 @@ class Display(QWidget):
         self.onDrawObject(event, painter)
 
     def mousePressEvent(self, e):
-
+        
+        if self.currentObjectSize().isEmpty():
+            return
+        
         if e.button() == Qt.MiddleButton:
 
             self._panning = True
@@ -256,6 +259,9 @@ class Display(QWidget):
 
     def mouseReleaseEvent(self, e):
         
+        if self.currentObjectSize().isEmpty():
+            return
+        
         if e.button() == Qt.MiddleButton:
             
             self._panning = False
@@ -263,19 +269,20 @@ class Display(QWidget):
 
 
     def mouseMoveEvent(self, e):
+        
+        if self.currentObjectSize().isEmpty():
+            return
 
         self._globalMousePos.setX(e.pos().x())
         self._globalMousePos.setY(e.pos().y())
         
-       
-        
         if not self._panning:
             return
 
-        delta = e.pos() - self._lastPanPoint
+        delta = (e.pos() - self._lastPanPoint)
 
         if self._zoom != 1.0:
-            self.pan((delta.x()), (delta.y()))
+            self.pan((delta.x() / self._zoom), (delta.y() / self._zoom))
         else:
             self.pan(delta.x(), delta.y())
 
@@ -285,6 +292,9 @@ class Display(QWidget):
 
 
     def wheelEvent(self, e):
+        
+        if self.currentObjectSize().isEmpty():
+            return
         
         if e.modifiers() & (Qt.ControlModifier | Qt.AltModifier):
             return
@@ -296,7 +306,10 @@ class Display(QWidget):
             
 
     def keyPressEvent(self, e):
-
+        
+        if self.currentObjectSize().isEmpty():
+            return
+        
         if e.key() == Qt.Key_Left:
 
             self.pan(round(-1), 0)

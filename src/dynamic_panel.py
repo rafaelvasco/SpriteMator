@@ -17,6 +17,7 @@ class DynamicPanel(QWidget):
 
         super(DynamicPanel, self).__init__()
         
+        self._backColor = QColor()
         
         if alignment == Qt.Vertical:
 
@@ -31,7 +32,10 @@ class DynamicPanel(QWidget):
         self._layouts = {}
         
         self.setMinimumSize(width, height)
+    
+    def setBackgroundColor(self, color):
         
+        self._backColor.setRgba(color.rgba())    
     
     def layout(self, name):
 
@@ -42,7 +46,7 @@ class DynamicPanel(QWidget):
         self._layouts[name] = layout
         self._mainLayout.addLayout(layout)
     def addWidget(self, layoutName, widget):
-
+        
         self._layouts[layoutName].addWidget(widget)
 
     def clear(self, layout=None):
@@ -86,4 +90,4 @@ class DynamicPanel(QWidget):
         
         p = QPainter(self)
 
-        p.fillRect(e.rect(), QColor(10,10,10, 217))
+        p.fillRect(e.rect(), self._backColor)

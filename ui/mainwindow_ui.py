@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'mainwindow.ui'
 #
-# Created: Sun Oct  6 16:19:51 2013
+# Created: Sun Nov 24 15:06:09 2013
 #      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -815,31 +815,7 @@ class Ui_MainWindow(object):
         self.canvasFrame.setFrameShadow(QtGui.QFrame.Raised)
         self.canvasFrame.setObjectName(_fromUtf8("canvasFrame"))
         self.verticalLayout.addWidget(self.canvasFrame)
-        self.canvasControlsFrame = QtGui.QFrame(self.mainPanel)
-        self.canvasControlsFrame.setFrameShape(QtGui.QFrame.StyledPanel)
-        self.canvasControlsFrame.setFrameShadow(QtGui.QFrame.Raised)
-        self.canvasControlsFrame.setObjectName(_fromUtf8("canvasControlsFrame"))
-        self.horizontalLayout_2 = QtGui.QHBoxLayout(self.canvasControlsFrame)
-        self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
-        self.btnAddFrame = QtGui.QPushButton(self.canvasControlsFrame)
-        self.btnAddFrame.setObjectName(_fromUtf8("btnAddFrame"))
-        self.horizontalLayout_2.addWidget(self.btnAddFrame)
-        self.btnRemoveFrame = QtGui.QPushButton(self.canvasControlsFrame)
-        self.btnRemoveFrame.setObjectName(_fromUtf8("btnRemoveFrame"))
-        self.horizontalLayout_2.addWidget(self.btnRemoveFrame)
-        self.btnGoPrevFrame = QtGui.QPushButton(self.canvasControlsFrame)
-        self.btnGoPrevFrame.setObjectName(_fromUtf8("btnGoPrevFrame"))
-        self.horizontalLayout_2.addWidget(self.btnGoPrevFrame)
-        self.btnGoNextFrame = QtGui.QPushButton(self.canvasControlsFrame)
-        self.btnGoNextFrame.setObjectName(_fromUtf8("btnGoNextFrame"))
-        self.horizontalLayout_2.addWidget(self.btnGoNextFrame)
-        self.horizontalLayout_2.setStretch(0, 1)
-        self.horizontalLayout_2.setStretch(1, 1)
-        self.horizontalLayout_2.setStretch(2, 1)
-        self.horizontalLayout_2.setStretch(3, 1)
-        self.verticalLayout.addWidget(self.canvasControlsFrame)
         self.verticalLayout.setStretch(0, 12)
-        self.verticalLayout.setStretch(1, 1)
         self.rightPanel = QtGui.QFrame(self.leftRightSplitter)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -920,10 +896,6 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "SpriteMator", None))
-        self.btnAddFrame.setText(_translate("MainWindow", "Add Frame", None))
-        self.btnRemoveFrame.setText(_translate("MainWindow", "Remove Frame", None))
-        self.btnGoPrevFrame.setText(_translate("MainWindow", "<", None))
-        self.btnGoNextFrame.setText(_translate("MainWindow", ">", None))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar", None))
         self.actionNew.setText(_translate("MainWindow", "New", None))
         self.actionNew.setIconText(_translate("MainWindow", "New", None))

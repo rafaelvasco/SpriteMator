@@ -5,7 +5,7 @@ Created on 06/10/2013
 '''
 
 from PyQt4.QtCore import pyqtSignal, Qt, QSize
-from PyQt4.QtGui import QWidget, QPainter, QHBoxLayout, QVBoxLayout, QColor
+from PyQt4.QtGui import QWidget, QPainter, QHBoxLayout, QVBoxLayout, QColor, QGridLayout
 
 from src.label_button import LabelButton
 from src.resources_cache import ResourcesCache
@@ -50,13 +50,15 @@ class ToolBox(QWidget):
         self._currentSecondaryInkButton.setAlignment(Qt.AlignCenter)
         self._currentSecondaryInkButton.clicked.connect(self._onCurrentSecondaryInkButtonClicked)
         
-        self._toolsPanel = DynamicPanel(canvas.width(), 100, Qt.Horizontal)
+        self._toolsPanel = DynamicPanel(canvas.width(), canvas.height(), Qt.Horizontal)
         self._toolsPanel.setFont(ResourcesCache.get("NokiaFont"))
+        self._toolsPanel.setBackgroundColor(QColor(36, 50, 64, 180))
         self._toolsPanel.mouseEntered.connect(self._onPanelMouseEntered)
         self._toolsPanel.mouseLeft.connect(self._onPanelMouseLeft)
         
-        self._inksPanel = DynamicPanel(canvas.width(), 100, Qt.Horizontal)
+        self._inksPanel = DynamicPanel(canvas.width(), canvas.height(), Qt.Horizontal)
         self._inksPanel.setFont(ResourcesCache.get("NokiaFont"))
+        self._inksPanel.setBackgroundColor(QColor(36, 50, 64, 180))
         self._inksPanel.mouseEntered.connect(self._onPanelMouseEntered)
         self._inksPanel.mouseLeft.connect(self._onPanelMouseLeft)
         
@@ -116,7 +118,12 @@ class ToolBox(QWidget):
                 elif putOnSlot == 2:
                     
                     self._updateCurrentSecondaryInk(ink.name())
+    
+    def updateSize(self, width, height):
         
+        self.resize(width, 40)
+        self._toolsPopup.resize(width + 1, height)
+        self._inksPopup.resize(width + 1, height)
     
     def _updateCurrentTool(self, toolName):
         
@@ -135,11 +142,15 @@ class ToolBox(QWidget):
     
     def _initializePanels(self):
         
-        self._toolsPanel.addLayout("toolsNamesPanel", QVBoxLayout())
-        self._toolsPanel.addLayout("toolsPropsPanel", QVBoxLayout())
+        toolsPanelLayout = QVBoxLayout()
+        toolsPanelLayout.setAlignment(Qt.AlignTop)
+        toolsPanelLayout.setSpacing(20)
+        
+        self._toolsPanel.addLayout("toolsNamesPanel", toolsPanelLayout)
+        self._toolsPanel.addLayout("toolsPropsPanel", QGridLayout())
         
         self._inksPanel.addLayout("inksNamesPanel", QVBoxLayout())
-        self._inksPanel.addLayout("inksPropsPanel", QVBoxLayout())
+        self._inksPanel.addLayout("inksPropsPanel", QGridLayout())
         
         
     def mousePressEvent(self, e):
@@ -158,7 +169,11 @@ class ToolBox(QWidget):
         
         p = QPainter(self)
         
-        p.fillRect(e.rect(), QColor(10,10,10,217))
+        p.fillRect(e.rect(), QColor(36,50,64))
+    
+    
+    
+    
     
     def _onCurrentToolButtonClicked(self):
         

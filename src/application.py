@@ -218,12 +218,16 @@ class Application(QApplication):
     def _loadFonts(self):
         
         QFontDatabase.addApplicationFont(":/fonts/font_nokia")
+        QFontDatabase.addApplicationFont(":/fonts/font_flx")
         
-        nokiaFont = QFont("Nokia Cellphone FC")
-        nokiaFont.setPointSize(12)
+        defaultFont = QFont("Nokia Cellphone FC")
+        defaultFont.setPointSize(12)
         
+        smallFont = QFont("flxpixl")
+        smallFont.setPointSize(12)
         
-        ResourcesCache.registerResource("NokiaFont", nokiaFont)
+        ResourcesCache.registerResource("DefaultFont", defaultFont)
+        ResourcesCache.registerResource("SmallFont", smallFont)
         
 # ======================================================================================================================
 

@@ -5,12 +5,11 @@ Created on 06/10/2013
 '''
 
 from PyQt4.QtCore import pyqtSignal, Qt, QSize
-from PyQt4.QtGui import QWidget, QPainter, QHBoxLayout, QVBoxLayout, QColor, QGridLayout
+from PyQt4.QtGui import QWidget, QPainter, QColor, QHBoxLayout, QPushButton, QButtonGroup, QIcon, QPixmap, QMenu
 
-from src.label_button import LabelButton
 from src.resources_cache import ResourcesCache
-from src.dynamic_panel import DynamicPanel
-from src.popup import Popup
+
+from src.widgets import Button
 
 class ToolBox(QWidget):
     
@@ -28,237 +27,201 @@ class ToolBox(QWidget):
         self.setAttribute(Qt.WA_StaticContents)
         self.setAttribute(Qt.WA_NoSystemBackground)
         
-        self.setFont(ResourcesCache.get("NokiaFont"))
+        self.setFont(ResourcesCache.get("DefaultFont"))
         
         self._registeredTools = {}
         self._registeredInks= {}
         
-        self._currentActiveInkPanelIndex = 0
-        self._currentToolId = None
-        self._currentPrimaryInkId = None
-        self._currentSecondaryInkId = None
+        self._toolSlots = []
+        self._inkSlots = []
         
-        self._currentToolButton = LabelButton()
-        self._currentToolButton.setAlignment(Qt.AlignCenter)
-        self._currentToolButton.clicked.connect(self._onCurrentToolButtonClicked)
+        self._backgroundColor = QColor(40,40,40)
+        self._toolLabelColor = QColor(112,231,255)
         
-        self._currentPrimaryInkButton = LabelButton()
-        self._currentPrimaryInkButton.setAlignment(Qt.AlignCenter)
-        self._currentPrimaryInkButton.clicked.connect(self._onCurrentPrimaryInkButtonClicked)
+        self._layout = QHBoxLayout()
+        self._layout.setAlignment(Qt.AlignCenter)
+        self._layout.setContentsMargins(4, 4, 4, 4)
         
-        self._currentSecondaryInkButton = LabelButton()
-        self._currentSecondaryInkButton.setAlignment(Qt.AlignCenter)
-        self._currentSecondaryInkButton.clicked.connect(self._onCurrentSecondaryInkButtonClicked)
+        self._toolsLayout = QHBoxLayout()
+        self._inksLayout = QHBoxLayout()
         
-        self._toolsPanel = DynamicPanel(canvas.width(), canvas.height(), Qt.Horizontal)
-        self._toolsPanel.setFont(ResourcesCache.get("NokiaFont"))
-        self._toolsPanel.setBackgroundColor(QColor(36, 50, 64, 180))
-        self._toolsPanel.mouseEntered.connect(self._onPanelMouseEntered)
-        self._toolsPanel.mouseLeft.connect(self._onPanelMouseLeft)
+        self._toolsLayout.setContentsMargins(0, 0, 0, 0)
+        self._toolsLayout.setAlignment(Qt.AlignLeft)
         
-        self._inksPanel = DynamicPanel(canvas.width(), canvas.height(), Qt.Horizontal)
-        self._inksPanel.setFont(ResourcesCache.get("NokiaFont"))
-        self._inksPanel.setBackgroundColor(QColor(36, 50, 64, 180))
-        self._inksPanel.mouseEntered.connect(self._onPanelMouseEntered)
-        self._inksPanel.mouseLeft.connect(self._onPanelMouseLeft)
+        self._inksLayout.setContentsMargins(0, 0, 0, 0)
+        self._inksLayout.setAlignment(Qt.AlignLeft)
         
-        self._toolsPopup = Popup(canvas, self, self._toolsPanel)
-        self._inksPopup = Popup(canvas, self, self._inksPanel)
+        self._layout.addLayout(self._toolsLayout)
+        self._layout.addLayout(self._inksLayout)
         
-        layout = QHBoxLayout()
-        layout.setMargin(0)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self._currentToolButton)
-        layout.addWidget(self._currentPrimaryInkButton)
-        layout.addWidget(self._currentSecondaryInkButton)
+        self._toolsButtonGroup = QButtonGroup()
         
+        self._inksButtonGroup = QButtonGroup()
         
-        self.setLayout(layout)
+        self._toolsMenu = QMenu()
         
-        self._initializePanels()
+        self._toolsMenu.addAction("Test1")
+        self._toolsMenu.addAction("Test2")
         
+        self.setLayout(self._layout)
+        
+        self._createInkSlot(0)
+        self._createInkSlot(1)
+        
+        self.resize(0, 50)
         
     
-    def registerTool(self, tool, setAsCurrent=None):
+    def registerTool(self, tool, isDefault=None):
         
         if tool.name() not in self._registeredTools:
-        
+            
+            
+            
+            slotIndex = self._createToolSlot(isDefault)
+            
             self._registeredTools[tool.name()] = tool
             
-            toolButton = LabelButton(tool.name())
-            toolButton.clicked.connect(lambda: self._onToolSelected(tool))
+            if len(self._toolSlots) < 5:
             
-            self._toolsPanel.addWidget("toolsNamesPanel", toolButton)
-            self._toolsPopup.adjustSize()
+                self._assignToolToSlot(tool, slotIndex)
+           
             
-            if setAsCurrent is not None:
-                
-                self._updateCurrentTool(tool.name())
-                
+    def _createToolSlot(self, selected=None):
+        
+        slotButton = Button()
+        slotButton.setCheckable(True)
+        
+        index = len(self._toolSlots)
+        
+        if selected is not None and selected == True:
             
+            slotButton.setChecked(True)
+        
+        slotButton.activated.connect(self._toolSlotTriggered)
+        
+        self._toolSlots.append({'button' : slotButton})
+        
+        self._toolsButtonGroup.addButton(slotButton, index)
+        
+        self._toolsLayout.addWidget(slotButton)
+        
+        return index
     
-    def registerInk(self, ink, putOnSlot=None):
+    
+    def _createInkSlot(self, slotNumber):
+        
+        slotButton = QPushButton()
+        slotButton.setFont(self.font())
+        slotButton.setStyleSheet("border-color: rgb(56,56,56); background-color: rgb(17,17,17); font-size: 12pt;")
+        
+        
+        index = len(self._inkSlots)
+        
+        if slotNumber == 0:
+            
+            icon = QIcon()
+            icon.addPixmap(QPixmap(":/icons/ico_mouse_button1"), QIcon.Normal, QIcon.Off)
+            
+            slotButton.setIcon(icon)
+            slotButton.setIconSize(QSize(18,23))
+        
+        elif slotNumber == 1:
+            
+            icon = QIcon()
+            icon.addPixmap(QPixmap(":/icons/ico_mouse_button2"), QIcon.Normal, QIcon.Off)
+            
+            slotButton.setIcon(icon)
+            slotButton.setIconSize(QSize(18,23))
+        
+        self._inkSlots.append({'button' : slotButton})
+        
+        self._inksButtonGroup.addButton(slotButton)
+        
+        self._inksLayout.addWidget(slotButton)
+        
+        return index
+        
+        
+    def _assignToolToSlot(self, tool, slot):
+        
+        if slot < 0 or slot > len(self._toolSlots) - 1:
+            
+            raise Exception('[ToolBox] > _assignToolToSlot : invalid slot parameter')
+        
+        self._toolSlots[slot]['id'] = tool.name()
+        
+        icon = tool.icon()
+        
+        if icon is not None:
+            
+            self._toolSlots[slot]['button'].setIcon(tool.icon())
+        
+        
+    def _assignInkToSlot(self, ink, slot):
+        
+        if slot != 0 and slot != 1:
+            
+            raise Exception('[ToolBox] > _assignInkToSlot : invalid slot parameter')
+        
+        
+        label = ink.name()
+        self._inkSlots[slot]['id'] = label
+        
+        self._inkSlots[slot]['button'].setText(label)
+
+    
+    def registerInk(self, ink, slot=None):
         
         if not ink in self._registeredInks:
             
-            self._registeredInks[ink.name] = ink
+            self._registeredInks[ink.name()] = ink
             
-            inkButton = LabelButton(ink.name())
-            inkButton.clicked.connect(lambda: self._onInkSelected(self._currentActiveInkPanelIndex, ink))
-            
-            self._inksPanel.addWidget("inksNamesPanel", inkButton)
-            self._inksPopup.adjustSize()
-            
-            if putOnSlot is not None:
+            if slot is not None:
                 
-                if putOnSlot == 1:
+                if slot == 0 or slot == 1:
                     
-                    self._updateCurrentPrimaryInk(ink.name())
-                    
-                elif putOnSlot == 2:
-                    
-                    self._updateCurrentSecondaryInk(ink.name())
+                    self._assignInkToSlot(ink, slot)
     
-    def updateSize(self, width, height):
-        
-        self.resize(width, 40)
-        self._toolsPopup.resize(width + 1, height)
-        self._inksPopup.resize(width + 1, height)
     
-    def _updateCurrentTool(self, toolName):
-        
-        self._currentToolId = toolName
-        self._currentToolButton.setText(toolName)
-        
-    def _updateCurrentPrimaryInk(self, inkName):
-        
-        self._currentPrimaryInkId = inkName
-        self._currentPrimaryInkButton.setText(inkName)
     
-    def _updateCurrentSecondaryInk(self, inkName):
-        
-        self._currentSecondaryInkId = inkName
-        self._currentSecondaryInkButton.setText(inkName)
     
-    def _initializePanels(self):
-        
-        toolsPanelLayout = QVBoxLayout()
-        toolsPanelLayout.setAlignment(Qt.AlignTop)
-        toolsPanelLayout.setSpacing(20)
-        
-        self._toolsPanel.addLayout("toolsNamesPanel", toolsPanelLayout)
-        self._toolsPanel.addLayout("toolsPropsPanel", QGridLayout())
-        
-        self._inksPanel.addLayout("inksNamesPanel", QVBoxLayout())
-        self._inksPanel.addLayout("inksPropsPanel", QGridLayout())
-        
-        
+    
+    ####### EVENTS ###################################################################
+    
+    
     def mousePressEvent(self, e):
         e.accept()
     
     
+    def wheelEvent(self, e):
+        
+        e.accept()
+    
     def enterEvent(self, e):
         
-        self.setCursor(Qt.ArrowCursor)
         self.mouseEntered.emit()
+        self.setCursor(Qt.PointingHandCursor)
     
     def leaveEvent(self, e):
+        
         self.mouseLeft.emit()
     
     def paintEvent(self, e):
         
         p = QPainter(self)
         
-        p.fillRect(e.rect(), QColor(36,50,64))
-    
-    
-    
-    
-    
-    def _onCurrentToolButtonClicked(self):
+        rect = e.rect()
         
         
+        p.setPen(self._backgroundColor.lighter())
+        p.drawRect(rect.adjusted(0,0,-1,-1))
         
-        if self._currentToolId is None:
-            return
+        p.fillRect(rect.adjusted(1,1,-1,-1), self._backgroundColor)
         
-        self._currentActiveInkPanelIndex = 0
+    def _toolSlotTriggered(self):  
         
-        self._toolsPopup.toggleVisible()
-        self._inksPopup.popout()
-    
-    def _onCurrentPrimaryInkButtonClicked(self):
+        triggeredSlot = self._toolsButtonGroup.checkedId()
         
+        self.toolChanged.emit(self._toolSlots[triggeredSlot]['id'])
         
-        
-        if self._currentPrimaryInkId is None:
-            return
-        
-        self._toolsPopup.popout()
-        
-        if self._currentActiveInkPanelIndex != 0 and self._currentActiveInkPanelIndex != 1:
-            self._inksPopup.popout()
-        
-        last = self._currentActiveInkPanelIndex
-        self._currentActiveInkPanelIndex = 1
-        
-        if last != self._currentActiveInkPanelIndex:
-            
-            self._inksPopup.popin()
-            
-        else:
-            
-            self._inksPopup.popout()
-            self._currentActiveInkPanelIndex = 0
-        
-    
-    def _onCurrentSecondaryInkButtonClicked(self):
-        
-        
-        
-        if self._currentSecondaryInkId is None:
-            return
-        
-        self._toolsPopup.popout()
-        
-        if self._currentActiveInkPanelIndex != 0 and self._currentActiveInkPanelIndex != 2:
-            self._inksPopup.popout()
-        
-        last = self._currentActiveInkPanelIndex
-        self._currentActiveInkPanelIndex = 2
-        
-        if last != self._currentActiveInkPanelIndex:
-            
-            self._inksPopup.popin()
-            
-        else:
-            
-            self._inksPopup.popout()
-            self._currentActiveInkPanelIndex = 0
-        
-        
-    def _onToolSelected(self, tool):
-        
-        self.toolChanged.emit(tool.name())
-        self._updateCurrentTool(tool.name())
-        self._toolsPopup.popout()
-        
-    def _onInkSelected(self, slot, ink):
-        
-        if slot == 1:
-            self.primaryInkChanged.emit(ink.name())
-            self._updateCurrentPrimaryInk(ink.name())
-            
-        elif slot == 2:
-            self.secondaryInkChanged.emit(ink.name())
-            self._updateCurrentSecondaryInk(ink.name())
-        
-        self._inksPopup.popout()
-    
-    def _onPanelMouseEntered(self):
-        
-        self.mouseEntered.emit()
-    
-    def _onPanelMouseLeft(self):
-        
-        self.mouseLeft.emit()
+    ##################################################################################

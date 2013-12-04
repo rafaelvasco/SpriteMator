@@ -1,5 +1,20 @@
 <RCC>
   <qresource prefix="fonts">
+    <file alias="font_flx">resources/flxpixl.ttf</file>
     <file alias="font_nokia">resources/nokiafc22.ttf</file>
+  </qresource>
+  <qresource prefix="icons">
+    <file alias="ico_mouse_button1">resources/ico_mouse_button1.png</file>
+    <file alias="ico_mouse_button2">resources/ico_mouse_button2.png</file>
+    <file alias="ico_brush">resources/ico_brush.png</file>
+    <file alias="ico_brush_hover">resources/ico_brush_hover.png</file>
+    <file alias="ico_fill">resources/ico_fill.png</file>
+    <file alias="ico_fill_hover">resources/ico_fill_hover.png</file>
+    <file alias="ico_pen">resources/ico_pen.png</file>
+    <file alias="ico_pen_hover">resources/ico_pen_hover.png</file>
+    <file alias="ico_picker">resources/ico_picker.png</file>
+    <file alias="ico_picker_hover">resources/ico_picker_hover.png</file>
+    <file alias="ico_sel_move">resources/ico_sel_move.png</file>
+    <file alias="ico_sel_move_hover">resources/ico_sel_move_hover.png</file>
   </qresource>
 </RCC>

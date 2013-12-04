@@ -356,6 +356,7 @@ class Canvas(Display):
         painter.end()
         
         self.update()
+        self._animationDisplay.update()
 
     def resize(self, width, height, index=None):
 
@@ -379,7 +380,7 @@ class Canvas(Display):
         for layer in layers:
             painter.drawImage(0, 0, layer.image())
         
-        if self._drawGrid and self._zoom >= 4.0:
+        if self._drawGrid and self._zoom >= 16.0:
             
             
             w = self._drawingSurface.width()
@@ -398,7 +399,7 @@ class Canvas(Display):
     def resizeEvent(self, e):
         
         self._overlaySurface.resize(self.size())
-        self._toolBox.updateSize(self.width(), self.height())
+        self._toolBox.resize(self.width(), self._toolBox.height())
         
     def onDelFrameButtonClicked(self):
 
@@ -442,9 +443,9 @@ class Canvas(Display):
         
         self._updateMouseState(e)
         
-        viewMousePosition = self.viewMousePos()
+        #viewMousePosition = self.viewMousePos()
         
-        self._animationDisplay.panTo(-viewMousePosition.x(), -viewMousePosition.y())
+        #self._animationDisplay.panTo(-viewMousePosition.x(), -viewMousePosition.y())
         
         tool = self._currentTool
         
@@ -503,6 +504,11 @@ class Canvas(Display):
             return
         
         self.setCursor(Qt.ArrowCursor)
+        
+        
+        #self._animationDisplay.resetView()
+        
+        
         self._overlaySurface.turnOff()
     
     def _onToolBoxMouseEntered(self):
@@ -562,11 +568,11 @@ class Canvas(Display):
         self._toolBox.mouseEntered.connect(self._onToolBoxMouseEntered)
         self._toolBox.mouseLeft.connect(self._onToolBoxMouseLeft)
         
-        self._toolBox.registerTool(self.tool('Pen'), setAsCurrent=True)
+        self._toolBox.registerTool(self.tool('Pen'), isDefault=True)
         self._toolBox.registerTool(self.tool('Picker'))
         
-        self._toolBox.registerInk(self.ink('Solid'), putOnSlot=1)
-        self._toolBox.registerInk(self.ink('Eraser'), putOnSlot=2)
+        self._toolBox.registerInk(self.ink('Solid'), slot=0)
+        self._toolBox.registerInk(self.ink('Eraser'), slot=1)
         
         self._toolBox.toolChanged.connect(self._onToolBoxToolChanged)
         self._toolBox.primaryInkChanged.connect(self._onToolBoxPrimaryInkChanged)

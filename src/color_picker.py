@@ -15,6 +15,8 @@ from PyQt4.QtGui import QBrush, QPen, QWidget, QPainter, QColor, QVBoxLayout, QS
 
 import src.utils as utils
 
+from src.resources_cache import ResourcesCache
+
 # ======================================================================================================================
 
 
@@ -550,9 +552,8 @@ class ColorSlider(QWidget):
         self._orientation = self.Orientation.HORIZONTAL
         self._label = ""
         self._gradient = None
-        self._font = QFont()
-        self._font.setFamily("flxpixl")
-        self._font.setPointSize(12)
+        
+        self._font = ResourcesCache.get("SmallFont")
         self._pickerPixmap = None
         self._background = None
         

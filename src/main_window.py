@@ -75,7 +75,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     def _initializeComponents(self):
         
-        toolbarFont = ResourcesCache.get("NokiaFont")
+        toolbarFont = ResourcesCache.get("DefaultFont")
         
         self.actionNew.setFont(toolbarFont)
         self.actionOpen.setFont(toolbarFont)

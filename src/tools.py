@@ -6,7 +6,7 @@
 # License:          
 #--------------------------------------------------
 from PyQt4.QtCore import QPoint, Qt
-from PyQt4.QtGui import QPen, QColor
+from PyQt4.QtGui import QPen, QColor, QIcon, QPixmap
 
 import src.drawing as drawing
 import src.utils as utils
@@ -34,6 +34,8 @@ class Tool(object):
         self._drawPen.setCapStyle(Qt.SquareCap)
         
         self._drawBrush = None
+        
+        self._icon = None
     
     def name(self):
         return self._name
@@ -53,8 +55,11 @@ class Tool(object):
     def setSnap(self, snap):
         
         self._snapPos = snap
+    
+    def icon(self):
         
-
+        return self._icon
+    
     def _processMousePress(self, canvas, mouseEvent):
             
         if mouseEvent.button() != Qt.LeftButton and mouseEvent.button() != Qt.RightButton:
@@ -141,6 +146,10 @@ class Picker(Tool):
         
         super(Picker, self).__init__()
         self._name = 'Picker'
+        
+        self._icon = QIcon()
+        self._icon.addPixmap(QPixmap(":/icons/ico_picker"), QIcon.Normal, QIcon.Off)
+        self._icon.addPixmap(QPixmap(":/icons/ico_picker_hover"), QIcon.Normal, QIcon.On)
     
     def draw(self, painter, canvas):
         
@@ -179,6 +188,11 @@ class Pen(Tool):
         
         self.setSnap(True)
         self.setName('Pen')
+        
+        self._icon = QIcon()
+        self._icon.addPixmap(QPixmap(":/icons/ico_pen"), QIcon.Normal, QIcon.Off)
+        self._icon.addPixmap(QPixmap(":/icons/ico_pen_hover"), QIcon.Normal, QIcon.On)
+        
         
     def draw(self, painter, canvas):
         

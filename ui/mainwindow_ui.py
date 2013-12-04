@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'mainwindow.ui'
 #
-# Created: Sun Nov 24 15:06:09 2013
+# Created: Sun Dec  1 22:31:20 2013
 #      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -110,8 +110,8 @@ class Ui_MainWindow(object):
 "QPushButton\n"
 "{\n"
 "    \n"
-"    background: #222;\n"
-"    border: 1px solid #333;\n"
+"    background: #333;\n"
+"    border: 1px solid #444;\n"
 "    font-size: 10px;\n"
 "    padding-left: 10px;\n"
 "    padding-right: 10px;\n"
@@ -121,7 +121,7 @@ class Ui_MainWindow(object):
 "\n"
 "QPushButton:hover\n"
 "{\n"
-"    background: #333;\n"
+"    background: #3d3d3d;\n"
 "    border: 1px solid #444;\n"
 "    color: #6ED6FF;\n"
 "}\n"
@@ -129,11 +129,16 @@ class Ui_MainWindow(object):
 "QPushButton:pressed\n"
 "{\n"
 "    background: #222;\n"
-"    border: 1px solid #111;\n"
+"    border: 1px solid #000;\n"
 "    color: #4AA9CF;\n"
 "}\n"
 "\n"
-"\n"
+"QPushButton:checked\n"
+"{\n"
+"    background: #222;\n"
+"    border: 1px solid #000;\n"
+"    color: #4AA9CF;\n"
+"}\n"
 "\n"
 "/* ------------------------------------------------------------------------------------------------------ */\n"
 "/* ------------------------------------------------------------------------------------------------------ */\n"

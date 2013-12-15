@@ -86,10 +86,12 @@ class AnimationDisplay(Display):
         self._animationSpeed = value
 
     def _startRefreshing(self):
+        print('Started Refreshing')
         self._refreshTimer.start(self._refreshSpeed)
         self._refreshing = True
 
     def _stopRefreshing(self):
+        print('Stopped Refreshing')
         self._refreshTimer.stop()
         self._refreshing = False
 

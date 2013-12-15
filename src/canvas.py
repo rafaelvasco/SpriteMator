@@ -6,7 +6,7 @@
 # Date:             30/03/13
 # License:          
 #--------------------------------------------------
-from PyQt4.QtCore import Qt, pyqtSignal, QPoint
+from PyQt4.QtCore import Qt, pyqtSignal, QPoint, QTimer, SLOT
 from PyQt4.QtGui import QPainter, QSizePolicy, QColor, QMouseEvent
 
 from src.display import  Display
@@ -35,6 +35,7 @@ class Canvas(Display):
         
         self._sprite = None
         self._drawingSurface = None
+        self._drawingSurfacePixelData = None
         self._currentTool = None
         self._primaryInk = None
         self._secondaryInk = None
@@ -470,8 +471,8 @@ class Canvas(Display):
         if not self.spriteLoaded():
             return
         
-
-        self._animationDisplay._stopRefreshing()
+        
+        QTimer.singleShot(500, lambda : self._animationDisplay._stopRefreshing())
 
         self._updateMouseState(e)
         
@@ -546,6 +547,7 @@ class Canvas(Display):
         
         self._tools['Pen'] = tools.Pen()
         self._tools['Picker'] = tools.Picker()
+        self._tools['Filler'] = tools.Filler()
     
     def _loadInks(self):
         
@@ -570,6 +572,7 @@ class Canvas(Display):
         
         self._toolBox.registerTool(self.tool('Pen'), isDefault=True)
         self._toolBox.registerTool(self.tool('Picker'))
+        self._toolBox.registerTool(self.tool('Filler'))
         
         self._toolBox.registerInk(self.ink('Solid'), slot=0)
         self._toolBox.registerInk(self.ink('Eraser'), slot=1)
@@ -600,5 +603,10 @@ class Canvas(Display):
             return
         
         self._drawingSurface = self._sprite.currentAnimation().currentFrame().currentSurface().image()
+        
+        self._drawingSurfacePixelData = self._drawingSurface.bits()
+        
+        self._drawingSurfacePixelData.setsize(self._drawingSurface.byteCount())
+        
         self.update()
         

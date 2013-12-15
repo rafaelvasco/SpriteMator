@@ -10,8 +10,8 @@ from PyQt4.QtGui import QPen, QColor, QIcon, QPixmap
 
 import src.drawing as drawing
 import src.utils as utils
-
-
+import struct
+import math
 
 class Tool(object):
     
@@ -275,4 +275,129 @@ class Pen(Tool):
         else:
             ink.blit(self._currentMousePos.x(), self._currentMousePos.y(), size, size, color, painter)
 
+# ======================================================================================================================
+
+class Filler(Tool):
+    
+    def __init__(self):
+        
+        super(Filler, self).__init__()
+        
+        self.setName('Filler')
+        
+        self._icon = QIcon()
+        self._icon.addPixmap(QPixmap(":/icons/ico_fill"), QIcon.Normal, QIcon.Off)
+        self._icon.addPixmap(QPixmap(":/icons/ico_fill_hover"), QIcon.Normal, QIcon.On)
+
+    
+    def draw(self, painter, canvas):
+        
+        x = self._absoluteMousePos.x()
+        y = self._absoluteMousePos.y()
+        
+        size = canvas._pixelSize * canvas._zoom
+        
+        
+        halfSize = size // 2
+        
+        painter.setPen(self._drawPen)
+        
+        painter.drawRect(x - halfSize,
+                         y - halfSize,
+                         size - 1,
+                         size - 1)
+    
+    def onMousePress(self, canvas, mouseEvent):
+        
+        image = canvas._drawingSurface
+        
+        
+        if image is not None:
+            
+            imageData = canvas._drawingSurfacePixelData
+            
+            if mouseEvent.button() == Qt.LeftButton:
+                
+                color = canvas.primaryColor()
+                
+            elif mouseEvent.button() == Qt.RightButton:
+            
+                color = canvas.secondaryColor()
+            
+            self._floodFillScanLine(imageData, self._pressMousePos.x(), self._pressMousePos.y(), image.width(), image.height(), color)
+        
+        
+    def _floodFillScanLine(self, imageData, x, y, w, h, fillColor):
+        
+
+        width4 = w * 4
+
+        length = len(imageData)
+
+        colorIndex = (x + y * w)*4        
+
+        hitColor = struct.unpack('I', imageData[colorIndex:colorIndex+4])[0]
+        
+        newColor = fillColor.rgb()
+
+        if newColor == hitColor:
+            return;
+
+        stack = []
+
+        left = 0
+        right = 0
+
+        leftBoundary = 0
+        rightBoundary = 0
+
+        stack.append(colorIndex)
+
+
+        while len(stack) > 0:
+            
+            colorIndex = stack.pop()
+
+            if struct.unpack('I', imageData[colorIndex:colorIndex+4])[0] == hitColor:
+
+                left = colorIndex - 4
+                right = colorIndex + 4
+
+                leftBoundary = (math.floor(left / width4) * width4)
+                rightBoundary = leftBoundary + width4
+
+                while left > leftBoundary and struct.unpack('I', imageData[left:left+4])[0] == hitColor:
+
+                    left -= 4
+
+                while right < rightBoundary and struct.unpack('I', imageData[right:right+4])[0] == hitColor:
+                    
+                    right += 4
+
+                    
+
+                if struct.unpack('I', imageData[left:left+4])[0] != hitColor:
+
+                    left += 4
+
+                while left < right:
+
+                    imageData[left:left+4] = struct.pack('I', newColor)
+
+                    colorIndex = left - width4
+
+                    if colorIndex >= 0:
+
+                        if struct.unpack('I', imageData[colorIndex:colorIndex+4])[0] == hitColor:
+                            stack.append(colorIndex)
+
+                    colorIndex = left + width4
+
+                    if colorIndex < length:
+
+                        if struct.unpack('I', imageData[colorIndex:colorIndex+4])[0] == hitColor:
+
+                            stack.append(colorIndex)
+
+                    left += 4
 # ======================================================================================================================

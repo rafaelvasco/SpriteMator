@@ -178,6 +178,26 @@ class Application(QApplication):
         elif key == Qt.Key_C:
             
             self._view.canvas().clear()
+            
+        elif key == Qt.Key_R:
+            
+            self._view.canvas().resetView()
+            
+        elif key == Qt.Key_1:
+            
+            self._view.canvas().zoomTo(1.0)
+            
+        elif key == Qt.Key_2:
+            
+            self._view.canvas().zoomTo(2.0)
+            
+        elif key == Qt.Key_3:
+            
+            self._view.canvas().zoomTo(3.0)
+            
+        elif key == Qt.Key_4:
+            
+            self._view.canvas().zoomTo(4.0)    
     
     def _onMousePressed(self, event):
         pass

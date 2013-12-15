@@ -4,8 +4,10 @@ Created on 25/11/2013
 @author: Rafael
 '''
 
-from PyQt4.QtCore import Qt, pyqtSignal, QSize, QRect
-from PyQt4.QtGui import QWidget, QColor, QFont, QPainter, QFontMetrics, QFrame, QVBoxLayout, QHBoxLayout, QStackedLayout, QIcon, QAbstractButton
+from PyQt4.QtCore import Qt, pyqtSignal, QSize, QRect, QTimer, QPoint
+from PyQt4.QtGui import (QWidget, QColor, QFont, QPainter, 
+                        QFontMetrics, QFrame, QVBoxLayout, 
+                        QHBoxLayout, QStackedLayout, QIcon, QAbstractButton, QToolTip)
 
 import math
 
@@ -32,25 +34,21 @@ class Button(QAbstractButton):
         self._size = QSize()
         self._iconSize = QSize()
         self._icon = None
+        self._tooltip = None
         self._padding = 8
-        self._contextMenu = None
         self._idlePixmap = None
         self._checkedPixmap = None
-        self._menuTriggerButton = Qt.MiddleButton
 
         if label is not None:
 
             self.setText(label)
 
-        else:
-
-            self.setText('Button')
-
-        self._updateSize()
+        #self._updateSize()
     
     
     def sizeHint(self):
         
+        self._updateSize()
         return self._size
     
     def setIcon(self, icon):
@@ -64,7 +62,7 @@ class Button(QAbstractButton):
         
         self._updateIconPixmaps()
         
-        self._updateSize()
+        #self._updateSize()
         
         self.update()
     
@@ -76,7 +74,7 @@ class Button(QAbstractButton):
         
         self._updateIconPixmaps()
         
-        self._updateSize()
+        #self._updateSize()
         
         self.update()
     
@@ -84,11 +82,14 @@ class Button(QAbstractButton):
     def setMenu(self, menu):
         
         self._contextMenu = menu
+    
+    def setTooltip(self, text):
         
+        self._tooltip = text
    
     def resizeEvent(self, e):
-
-        self._updateSize()
+        pass
+        #self._updateSize()
 
     def mousePressEvent(self, e):
         
@@ -124,37 +125,49 @@ class Button(QAbstractButton):
         elif e.button() == Qt.RightButton:
             
             self.rightClicked.emit()
-
+    
+    def enterEvent(self, e):
+        
+        if self._tooltip is not None and len(self._tooltip) > 0:
+            
+            QTimer.singleShot(300, lambda t=self._tooltip: self._showToolTip(t))
+    
+    
     def paintEvent(self, e):
-
         p = QPainter(self)
         
         active = self.isDown() or self.isChecked()
         
         if active:
-            
-            
             bgColor = self._activeBgColor
             borderColor = bgColor.lighter(250)
             
         else:
-
             bgColor = self._bgColor
             borderColor = bgColor.lighter(150)
 
         p.setPen(borderColor)
-        
         drawRect = e.rect().adjusted(0,0,-1,-1)
-
+        
         p.drawRect(drawRect)
 
         p.fillRect(drawRect.adjusted(1,1,0,0), bgColor)
         
+        iconMargin = 0
         
-        if self._icon is not None:
+        iconPresent = self._icon is not None
+        textPresent = len(self.text()) > 0
+        
+        if iconPresent:
             
-            drawX = round(drawRect.width() / 2 - self._iconSize.width() / 2) 
-            drawY = round(drawRect.height() / 2 - self._iconSize.height() / 2) 
+            if not textPresent:
+                drawX = round(drawRect.width() / 2 - self._iconSize.width() / 2) 
+                drawY = round(drawRect.height() / 2 - self._iconSize.height() / 2) 
+            else:
+                drawX = self._padding
+                drawY = self._padding
+                iconMargin = drawX + self._iconSize.width()
+            
             
             if not active and self._idlePixmap is not None:
                 p.drawPixmap(drawX, drawY, self._idlePixmap)
@@ -163,13 +176,18 @@ class Button(QAbstractButton):
                 
                 p.drawPixmap(drawX, drawY, self._checkedPixmap) 
             
-        else:
-                
+        if textPresent:
+            
             p.setPen(Qt.white)
             
-            drawX = round(drawRect.width() / 2 - self._labelSize.width() / 2 + self._padding)
-            drawY = round(drawRect.height() / 2 + self._labelSize.height() / 3 + self._padding)
+            if not iconPresent:
+                drawX = round(drawRect.width() / 2 - self._labelSize.width() / 2)
+                drawY = round(drawRect.height() / 2 + self._labelSize.height() / 3)
             
+            else:
+                drawX = iconMargin + 8
+                drawY = round(drawRect.height() / 2 + self._labelSize.height() / 3)
+                
             p.drawText(drawX, drawY, self.text())
 
     
@@ -183,27 +201,38 @@ class Button(QAbstractButton):
 
     def _updateSize(self):
         
-        if self._icon is None:
+        width = 0
+        height = 0
+        
+        if self._icon is not None:
             
+            width = self._iconSize.width() + (self._padding * 2)
+            height = self._iconSize.height() + (self._padding * 2)
+            
+        if len(self.text()) > 0:
             fontMetrics = QFontMetrics(self.font())
             
             self._labelSize.setWidth(fontMetrics.width(self.text()))
             self._labelSize.setHeight(fontMetrics.height())
             
-            width = self._labelSize.width() + self._padding * 2
-            height = self._labelSize.height() + self._padding * 2
-        
-        else:
-           
-            width = self._iconSize.width() + (self._padding * 2)
-            height = self._iconSize.height() + (self._padding * 2)
             
+            
+            width = width + self._labelSize.width() + self._padding
+            
+            
+            
+            if height == 0:
+            
+                height = self._labelSize.height() + self._padding * 2
+        
+        
         self._size.setWidth(width)
         self._size.setHeight(height)
         
-        self.setMinimumSize(self._size)
 
-
+    def _showToolTip(self, text):
+        
+        QToolTip.showText(self.mapToGlobal(QPoint(0,self.height())), text)
 
 ######################################################################################
 

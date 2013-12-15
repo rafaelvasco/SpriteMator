@@ -29,8 +29,10 @@ class ToolBox(QWidget):
         
         self.setFont(ResourcesCache.get("DefaultFont"))
         
-        self._registeredTools = {}
-        self._registeredInks= {}
+        self._registeredTools = []
+        self._registeredInks= []
+        
+        self._freeToolsIds = []
         
         self._toolSlots = []
         self._inkSlots = []
@@ -56,8 +58,6 @@ class ToolBox(QWidget):
         
         self._toolsButtonGroup = QButtonGroup()
         
-        self._inksButtonGroup = QButtonGroup()
-        
         self._toolsMenu = QMenu()
         
         self._toolsMenu.addAction("Test1")
@@ -75,15 +75,18 @@ class ToolBox(QWidget):
         
         if tool.name() not in self._registeredTools:
             
-            
-            
             slotIndex = self._createToolSlot(isDefault)
             
-            self._registeredTools[tool.name()] = tool
+            self._registeredTools.append(tool.name())
             
             if len(self._toolSlots) < 5:
             
                 self._assignToolToSlot(tool, slotIndex)
+            
+            else:
+                
+                self._freeToolsIds.append(tool.name())
+                
            
             
     def _createToolSlot(self, selected=None):
@@ -110,7 +113,7 @@ class ToolBox(QWidget):
     
     def _createInkSlot(self, slotNumber):
         
-        slotButton = QPushButton()
+        slotButton = Button()
         slotButton.setFont(self.font())
         slotButton.setStyleSheet("border-color: rgb(56,56,56); background-color: rgb(17,17,17); font-size: 12pt;")
         
@@ -123,7 +126,7 @@ class ToolBox(QWidget):
             icon.addPixmap(QPixmap(":/icons/ico_mouse_button1"), QIcon.Normal, QIcon.Off)
             
             slotButton.setIcon(icon)
-            slotButton.setIconSize(QSize(18,23))
+            slotButton.setIconSize(18,23)
         
         elif slotNumber == 1:
             
@@ -131,11 +134,9 @@ class ToolBox(QWidget):
             icon.addPixmap(QPixmap(":/icons/ico_mouse_button2"), QIcon.Normal, QIcon.Off)
             
             slotButton.setIcon(icon)
-            slotButton.setIconSize(QSize(18,23))
+            slotButton.setIconSize(18,23)
         
         self._inkSlots.append({'button' : slotButton})
-        
-        self._inksButtonGroup.addButton(slotButton)
         
         self._inksLayout.addWidget(slotButton)
         
@@ -154,8 +155,10 @@ class ToolBox(QWidget):
         
         if icon is not None:
             
-            self._toolSlots[slot]['button'].setIcon(tool.icon())
-        
+            toolButton = self._toolSlots[slot]['button']
+            
+            toolButton.setIcon(tool.icon())
+            toolButton.setTooltip(tool.name())
         
     def _assignInkToSlot(self, ink, slot):
         
@@ -172,18 +175,16 @@ class ToolBox(QWidget):
     
     def registerInk(self, ink, slot=None):
         
-        if not ink in self._registeredInks:
+        if not ink.name() in self._registeredInks:
             
-            self._registeredInks[ink.name()] = ink
+            self._registeredInks.append(ink.name())
             
             if slot is not None:
                 
                 if slot == 0 or slot == 1:
                     
                     self._assignInkToSlot(ink, slot)
-    
-    
-    
+                
     
     
     ####### EVENTS ###################################################################
@@ -211,7 +212,6 @@ class ToolBox(QWidget):
         p = QPainter(self)
         
         rect = e.rect()
-        
         
         p.setPen(self._backgroundColor.lighter())
         p.drawRect(rect.adjusted(0,0,-1,-1))

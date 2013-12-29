@@ -9,7 +9,7 @@
 # Licence:     <your licence>
 #-----------------------------------------------------------------------------------------------------------------------
 
-from PyQt4.QtCore import Qt
+from PyQt4.QtCore import Qt, QTimer
 from PyQt4.QtGui import QMainWindow, QVBoxLayout, QDockWidget
 
 from ui.mainwindow_ui import Ui_MainWindow
@@ -18,6 +18,7 @@ from src.animation_display import AnimationDisplay
 from src.canvas import Canvas
 from src.color_picker import ColorPicker
 from src.layer_list import LayerList
+from src.new_sprite_dialog import NewSpriteDialog
 
 from src.resources_cache import ResourcesCache
 
@@ -25,11 +26,11 @@ from src.resources_cache import ResourcesCache
 
 class MainWindow(QMainWindow, Ui_MainWindow):
 
-
+    
     def __init__(self):
 
         QMainWindow.__init__(self)
-
+        
         self.setupUi(self)
         
         
@@ -52,6 +53,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._animationDisplayLastHeight = 0
         
         self._layerList = LayerList()
+        
+        self._newSpriteDialog  = NewSpriteDialog()
 
         # --------------------------------------------------------------------------------------------------------------
         
@@ -69,6 +72,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def layerList(self):
         return self._layerList
+    
+    def newSpriteDialog(self):
+        return self._newSpriteDialog
 
     def animationDisplay(self):
         return self._animationDisplay
@@ -127,8 +133,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._colorPicker.primaryColorChanged.connect(self._onColorPickerPrimaryColorChanged)
         self._colorPicker.secondaryColorChanged.connect(self._onColorPickerSecondaryColorChanged)
+        
+        
+        self._canvas.spriteChanged.connect(self._onCanvasSpriteChanged)
+        self._canvas.animationChanged.connect(self._onCanvasAnimationChanged)
         self._canvas.frameChanged.connect(self._onCanvasFrameChanged)
         self._canvas.colorPicked.connect(self._onCanvasColorPicked)
+        self._canvas.toolStarted.connect(self._onCanvasToolStarted)
+        self._canvas.toolEnded.connect(self._onCanvasToolEnded)
         
         self._layerList.layerAdded.connect(self._onLayerListLayerAdded)
         self._layerList.layerSelected.connect(self._onLayerListLayerSelected)
@@ -153,18 +165,45 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             
             self._colorPicker.setSecondaryColor(color)
+    
+    def _onCanvasSpriteChanged(self, sprite):
         
+        self._animationDisplay.setAnimation(sprite.currentAnimation())
+    
+    def _onCanvasAnimationChanged(self, animation):
+        
+        self._animationDisplay.setAnimation(animation)
+    
     def _onCanvasFrameChanged(self, frame):
 
         self._layerList.clear()
 
         layers = frame.surfaces()
 
+        print('Adding ', len(layers), ' layers.')
         for layer in layers:
 
             self._layerList.addLayer(layer)
         
         self._layerList.setSelectedIndex(self._canvas.currentLayerIndex())
+
+    def _onCanvasToolStarted(self, tool):
+        
+        self._animationDisplay._startRefreshing()
+        self._layerList._startRefreshing()
+    
+    def _onCanvasToolEnded(self, tool):
+        
+        if tool.refreshWaitTime() > 0:
+            
+            QTimer.singleShot(tool.refreshWaitTime(), lambda : self._animationDisplay._stopRefreshing())
+        
+        else:
+            
+            self._animationDisplay._stopRefreshing()
+            
+        self._layerList._stopRefreshing()
+
 
     def _onLayerListLayerAdded(self):
         self._canvas.addLayer()
@@ -175,4 +214,4 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _onLayerListItemOrderChanged(self, fromIndex, toIndex):
         self._canvas.moveLayer(fromIndex, toIndex)
 
-
+        

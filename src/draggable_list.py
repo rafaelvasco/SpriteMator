@@ -7,13 +7,15 @@
 # License:          
 #--------------------------------------------------
 
-from PyQt4.QtCore import Qt, pyqtSignal
+from PyQt4.QtCore import Qt, pyqtSignal, QRect
 from PyQt4.QtGui import QPainter, QColor, QWidget, QSizePolicy
+
+
 
 
 class ListItem(object):
 
-    def __init__(self, label, parent):
+    def __init__(self, parent, label, image=None):
 
 
         self._posY = 0
@@ -25,10 +27,12 @@ class ListItem(object):
         self._dragging = False
         self._label = label
         self._hit = False
-        self._backColor = QColor(34, 38, 43)
-        self._indicatorColor = QColor(133, 173, 0)
-        self._indicatorHoverColor = QColor(28, 144, 227)
-
+        self._backColor = QColor(51,57,64)
+        self._borderColor = QColor(132,148,165)
+        self._backColorSelected = QColor(47,74,96)
+        self._borderColorSelected = QColor(101,172,227)
+        
+        self._image = image
 
 
 #-------------------------------------------------------------------------------
@@ -51,8 +55,14 @@ class ListItem(object):
         self._index = index
 
         itemsLen = self._list.count()
+        
+        self._posY = ((itemsLen-1)*self._height - index*(self._height))
+        
+#-------------------------------------------------------------------------------
 
-        self._posY = (itemsLen-1)*self._height - index*self._height
+    def setImage(self, image):
+        
+        self._image = image
 
 #-------------------------------------------------------------------------------
 
@@ -124,33 +134,66 @@ class ListItem(object):
     def draw(self, painter, dragging):
 
         width = self._list.width()
-
+        
+        drawRect = QRect(0, self._posY, width, self._height)
+        
+        backColor = None
+        borderColor = None
+        
         if not self._hovered:
 
             if not self._selected:
-
-                painter.fillRect(0, self._posY, width, self._height, self._backColor)
-                painter.fillRect(0, self._posY, width, 1, self._backColor.lighter(150))
+                
+                backColor = self._backColor
+                borderColor = self._borderColor
+                
 
             else:
 
-                painter.fillRect(0, self._posY, width, self._height, self._backColor.lighter(150))
-                painter.fillRect(0, self._posY, width, 5, self._indicatorColor)
+                backColor = self._backColorSelected
+                borderColor = self._borderColorSelected
 
         else:
 
-            painter.fillRect(0, self._posY, width, self._height, self._backColor.lighter(150))
 
             if not self._selected:
 
-                painter.fillRect(0, self._posY, width, 5, self._indicatorHoverColor)
+                backColor = self._backColor.lighter(120)
+                borderColor = self._borderColor.lighter(120)
 
             else:
 
-                painter.fillRect(0, self._posY, width, 5, self._indicatorColor.lighter(150))
-
+                backColor = self._backColorSelected.lighter(120)
+                borderColor = self._borderColorSelected.lighter(120)
+        
+        
+        painter.setPen(borderColor)
+        painter.drawRect(drawRect.adjusted(0,0,-2,-2))
+        painter.fillRect(drawRect.adjusted(1,1,-2,-2), backColor)
+        
         painter.setPen(Qt.white)
         painter.drawText(20, self._posY + 30, self._label)
+        
+        if self._image is not None:
+            
+            imageRect = QRect(drawRect.right() - 55, drawRect.top() + drawRect.height() / 2 - 24, 48, 48)
+            
+            painter.setPen(borderColor)
+            
+            imageRect.adjust(0,0,-1,-1)
+            
+            painter.drawRect(imageRect)
+            
+            imageRect.adjust(1,1,-1,-1)
+            
+            painter.setPen(Qt.black)
+            painter.drawRect(imageRect)
+            
+            imageRect.adjust(1,1,0,0)
+            
+            painter.fillRect(imageRect, Qt.white)
+            painter.drawImage(imageRect, self._image, QRect(0, 0, self._image.width(), self._image.height()))
+            
 
 
 
@@ -189,9 +232,9 @@ class DraggableListWidget(QWidget):
 
 #-------------------------------------------------------------------------------
 
-    def addItem(self, label):
+    def addItem(self, label, image=None):
 
-        newItem = ListItem(label, self)
+        newItem = ListItem(self, label, image)
         newItem.setSelected(True)
 
         if self._selectedItem is not None:

@@ -3,7 +3,13 @@
     <file alias="font_flx">resources/flxpixl.ttf</file>
     <file alias="font_nokia">resources/nokiafc22.ttf</file>
   </qresource>
+  <qresource prefix="styles">
+    <file alias="style">resources/style.qss</file>
+  </qresource>
   <qresource prefix="icons">
+    <file alias="ico_next">resources/ico_next.png</file>
+    <file alias="ico_play">resources/ico_play.png</file>
+    <file alias="ico_prev">resources/ico_prev.png</file>
     <file alias="ico_mouse_button1">resources/ico_mouse_button1.png</file>
     <file alias="ico_mouse_button2">resources/ico_mouse_button2.png</file>
     <file alias="ico_brush">resources/ico_brush.png</file>

@@ -6,7 +6,7 @@
 # Date:             04/08/13
 # License:          
 #--------------------------------------------------
-from PyQt4.QtCore import pyqtSignal, Qt
+from PyQt4.QtCore import pyqtSignal, Qt, QTimer
 from PyQt4.QtGui import QWidget, QPushButton, QVBoxLayout, QSizePolicy
 
 from src.draggable_list import DraggableListWidget
@@ -37,11 +37,17 @@ class LayerList(QWidget):
         self._layout.setContentsMargins(0,0,0,0)
         self._layout.addWidget(self._listWidget)
         self._layout.addWidget(self._addLayerBtn)
+        
+        self._refreshSpeed = 16
+        
+        self._refreshTimer = QTimer()
+        self._refreshTimer.timeout.connect(self._refreshEvent)
+        self._refreshTimer.stop()
 
 
     def addLayer(self, layer):
 
-        self._listWidget.addItem(layer.name())
+        self._listWidget.addItem(layer.name(), layer.image())
         self.update()
 
     def setSelectedIndex(self, index):
@@ -54,6 +60,16 @@ class LayerList(QWidget):
         self._listWidget.clear()
         self.update()
 
+
+    def _startRefreshing(self):
+        self._refreshTimer.start(self._refreshSpeed)
+        self._refreshing = True
+
+    def _stopRefreshing(self):
+        self._refreshTimer.stop()
+        self._refreshing = False
+    
+
     def _onAddLayerBtnClicked(self):
 
         self.layerAdded.emit()
@@ -65,3 +81,7 @@ class LayerList(QWidget):
     def _onListItemOrderChanged(self, fromIndex, toIndex):
 
         self.layerMoved.emit(fromIndex, toIndex)
+        
+    def _refreshEvent(self):
+
+        self.update()

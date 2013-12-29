@@ -10,8 +10,9 @@ from PyQt4.QtGui import QPen, QColor, QIcon, QPixmap
 
 import src.drawing as drawing
 import src.utils as utils
-import struct
-import math
+
+
+from quickpixler import floodFill
 
 class Tool(object):
     
@@ -32,6 +33,8 @@ class Tool(object):
         self._drawPen.setJoinStyle(Qt.MiterJoin)
         self._drawPen.setWidth(0)
         self._drawPen.setCapStyle(Qt.SquareCap)
+        
+        self._refreshWaitTime = 0
         
         self._drawBrush = None
         
@@ -55,6 +58,10 @@ class Tool(object):
     def setSnap(self, snap):
         
         self._snapPos = snap
+        
+    def refreshWaitTime(self):
+        
+        return self._refreshWaitTime
     
     def icon(self):
         
@@ -185,7 +192,6 @@ class Pen(Tool):
         self._deltaX = 0
         self._deltaY = 0
         
-        
         self.setSnap(True)
         self.setName('Pen')
         
@@ -285,6 +291,7 @@ class Filler(Tool):
         
         self.setName('Filler')
         
+        self._refreshWaitTime = 500
         self._icon = QIcon()
         self._icon.addPixmap(QPixmap(":/icons/ico_fill"), QIcon.Normal, QIcon.Off)
         self._icon.addPixmap(QPixmap(":/icons/ico_fill_hover"), QIcon.Normal, QIcon.On)
@@ -324,80 +331,6 @@ class Filler(Tool):
             
                 color = canvas.secondaryColor()
             
-            self._floodFillScanLine(imageData, self._pressMousePos.x(), self._pressMousePos.y(), image.width(), image.height(), color)
+            floodFill(imageData ,self._pressMousePos.x(), self._pressMousePos.y(), image.width(), image.height(), color.red(), color.green(), color.blue())
         
-        
-    def _floodFillScanLine(self, imageData, x, y, w, h, fillColor):
-        
-
-        width4 = w * 4
-
-        length = len(imageData)
-
-        colorIndex = (x + y * w)*4        
-
-        hitColor = struct.unpack('I', imageData[colorIndex:colorIndex+4])[0]
-        
-        newColor = fillColor.rgb()
-
-        if newColor == hitColor:
-            return;
-
-        stack = []
-
-        left = 0
-        right = 0
-
-        leftBoundary = 0
-        rightBoundary = 0
-
-        stack.append(colorIndex)
-
-
-        while len(stack) > 0:
-            
-            colorIndex = stack.pop()
-
-            if struct.unpack('I', imageData[colorIndex:colorIndex+4])[0] == hitColor:
-
-                left = colorIndex - 4
-                right = colorIndex + 4
-
-                leftBoundary = (math.floor(left / width4) * width4)
-                rightBoundary = leftBoundary + width4
-
-                while left > leftBoundary and struct.unpack('I', imageData[left:left+4])[0] == hitColor:
-
-                    left -= 4
-
-                while right < rightBoundary and struct.unpack('I', imageData[right:right+4])[0] == hitColor:
-                    
-                    right += 4
-
-                    
-
-                if struct.unpack('I', imageData[left:left+4])[0] != hitColor:
-
-                    left += 4
-
-                while left < right:
-
-                    imageData[left:left+4] = struct.pack('I', newColor)
-
-                    colorIndex = left - width4
-
-                    if colorIndex >= 0:
-
-                        if struct.unpack('I', imageData[colorIndex:colorIndex+4])[0] == hitColor:
-                            stack.append(colorIndex)
-
-                    colorIndex = left + width4
-
-                    if colorIndex < length:
-
-                        if struct.unpack('I', imageData[colorIndex:colorIndex+4])[0] == hitColor:
-
-                            stack.append(colorIndex)
-
-                    left += 4
 # ======================================================================================================================

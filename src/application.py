@@ -9,8 +9,10 @@
 
 import sys
 
-from PyQt4.QtCore import Qt, QEvent
-from PyQt4.QtGui import QApplication, QFontDatabase, QFont
+from PyQt4.QtCore import Qt, QEvent, QFile
+from PyQt4.QtGui import QApplication, QFontDatabase, QFont, QDialog
+
+
 
 from src.main_window import MainWindow
 from src.sprite import Sprite
@@ -18,6 +20,7 @@ from src.resources_cache import ResourcesCache
 
 
 import src.utils as utils
+from PyQt4 import QtCore
 
 class Application(QApplication):
     
@@ -35,11 +38,22 @@ class Application(QApplication):
         
         self._currentSprite = None
         
-        self._loadedSprites = []
-
         self._connectWithView()
         
+        styleFile = QFile(':/styles/style')
+        styleFile.open(QtCore.QIODevice.ReadOnly)
+        
+        if styleFile.isOpen():
+            
+            self.setStyleSheet(str(styleFile.readAll(), encoding='ascii'))
+        
+        styleFile.close()
+        
         self._view.show()
+        
+        
+        
+        
         
         
         
@@ -50,15 +64,16 @@ class Application(QApplication):
 
     def newSprite(self):
 
-        if self._currentSprite is not None:
-            self.closeSprite()
-
-        sprite = Sprite.create(640, 480)
-
-        self._loadedSprites.append(sprite)
-
-        self.setSprite(sprite)
-
+        if self._view.newSpriteDialog().exec_() == QDialog.Accepted:
+            result = self._view.newSpriteDialog().result()
+            
+            if self._currentSprite is not None:
+                self.closeSprite()
+            
+            sprite = Sprite.create(result.choosenWidth, result.choosenHeight)
+            
+            self.setSprite(sprite)
+    
     def setSprite(self, sprite):
 
         self._currentSprite = sprite
@@ -149,7 +164,6 @@ class Application(QApplication):
     def terminate(self):
 
         self.closeSprite()
-        self._loadedSprites.clear()
         self._view.close()
 
     # ------------------------------------------------------------------------------------------------------------------

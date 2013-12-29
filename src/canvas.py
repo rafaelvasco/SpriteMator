@@ -6,7 +6,7 @@
 # Date:             30/03/13
 # License:          
 #--------------------------------------------------
-from PyQt4.QtCore import Qt, pyqtSignal, QPoint, QTimer, SLOT
+from PyQt4.QtCore import Qt, pyqtSignal, QPoint
 from PyQt4.QtGui import QPainter, QSizePolicy, QColor, QMouseEvent
 
 from src.display import  Display
@@ -16,13 +16,19 @@ from src.canvas_overlay import CanvasOverlay
 import src.utils as Utils
 from src import tools, inks
 from src.toolbox import ToolBox
-
+from src.tools import Tool
+from src.sprite import Sprite, Animation
 
     
 class Canvas(Display):
-
+    
+    spriteChanged = pyqtSignal(Sprite)
+    animationChanged = pyqtSignal(Animation)
     frameChanged = pyqtSignal(Frame)
+    
     colorPicked = pyqtSignal(QColor, QMouseEvent)
+    toolStarted = pyqtSignal(Tool)
+    toolEnded = pyqtSignal(Tool)
 
     def __init__(self, animationDisplay, parent=None):
 
@@ -56,7 +62,6 @@ class Canvas(Display):
         
         self._initializeCanvasState()
         
-        self._animationDisplay = animationDisplay
         self._overlaySurface = CanvasOverlay(self)
         self._overlaySurface.turnOff()
 
@@ -150,9 +155,10 @@ class Canvas(Display):
         super().setObjectSize(sprite.currentAnimation().frameWidth(),
                               sprite.currentAnimation().frameHeight())
 
-        self._animationDisplay.setAnimation(sprite.currentAnimation())
 
         self._updateDrawingSurface()
+        
+        self.spriteChanged.emit(sprite)
 
         self.frameChanged.emit(self._sprite.currentAnimation().currentFrame())
 
@@ -182,7 +188,9 @@ class Canvas(Display):
         self._updateDrawingSurface()
         self._updateOverlaySurface()
 
-        self._animationDisplay.setAnimation(self._sprite.currentAnimation())
+        
+        
+        self.animationChanged.emit(self._sprite.currentAnimation())
 
         self.frameChanged.emit(self._sprite.currentAnimation().currentFrame())
 
@@ -197,6 +205,7 @@ class Canvas(Display):
         self._updateOverlaySurface()
 
         self.frameChanged.emit(self._sprite.currentAnimation().currentFrame())
+        self.animationChanged.emit(self._sprite.currentAnimation())
 
     def addFrame(self):
 
@@ -409,11 +418,14 @@ class Canvas(Display):
     def mousePressEvent(self, e):
 
         super().mousePressEvent(e)
-
-        if not self.spriteLoaded():
-            return
         
-        self._animationDisplay._startRefreshing()
+        if not self.spriteLoaded() or self.isPanning():
+            
+            if self.isPanning():
+                
+                self._overlaySurface.turnOff()
+            
+            return
         
         self._updateMouseState(e)
         
@@ -422,7 +434,9 @@ class Canvas(Display):
         tool._processMousePress(self, e)
         
         if tool.isActive():
-        
+            
+            self.toolStarted.emit(tool)
+            
             painter = QPainter()
             
             painter.begin(self._drawingSurface)
@@ -442,9 +456,9 @@ class Canvas(Display):
         if not self.spriteLoaded():
             return
         
+        
         self._updateMouseState(e)
         
-        #viewMousePosition = self.viewMousePos()
         
         #self._animationDisplay.panTo(-viewMousePosition.x(), -viewMousePosition.y())
         
@@ -464,25 +478,33 @@ class Canvas(Display):
         
                 painter.end()
         
+        
         self.update()
 
     def mouseReleaseEvent(self, e):
         
         if not self.spriteLoaded():
+            
+            
+            
             return
         
+        tool = self._currentTool        
         
-        QTimer.singleShot(500, lambda : self._animationDisplay._stopRefreshing())
-
         self._updateMouseState(e)
-        
-        tool = self._currentTool
         
         tool._processMouseRelease(self, e)
         
         self.update()
         
+        self.toolEnded.emit(tool)
+        
+        
         super().mouseReleaseEvent(e)
+        
+        if not self.isPanning():
+            
+            self._overlaySurface.turnOn()
     
     def wheelEvent(self, e):
         

@@ -41,7 +41,10 @@ class Display(QWidget):
         
         self.setMouseTracking(True)
         self.resetOrigin()
-
+        
+    def isPanning(self):
+        
+        return self._panning
 
     def globalMousePos(self):
         return self._globalMousePos

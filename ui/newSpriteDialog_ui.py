@@ -1,0 +1,152 @@
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'newSpriteDialog.ui'
+#
+# Created: Sat Dec 28 22:00:31 2013
+#      by: PyQt4 UI code generator 4.10.1
+#
+# WARNING! All changes made in this file will be lost!
+
+from PyQt4 import QtCore, QtGui
+
+try:
+    _fromUtf8 = QtCore.QString.fromUtf8
+except AttributeError:
+    def _fromUtf8(s):
+        return s
+
+try:
+    _encoding = QtGui.QApplication.UnicodeUTF8
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+except AttributeError:
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig)
+
+class Ui_newSpriteDialog(object):
+    def setupUi(self, newSpriteDialog):
+        newSpriteDialog.setObjectName(_fromUtf8("newSpriteDialog"))
+        newSpriteDialog.resize(286, 215)
+        self.verticalLayout = QtGui.QVBoxLayout(newSpriteDialog)
+        self.verticalLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
+        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        self.groupSize = QtGui.QGroupBox(newSpriteDialog)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupSize.sizePolicy().hasHeightForWidth())
+        self.groupSize.setSizePolicy(sizePolicy)
+        self.groupSize.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.groupSize.setObjectName(_fromUtf8("groupSize"))
+        self.verticalLayout_5 = QtGui.QVBoxLayout(self.groupSize)
+        self.verticalLayout_5.setSizeConstraint(QtGui.QLayout.SetDefaultConstraint)
+        self.verticalLayout_5.setObjectName(_fromUtf8("verticalLayout_5"))
+        self.groupMainLayout = QtGui.QVBoxLayout()
+        self.groupMainLayout.setObjectName(_fromUtf8("groupMainLayout"))
+        self.customSizeLayout = QtGui.QVBoxLayout()
+        self.customSizeLayout.setObjectName(_fromUtf8("customSizeLayout"))
+        self.radioCustom = QtGui.QRadioButton(self.groupSize)
+        self.radioCustom.setChecked(True)
+        self.radioCustom.setObjectName(_fromUtf8("radioCustom"))
+        self.buttonGroup = QtGui.QButtonGroup(newSpriteDialog)
+        self.buttonGroup.setObjectName(_fromUtf8("buttonGroup"))
+        self.buttonGroup.addButton(self.radioCustom)
+        self.customSizeLayout.addWidget(self.radioCustom)
+        self.horizontalLayout_3 = QtGui.QHBoxLayout()
+        self.horizontalLayout_3.setObjectName(_fromUtf8("horizontalLayout_3"))
+        self.labelWidth = QtGui.QLabel(self.groupSize)
+        self.labelWidth.setObjectName(_fromUtf8("labelWidth"))
+        self.horizontalLayout_3.addWidget(self.labelWidth)
+        self.spinWidth = QtGui.QSpinBox(self.groupSize)
+        self.spinWidth.setMinimum(1)
+        self.spinWidth.setMaximum(4096)
+        self.spinWidth.setProperty("value", 320)
+        self.spinWidth.setObjectName(_fromUtf8("spinWidth"))
+        self.horizontalLayout_3.addWidget(self.spinWidth)
+        self.customSizeLayout.addLayout(self.horizontalLayout_3)
+        self.horizontalLayout_4 = QtGui.QHBoxLayout()
+        self.horizontalLayout_4.setObjectName(_fromUtf8("horizontalLayout_4"))
+        self.labelHeight = QtGui.QLabel(self.groupSize)
+        self.labelHeight.setObjectName(_fromUtf8("labelHeight"))
+        self.horizontalLayout_4.addWidget(self.labelHeight)
+        self.spinHeight = QtGui.QSpinBox(self.groupSize)
+        self.spinHeight.setMinimum(1)
+        self.spinHeight.setMaximum(4096)
+        self.spinHeight.setProperty("value", 240)
+        self.spinHeight.setObjectName(_fromUtf8("spinHeight"))
+        self.horizontalLayout_4.addWidget(self.spinHeight)
+        self.customSizeLayout.addLayout(self.horizontalLayout_4)
+        self.groupMainLayout.addLayout(self.customSizeLayout)
+        self.presetSizesLayout = QtGui.QVBoxLayout()
+        self.presetSizesLayout.setObjectName(_fromUtf8("presetSizesLayout"))
+        self.horizontalLayout = QtGui.QHBoxLayout()
+        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        self.radio16 = QtGui.QRadioButton(self.groupSize)
+        self.radio16.setObjectName(_fromUtf8("radio16"))
+        self.buttonGroup.addButton(self.radio16)
+        self.horizontalLayout.addWidget(self.radio16)
+        self.radio32 = QtGui.QRadioButton(self.groupSize)
+        self.radio32.setObjectName(_fromUtf8("radio32"))
+        self.buttonGroup.addButton(self.radio32)
+        self.horizontalLayout.addWidget(self.radio32)
+        self.radio64 = QtGui.QRadioButton(self.groupSize)
+        self.radio64.setObjectName(_fromUtf8("radio64"))
+        self.buttonGroup.addButton(self.radio64)
+        self.horizontalLayout.addWidget(self.radio64)
+        self.radio128 = QtGui.QRadioButton(self.groupSize)
+        self.radio128.setObjectName(_fromUtf8("radio128"))
+        self.buttonGroup.addButton(self.radio128)
+        self.horizontalLayout.addWidget(self.radio128)
+        self.presetSizesLayout.addLayout(self.horizontalLayout)
+        self.horizontalLayout_2 = QtGui.QHBoxLayout()
+        self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
+        self.radio24 = QtGui.QRadioButton(self.groupSize)
+        self.radio24.setObjectName(_fromUtf8("radio24"))
+        self.buttonGroup.addButton(self.radio24)
+        self.horizontalLayout_2.addWidget(self.radio24)
+        self.radio48 = QtGui.QRadioButton(self.groupSize)
+        self.radio48.setObjectName(_fromUtf8("radio48"))
+        self.buttonGroup.addButton(self.radio48)
+        self.horizontalLayout_2.addWidget(self.radio48)
+        self.radio96 = QtGui.QRadioButton(self.groupSize)
+        self.radio96.setObjectName(_fromUtf8("radio96"))
+        self.buttonGroup.addButton(self.radio96)
+        self.horizontalLayout_2.addWidget(self.radio96)
+        self.radio256 = QtGui.QRadioButton(self.groupSize)
+        self.radio256.setObjectName(_fromUtf8("radio256"))
+        self.buttonGroup.addButton(self.radio256)
+        self.horizontalLayout_2.addWidget(self.radio256)
+        self.presetSizesLayout.addLayout(self.horizontalLayout_2)
+        self.groupMainLayout.addLayout(self.presetSizesLayout)
+        self.verticalLayout_5.addLayout(self.groupMainLayout)
+        self.verticalLayout.addWidget(self.groupSize)
+        self.layoutButtons = QtGui.QHBoxLayout()
+        self.layoutButtons.setObjectName(_fromUtf8("layoutButtons"))
+        self.buttonCancel = QtGui.QPushButton(newSpriteDialog)
+        self.buttonCancel.setObjectName(_fromUtf8("buttonCancel"))
+        self.layoutButtons.addWidget(self.buttonCancel)
+        self.buttonCreate = QtGui.QPushButton(newSpriteDialog)
+        self.buttonCreate.setObjectName(_fromUtf8("buttonCreate"))
+        self.layoutButtons.addWidget(self.buttonCreate)
+        self.verticalLayout.addLayout(self.layoutButtons)
+
+        self.retranslateUi(newSpriteDialog)
+        QtCore.QMetaObject.connectSlotsByName(newSpriteDialog)
+
+    def retranslateUi(self, newSpriteDialog):
+        newSpriteDialog.setWindowTitle(_translate("newSpriteDialog", "New Sprite", None))
+        self.groupSize.setTitle(_translate("newSpriteDialog", "Size", None))
+        self.radioCustom.setText(_translate("newSpriteDialog", "Custom", None))
+        self.labelWidth.setText(_translate("newSpriteDialog", "Width:", None))
+        self.labelHeight.setText(_translate("newSpriteDialog", "Height:", None))
+        self.radio16.setText(_translate("newSpriteDialog", "16x16", None))
+        self.radio32.setText(_translate("newSpriteDialog", "32x32", None))
+        self.radio64.setText(_translate("newSpriteDialog", "64x64", None))
+        self.radio128.setText(_translate("newSpriteDialog", "128x128", None))
+        self.radio24.setText(_translate("newSpriteDialog", "24x24", None))
+        self.radio48.setText(_translate("newSpriteDialog", "48x48", None))
+        self.radio96.setText(_translate("newSpriteDialog", "96x96", None))
+        self.radio256.setText(_translate("newSpriteDialog", "256x256", None))
+        self.buttonCancel.setText(_translate("newSpriteDialog", "Cancel", None))
+        self.buttonCreate.setText(_translate("newSpriteDialog", "Create", None))
+

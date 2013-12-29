@@ -6,8 +6,8 @@
 # Date:             07/07/13
 # License:          
 #--------------------------------------------------
-from PyQt4.QtCore import QTimer, Qt
-from PyQt4.QtGui import QColor, QPen, QSizePolicy, QVBoxLayout, QHBoxLayout, QPushButton, QPainter
+from PyQt4.QtCore import QTimer, Qt, QSize
+from PyQt4.QtGui import QColor, QPen, QSizePolicy, QVBoxLayout, QHBoxLayout, QPushButton, QPainter, QIcon, QPixmap
 
 from src.display import Display
 
@@ -20,7 +20,7 @@ class AnimationDisplay(Display):
         self._animation = None
         self._playing = False
         self._refreshing = False
-        self._refreshSpeed = 33
+        self._refreshSpeed = 16
         self._animationSpeed = 500
         self._loopEnabled = True
         self._pen = QPen()
@@ -46,15 +46,35 @@ class AnimationDisplay(Display):
 
         self._controlsLayout = QHBoxLayout()
 
-        self._goNextFrameBtn = QPushButton('|>')
+        self._goNextFrameBtn = QPushButton()
         self._goNextFrameBtn.clicked.connect(self.goToNextFrame)
+        
+        goNextFrameicon = QIcon()
+        goNextFrameicon.addPixmap(QPixmap(":/icons/ico_next"))
+        
+        self._goNextFrameBtn.setIcon(goNextFrameicon)
+        self._goNextFrameBtn.setIconSize(QSize(14,14))
 
 
-        self._goPrevFrameBtn = QPushButton('<|')
+        self._goPrevFrameBtn = QPushButton()
         self._goPrevFrameBtn.clicked.connect(self.goToPreviousFrame)
+        
+        
+        goPrevFrameicon = QIcon()
+        goPrevFrameicon.addPixmap(QPixmap(":/icons/ico_prev"))
+        
+        self._goPrevFrameBtn.setIcon(goPrevFrameicon)
+        self._goPrevFrameBtn.setIconSize(QSize(14,14))
+        
 
-        self._playPauseBtn = QPushButton('>')
+        self._playPauseBtn = QPushButton()
         self._playPauseBtn.clicked.connect(self.togglePlay)
+        
+        playFrameicon = QIcon()
+        playFrameicon.addPixmap(QPixmap(":/icons/ico_play"))
+        
+        self._playPauseBtn.setIcon(playFrameicon)
+        self._playPauseBtn.setIconSize(QSize(14,14))
 
         self._controlsLayout.addWidget(self._playPauseBtn)
         self._controlsLayout.addWidget(self._goPrevFrameBtn)
@@ -86,12 +106,10 @@ class AnimationDisplay(Display):
         self._animationSpeed = value
 
     def _startRefreshing(self):
-        print('Started Refreshing')
         self._refreshTimer.start(self._refreshSpeed)
         self._refreshing = True
 
     def _stopRefreshing(self):
-        print('Stopped Refreshing')
         self._refreshTimer.stop()
         self._refreshing = False
 

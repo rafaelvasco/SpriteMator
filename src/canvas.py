@@ -24,6 +24,7 @@ class Canvas(Display):
     
     spriteChanged = pyqtSignal(Sprite)
     animationChanged = pyqtSignal(Animation)
+    animationAdded = pyqtSignal(Animation, int)
     frameChanged = pyqtSignal(Frame)
     
     colorPicked = pyqtSignal(QColor, QMouseEvent)
@@ -154,11 +155,15 @@ class Canvas(Display):
 
         super().setObjectSize(sprite.currentAnimation().frameWidth(),
                               sprite.currentAnimation().frameHeight())
-
+        
+        
+        
 
         self._updateDrawingSurface()
         
         self.spriteChanged.emit(sprite)
+
+        self.animationAdded.emit(sprite.currentAnimation(), sprite.currentAnimationIndex())
 
         self.frameChanged.emit(self._sprite.currentAnimation().currentFrame())
 
@@ -186,9 +191,8 @@ class Canvas(Display):
         self._sprite.addAnimation()
 
         self._updateDrawingSurface()
-        self._updateOverlaySurface()
 
-        
+        self.animationAdded.emit(self._sprite.currentAnimation(), self._sprite.currentAnimationIndex())
         
         self.animationChanged.emit(self._sprite.currentAnimation())
 
@@ -202,7 +206,6 @@ class Canvas(Display):
         self._sprite.setAnimation(index)
 
         self._updateDrawingSurface()
-        self._updateOverlaySurface()
 
         self.frameChanged.emit(self._sprite.currentAnimation().currentFrame())
         self.animationChanged.emit(self._sprite.currentAnimation())

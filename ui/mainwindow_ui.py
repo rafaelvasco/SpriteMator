@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'mainwindow.ui'
 #
-# Created: Sat Dec 28 19:47:13 2013
+# Created: Mon Dec 30 21:07:36 2013
 #      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -112,18 +112,18 @@ class Ui_MainWindow(object):
         self.layerListFrame.setFrameShadow(QtGui.QFrame.Raised)
         self.layerListFrame.setObjectName(_fromUtf8("layerListFrame"))
         self.verticalLayout_3.addWidget(self.layerListFrame)
-        self.bottomPanel = QtGui.QFrame(self.topDownSplitter)
+        self.animationBarFrame = QtGui.QFrame(self.topDownSplitter)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.bottomPanel.sizePolicy().hasHeightForWidth())
-        self.bottomPanel.setSizePolicy(sizePolicy)
-        self.bottomPanel.setMinimumSize(QtCore.QSize(0, 80))
-        self.bottomPanel.setMaximumSize(QtCore.QSize(16777215, 100))
-        self.bottomPanel.setStyleSheet(_fromUtf8(""))
-        self.bottomPanel.setFrameShape(QtGui.QFrame.StyledPanel)
-        self.bottomPanel.setFrameShadow(QtGui.QFrame.Raised)
-        self.bottomPanel.setObjectName(_fromUtf8("bottomPanel"))
+        sizePolicy.setHeightForWidth(self.animationBarFrame.sizePolicy().hasHeightForWidth())
+        self.animationBarFrame.setSizePolicy(sizePolicy)
+        self.animationBarFrame.setMinimumSize(QtCore.QSize(0, 80))
+        self.animationBarFrame.setMaximumSize(QtCore.QSize(16777215, 100))
+        self.animationBarFrame.setStyleSheet(_fromUtf8(""))
+        self.animationBarFrame.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.animationBarFrame.setFrameShadow(QtGui.QFrame.Raised)
+        self.animationBarFrame.setObjectName(_fromUtf8("animationBarFrame"))
         self.horizontalLayout.addWidget(self.topDownSplitter)
         MainWindow.setCentralWidget(self.centralwidget)
         self.toolBar = QtGui.QToolBar(MainWindow)

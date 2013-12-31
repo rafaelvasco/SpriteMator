@@ -7,6 +7,9 @@
     <file alias="style">resources/style.qss</file>
   </qresource>
   <qresource prefix="icons">
+    <file alias="ico_small_minus">resources/small_minus.png</file>
+    <file alias="ico_small_plus">resources/small_plus.png</file>
+    <file alias="ico_three_points">resources/three_points.png</file>
     <file alias="ico_next">resources/ico_next.png</file>
     <file alias="ico_play">resources/ico_play.png</file>
     <file alias="ico_prev">resources/ico_prev.png</file>

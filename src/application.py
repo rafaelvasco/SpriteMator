@@ -260,8 +260,12 @@ class Application(QApplication):
         smallFont = QFont("flxpixl")
         smallFont.setPointSize(12)
         
+        medFont = QFont("Nokia Cellphone FC")
+        medFont.setPointSize(8)
+        
         ResourcesCache.registerResource("DefaultFont", defaultFont)
         ResourcesCache.registerResource("SmallFont", smallFont)
+        ResourcesCache.registerResource("MedFont", medFont)
         
 # ======================================================================================================================
 

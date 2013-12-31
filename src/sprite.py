@@ -12,7 +12,7 @@ from PyQt4.QtGui import QPainter
 
 import src.utils as utils
 
-
+import src.drawing as drawing
 
 class Sprite(object):
 
@@ -23,6 +23,12 @@ class Sprite(object):
         self._currentAnimation = None
         self._currentAnimationIndex = -1
 
+
+    def currentAnimation(self):
+        return self._currentAnimation
+    
+    def currentAnimationIndex(self):
+        return self._currentAnimationIndex
 
     # ----- STATIC METHODS ---------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
@@ -130,9 +136,7 @@ class Sprite(object):
         self._currentAnimationIndex += 1
 
 
-    def currentAnimation(self):
-        return self._currentAnimation
-
+    
 
 class Animation(object):
 
@@ -202,9 +206,18 @@ class Animation(object):
 
         else:
 
-            if self._frameWidth != image.width() or self._frameHeight != image.height():
+            if self._frameWidth < image.width() or self._frameHeight < image.height():
 
                 self.resize(image.width(), image.height())
+                
+            elif self._frameWidth > image.width() or self._frameHeight > image.height():
+                
+                frameImage = utils.createImage(self._frameWidth, self._frameHeight)
+                
+                drawing.pasteImage(image, frameImage)
+                
+                image = frameImage
+                
 
         newFrame = Frame(self, image)
 
@@ -417,9 +430,15 @@ class Surface(object):
         painter = QPainter(newImage)
 
         painter.drawImage(0, 0, self._image)
-
+        
         self._image = newImage
-
+        
+    def pasteImage(self, image):
+        
+        painter = QPainter()
+        painter.begin(self._image)
+        painter.drawImage(0, 0, image)
+        painter.end()
 
     def scale(self, scaleX, scaleY):
 

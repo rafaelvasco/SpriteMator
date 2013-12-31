@@ -6,8 +6,16 @@
 # License:          
 #--------------------------------------------------
 
+from PyQt4.QtGui import QPainter
 
 
+
+def pasteImage(imageToPaste, targetImage):
+    
+    painter = QPainter()
+    painter.begin(targetImage)
+    painter.drawImage(0, 0, imageToPaste)
+    painter.end()
 
 def drawLine(start, end, size, ink, color, painter):
 

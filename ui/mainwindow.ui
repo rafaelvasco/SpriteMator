@@ -182,7 +182,7 @@
         </layout>
        </widget>
       </widget>
-      <widget class="QFrame" name="bottomPanel">
+      <widget class="QFrame" name="animationBarFrame">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>

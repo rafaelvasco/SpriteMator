@@ -23,13 +23,20 @@ class Sprite(object):
         self._currentAnimation = None
         self._currentAnimationIndex = -1
 
-
     def currentAnimation(self):
         return self._currentAnimation
     
     def currentAnimationIndex(self):
         return self._currentAnimationIndex
-
+    
+    def animations(self):
+        
+        return self._animations
+    
+    def animationCount(self):
+        
+        return len(self._animations)
+    
     # ----- STATIC METHODS ---------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -131,9 +138,27 @@ class Sprite(object):
             newAnimation.addEmptyFrame(self._currentAnimation.frameWidth(), self._currentAnimation.frameHeight())
 
         self._animations.append(newAnimation)
-
+        
         self._currentAnimation = newAnimation
         self._currentAnimationIndex += 1
+        
+        
+        
+    def removeCurrentAnimation(self):
+        
+        del self._animations[self._currentAnimationIndex]
+        
+        if self._currentAnimationIndex == len(self._animations) - 1 :
+            
+            self._currentAnimationIndex -= 1
+        
+                
+        self._currentAnimation = self._animations[self._currentAnimationIndex]
+        
+        
+            
+        
+        
 
 
     
@@ -149,10 +174,12 @@ class Animation(object):
         self._frameWidth = 0
         self._frameHeight = 0
 
-
     def name(self):
         return self._name
 
+    def setName(self, text):
+        
+        self._name = text
 
     def frames(self):
         return self._frames

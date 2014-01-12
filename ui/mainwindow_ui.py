@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'mainwindow.ui'
 #
-# Created: Mon Dec 30 21:07:36 2013
+# Created: Sat Jan 11 21:28:58 2014
 #      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -36,6 +36,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.topDownSplitter = QtGui.QSplitter(self.centralwidget)
         self.topDownSplitter.setOrientation(QtCore.Qt.Vertical)
+        self.topDownSplitter.setOpaqueResize(True)
+        self.topDownSplitter.setHandleWidth(5)
         self.topDownSplitter.setObjectName(_fromUtf8("topDownSplitter"))
         self.leftRightSplitter = QtGui.QSplitter(self.topDownSplitter)
         self.leftRightSplitter.setOrientation(QtCore.Qt.Horizontal)
@@ -46,8 +48,8 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.leftPanel.sizePolicy().hasHeightForWidth())
         self.leftPanel.setSizePolicy(sizePolicy)
-        self.leftPanel.setMinimumSize(QtCore.QSize(245, 400))
-        self.leftPanel.setMaximumSize(QtCore.QSize(240, 16777215))
+        self.leftPanel.setMinimumSize(QtCore.QSize(245, 550))
+        self.leftPanel.setMaximumSize(QtCore.QSize(245, 16777215))
         self.leftPanel.setStyleSheet(_fromUtf8(""))
         self.leftPanel.setFrameShape(QtGui.QFrame.StyledPanel)
         self.leftPanel.setFrameShadow(QtGui.QFrame.Raised)
@@ -55,6 +57,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_2 = QtGui.QVBoxLayout(self.leftPanel)
         self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
         self.colorPickerFrame = QtGui.QFrame(self.leftPanel)
+        self.colorPickerFrame.setMinimumSize(QtCore.QSize(0, 0))
+        self.colorPickerFrame.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.colorPickerFrame.setFrameShape(QtGui.QFrame.StyledPanel)
         self.colorPickerFrame.setFrameShadow(QtGui.QFrame.Raised)
         self.colorPickerFrame.setObjectName(_fromUtf8("colorPickerFrame"))
@@ -66,7 +70,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.mainPanel.sizePolicy().hasHeightForWidth())
         self.mainPanel.setSizePolicy(sizePolicy)
-        self.mainPanel.setMinimumSize(QtCore.QSize(320, 240))
+        self.mainPanel.setMinimumSize(QtCore.QSize(32, 32))
         self.mainPanel.setAutoFillBackground(False)
         self.mainPanel.setStyleSheet(_fromUtf8(""))
         self.mainPanel.setFrameShape(QtGui.QFrame.StyledPanel)
@@ -93,7 +97,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.rightPanel.sizePolicy().hasHeightForWidth())
         self.rightPanel.setSizePolicy(sizePolicy)
         self.rightPanel.setMinimumSize(QtCore.QSize(200, 550))
-        self.rightPanel.setMaximumSize(QtCore.QSize(450, 16777215))
+        self.rightPanel.setMaximumSize(QtCore.QSize(380, 16777215))
         self.rightPanel.setStyleSheet(_fromUtf8(""))
         self.rightPanel.setFrameShape(QtGui.QFrame.StyledPanel)
         self.rightPanel.setFrameShadow(QtGui.QFrame.Raised)
@@ -118,7 +122,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.animationBarFrame.sizePolicy().hasHeightForWidth())
         self.animationBarFrame.setSizePolicy(sizePolicy)
-        self.animationBarFrame.setMinimumSize(QtCore.QSize(0, 80))
+        self.animationBarFrame.setMinimumSize(QtCore.QSize(0, 100))
         self.animationBarFrame.setMaximumSize(QtCore.QSize(16777215, 100))
         self.animationBarFrame.setStyleSheet(_fromUtf8(""))
         self.animationBarFrame.setFrameShape(QtGui.QFrame.StyledPanel)

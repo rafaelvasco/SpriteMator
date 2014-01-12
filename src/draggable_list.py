@@ -246,9 +246,9 @@ class DraggableListWidget(QWidget):
         self._items.append(newItem)
 
         self._updateItemIndexes()
-
+        
         self.update()
-
+        
 
     def setSelectedIndex(self, index):
 
@@ -387,9 +387,6 @@ class DraggableListWidget(QWidget):
             self.orderChanged.emit(self._dragSourceIndex, self._dragTargetIndex)
 
             self._currentDragOffset = 0
-        else:
-
-            print('Order Unchanged...')
 
         self.update()
 
@@ -465,8 +462,6 @@ class DraggableListWidget(QWidget):
                 self._selectedItem = self._hoveredItem
 
                 self._hoveredItem.setSelected(True)
-
-                print('Selected: ', self._selectedItem.index())
 
                 self.selectedItemChanged.emit(self._selectedItem.index())
 

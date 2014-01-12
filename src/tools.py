@@ -170,6 +170,7 @@ class Picker(Tool):
         
         painter.setPen(self._drawPen)
         
+        
         painter.drawRect(x - halfSize,
                          y - halfSize,
                          size - 1,

@@ -24,6 +24,13 @@ QToolTip
 }
 
 
+
+QWidget::disabled
+{
+	color: #4D4D4D;
+}
+
+
 /* ------------------------------------------------------------------------------------------------------ */
 /* ------- WIDGET --------------------------------------------------------------------------------------- */
 
@@ -38,15 +45,10 @@ QWidget
 
 QWidget#QTabWidget::pane
 {
-	background: red;
+	background: #222;
 }
 
-/* Menubar -> Menu BG */
-QWidget:disabled  
-{
-	
-   background: #111;
-}
+
 
 
 
@@ -71,6 +73,13 @@ QFrame
 	background: #111;
 }
 
+/* --- LABEL ---------------------------------------------------------------------------------------------*/
+
+
+QLabel
+{
+	background: none;
+}
 
 /* ------------------------------------------------------------------------------------------------------ */
 /* ------ BUTTON --------------------------------------------------------------------------------------- */
@@ -484,8 +493,9 @@ QComboBox
   	border: 1px solid #2D2D2D;
 	min-height: 25px;
 	max-height: 25px;
-	min-width: 120px;
 	padding: 1px;
+	padding-left: 10px;
+	min-width: 120px;
 	
 }
 
@@ -495,12 +505,16 @@ QComboBox QAbstractItemView
 {
 	background: #1F1F1F;
   	border: 1px solid 2D2D2D;
+	outline: 0px;
     selection-background-color: #378CBE;
-    
+	    
 }
+
+QComboBox QAbstractItemView::item {margin-top: 5px;}
 
 QComboBox::drop-down
 {
+	
      subcontrol-origin: padding;
      subcontrol-position: top right;
 	 margin-right: 3px;
@@ -539,6 +553,8 @@ QComboBox::down-arrow:on
 	border: 1px solid #19556E;
 }
 
+
+
 /* ------------------------------------------------------------------------------------------------------ */
 /* --- TEXT EDIT----------------------------------------------------------------------------------------- */
 
@@ -547,6 +563,7 @@ QTextEdit
     background: #111;
 	border: 1px solid #2D2D2D;
 	selection-background-color: #378CBE;
+	padding-left: 10px;
 }
 
 QTextEdit:focus
@@ -572,6 +589,7 @@ QLineEdit
 	border: 1px solid #2D2D2D;
 	selection-background-color: #378CBE;
 	min-height: 25px;
+	padding-left: 10px;
 }
 
 QLineEdit:focus
@@ -730,6 +748,7 @@ QAbstractSpinBox
 	border: 1px solid #2D2D2D;
 	selection-background-color: #378CBE;
 	min-height: 25px;
+	padding-left: 10px;
 }
 
 QAbstractSpinBox::up-button {

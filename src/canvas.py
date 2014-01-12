@@ -10,28 +10,23 @@ from PyQt4.QtCore import Qt, pyqtSignal, QPoint
 from PyQt4.QtGui import QPainter, QSizePolicy, QColor, QMouseEvent
 
 from src.display import  Display
-from src.sprite import Frame
 from src.canvas_overlay import CanvasOverlay
 
-import src.utils as Utils
 from src import tools, inks
 from src.toolbox import ToolBox
 from src.tools import Tool
-from src.sprite import Sprite, Animation
 
     
 class Canvas(Display):
     
-    spriteChanged = pyqtSignal(Sprite)
-    animationChanged = pyqtSignal(Animation)
-    animationAdded = pyqtSignal(Animation, int)
-    frameChanged = pyqtSignal(Frame)
+    
+    surfaceChanged = pyqtSignal()
     
     colorPicked = pyqtSignal(QColor, QMouseEvent)
     toolStarted = pyqtSignal(Tool)
     toolEnded = pyqtSignal(Tool)
 
-    def __init__(self, animationDisplay, parent=None):
+    def __init__(self, parent=None):
 
         super(Canvas, self).__init__(parent)
         
@@ -121,22 +116,6 @@ class Canvas(Display):
         
         return self._inks[name]
     
-    def currentLayer(self):
-        
-        if self.spriteLoaded():
-
-            return self._sprite.currentAnimation().currentFrame().currentSurface()
-        
-        return None
-        
-    def currentLayerIndex(self):
-
-        if self.spriteLoaded():
-
-            return self._sprite.currentAnimation().currentFrame().currentSurfaceIndex()
-        
-        return None
-    
     def spriteLoaded(self):
         
         return self._sprite is not None
@@ -156,17 +135,9 @@ class Canvas(Display):
         super().setObjectSize(sprite.currentAnimation().frameWidth(),
                               sprite.currentAnimation().frameHeight())
         
+
+        self.refresh()
         
-        
-
-        self._updateDrawingSurface()
-        
-        self.spriteChanged.emit(sprite)
-
-        self.animationAdded.emit(sprite.currentAnimation(), sprite.currentAnimationIndex())
-
-        self.frameChanged.emit(self._sprite.currentAnimation().currentFrame())
-
         self.setCursor(Qt.BlankCursor)
 
     def unloadSprite(self):
@@ -182,169 +153,8 @@ class Canvas(Display):
         self.update()
         self.setCursor(Qt.ArrowCursor)
 
-    def addAnimation(self):
-
-        if not self.spriteLoaded():
-            return
+    def refresh(self):
         
-        
-        self._sprite.addAnimation()
-
-        self._updateDrawingSurface()
-
-        self.animationAdded.emit(self._sprite.currentAnimation(), self._sprite.currentAnimationIndex())
-        
-        self.animationChanged.emit(self._sprite.currentAnimation())
-
-        self.frameChanged.emit(self._sprite.currentAnimation().currentFrame())
-
-    def setAnimation(self, index):
-
-        if not self.spriteLoaded():
-            return
-        
-        self._sprite.setAnimation(index)
-
-        self._updateDrawingSurface()
-
-        self.frameChanged.emit(self._sprite.currentAnimation().currentFrame())
-        self.animationChanged.emit(self._sprite.currentAnimation())
-
-    def addFrame(self):
-
-        if not self.spriteLoaded():
-            return
-        
-        currentAnimation = self._sprite.currentAnimation()
-
-        currentAnimation.addEmptyFrame(currentAnimation.frameWidth(), currentAnimation.frameHeight())
-
-        self._updateDrawingSurface()
-
-        if not self._animationDisplay.isPlaying():
-            self._animationDisplay.goToFrame(currentAnimation.currentFrameIndex())
-
-        self.frameChanged.emit(currentAnimation.currentFrame())
-
-    def removeFrame(self, index=None):
-
-        if not self.spriteLoaded():
-            return
-        
-        animation = self._sprite.currentAnimation()
-        
-        animation.removeFrame(index)
-
-        if animation.frameCount() == 0:
-
-            self.addFrame()
-
-        self._updateDrawingSurface()
-
-        self._animationDisplay.goToFrame(animation.currentFrameIndex())
-
-        self.frameChanged.emit(animation.currentFrame())
-
-    def setFrame(self, index):
-
-        if not self.spriteLoaded():
-            return
-        
-        animation = self._sprite.currentAnimation()
-        
-        animation.setFrame(index)
-
-        self._updateDrawingSurface()
-
-        if not self._animationDisplay.isPlaying():
-            self._animationDisplay.goToFrame(index)
-
-        self.frameChanged.emit(animation.currentFrame())
-
-    def goToNextFrame(self):
-
-        if not self.spriteLoaded():
-            return
-        
-        animation = self._sprite.currentAnimation()
-
-        if animation.isOnLastFrame():
-            return
-
-        animation.goToNextFrame()
-        self._updateDrawingSurface()
-
-        if not self._animationDisplay.isPlaying():
-            self._animationDisplay.goToFrame(animation.currentFrameIndex())
-
-        self.frameChanged.emit(animation.currentFrame())
-
-    def goToPreviousFrame(self):
-
-        if not self.spriteLoaded():
-            return
-        
-        animation = self._sprite.currentAnimation()
-
-        if animation.isOnFirstFrame():
-            return
-
-        animation.goToPreviousFrame()
-        self._updateDrawingSurface()
-
-        if not self._animationDisplay.isPlaying():
-            self._animationDisplay.goToFrame(animation.currentFrameIndex())
-
-        self.frameChanged.emit(animation.currentFrame())
-
-    def addLayer(self, sourceImage=None, at=None):
-
-        if not self.spriteLoaded():
-            return
-        
-        
-        animation = self._sprite.currentAnimation()
-        
-        if sourceImage is None:
-
-            width = animation.frameWidth()
-            height = animation.frameHeight()
-            sourceImage = Utils.createImage(width, height)
-
-        animation.currentFrame().addSurface(sourceImage, at)
-        self._updateDrawingSurface()
-        self.frameChanged.emit(animation.currentFrame())
-
-    def deleteLayer(self, index):
-
-        if not self.spriteLoaded():
-            return
-        
-        animation = self._sprite.currentAnimation()
-
-        animation.currentFrame().deleteSurface(index)
-        self._updateDrawingSurface()
-        self.frameChanged.emit(animation.currentFrame())
-
-    def setLayer(self, index):
-
-        if not self.spriteLoaded():
-            return
-        
-        animation = self._sprite.currentAnimation()
-
-        animation.currentFrame().setSurface(index)
-        self._updateDrawingSurface()
-
-    def moveLayer(self, fromIndex, toIndex):
-
-        if not self.spriteLoaded():
-            return
-        
-        animation = self._sprite.currentAnimation()
-
-        animation.currentFrame().moveSurface(fromIndex, toIndex)
-
         self._updateDrawingSurface()
 
     def clear(self, index=None):
@@ -368,8 +178,9 @@ class Canvas(Display):
 
         painter.end()
         
+        self.surfaceChanged.emit()
+        
         self.update()
-        self._animationDisplay.update()
 
     def resize(self, width, height, index=None):
 
@@ -463,8 +274,6 @@ class Canvas(Display):
         self._updateMouseState(e)
         
         
-        #self._animationDisplay.panTo(-viewMousePosition.x(), -viewMousePosition.y())
-        
         tool = self._currentTool
         
         tool._processMouseMove(self, e)
@@ -531,10 +340,6 @@ class Canvas(Display):
         
         self.setCursor(Qt.ArrowCursor)
         
-        
-        #self._animationDisplay.resetView()
-        
-        
         self._overlaySurface.turnOff()
     
     def _onToolBoxMouseEntered(self):
@@ -583,7 +388,7 @@ class Canvas(Display):
     
     def _initializeCanvasState(self):
         
-        self._pixelSize = 4
+        self._pixelSize = 1
         self._primaryColor = QColor('black')
         self._secondaryColor = QColor('white')
         self._currentTool = self.tool('Pen')

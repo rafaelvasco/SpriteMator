@@ -163,7 +163,8 @@ class AnimationDisplay(Display):
 
 
     def setAnimation(self, animation):
-
+        
+        
         if self._animation is not None:
             self.unloadAnimation()
 

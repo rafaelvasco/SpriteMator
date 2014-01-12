@@ -51,11 +51,7 @@ class Application(QApplication):
         
         self._view.show()
         
-        
-        
-        
-        
-        
+        self._updateTopMenu()
         
         sys.exit(self.exec_())
 
@@ -73,11 +69,19 @@ class Application(QApplication):
             sprite = Sprite.create(result.choosenWidth, result.choosenHeight)
             
             self.setSprite(sprite)
+            
+            
+            
+            self._updateTopMenu()
     
     def setSprite(self, sprite):
 
         self._currentSprite = sprite
         self._view.canvas().setSprite(self._currentSprite)
+        self._view.animationManager().setSprite(self._currentSprite)
+        self._view.layerManager().setSprite(self._currentSprite)
+        
+        self._view.showWorkspace()
 
     def loadSprite(self):
 
@@ -87,6 +91,8 @@ class Application(QApplication):
             sprite = Sprite.loadFromFile(spriteFile)
 
             self.setSprite(sprite)
+            
+            self._updateTopMenu()
 
     def importSprite(self):
         pass
@@ -157,8 +163,13 @@ class Application(QApplication):
         # TODO Save Sprite Before Close Test
         self._view.canvas().unloadSprite()
         self._view.animationDisplay().unloadAnimation()
-        self._view.layerList().clear()
+        self._view.layerManager().clear()
+        self._view.animationManager().clear()
         self._currentSprite = None
+        
+        self._view.hideWorkspace()
+        
+        self._updateTopMenu()
 
 
     def terminate(self):
@@ -185,7 +196,7 @@ class Application(QApplication):
         
         key = event.key()
         
-        if key == Qt.Key_Space:
+        if key == Qt.Key_X:
             
             self._view.colorPicker().switchActiveColor()
         
@@ -213,8 +224,6 @@ class Application(QApplication):
             
             self._view.canvas().zoomTo(4.0)    
     
-    def _onMousePressed(self, event):
-        pass
     
     def _onMouseWheel(self, event):
         
@@ -235,10 +244,6 @@ class Application(QApplication):
     # ------------------------------------------------------------------------------------------------------------------
     
     def notify(self, receiver, event):
-        
-        
-        if event.type() == QEvent.MouseButtonPress:
-            self._onMousePressed(event)
         
         if event.type() == QEvent.KeyPress and not event.isAutoRepeat():
             self._onKeyPressed(event)
@@ -266,7 +271,31 @@ class Application(QApplication):
         ResourcesCache.registerResource("DefaultFont", defaultFont)
         ResourcesCache.registerResource("SmallFont", smallFont)
         ResourcesCache.registerResource("MedFont", medFont)
+    
+    
+    def _updateTopMenu(self):
         
+        
+        
+        if self._currentSprite is not None:
+            
+            self._view.actionNew.setEnabled(True)
+            self._view.actionClose.setEnabled(True)
+            self._view.actionSave.setEnabled(True)
+            self._view.actionSaveAs.setEnabled(True)
+            self._view.actionOpen.setEnabled(True)
+            self._view.actionImport.setEnabled(True)
+            self._view.actionExport.setEnabled(True)
+        
+        else:
+            
+            self._view.actionNew.setEnabled(True)
+            self._view.actionClose.setEnabled(False)
+            self._view.actionSave.setEnabled(False)
+            self._view.actionSaveAs.setEnabled(False)
+            self._view.actionOpen.setEnabled(True)
+            self._view.actionImport.setEnabled(True)
+            self._view.actionExport.setEnabled(False)
 # ======================================================================================================================
 
 if __name__ == '__main__':

@@ -43,9 +43,6 @@ class NewSpriteDialog(QDialog, Ui_newSpriteDialog):
     
     def _onButtonCreateClicked(self):
         
-        
-        
-        
         if self.radioCustom.isChecked():
             
             self._result.choosenWidth = self.spinWidth.value()

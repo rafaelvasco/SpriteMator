@@ -27,7 +27,7 @@ class ToolBox(QWidget):
         self.setAttribute(Qt.WA_StaticContents)
         self.setAttribute(Qt.WA_NoSystemBackground)
         
-        self.setFont(ResourcesCache.get("DefaultFont"))
+        self.setFont(ResourcesCache.get("BigFont"))
         
         self._registeredTools = []
         self._registeredInks= []
@@ -87,7 +87,10 @@ class ToolBox(QWidget):
                 
                 self._freeToolsIds.append(tool.name())
                 
-           
+    def selectToolSlot(self, slot):
+        
+        self._toolSlots[slot]['button'].setChecked(True)
+        self.toolChanged.emit(self._toolSlots[slot]['id'])
             
     def _createToolSlot(self, selected=None):
         

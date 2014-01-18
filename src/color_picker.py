@@ -522,23 +522,6 @@ class ColorSlider(QWidget):
     ])
 
 
-    @staticmethod
-    def hueSlider():
-
-        fullSpectrumSlider = ColorSlider(0,359)
-
-        fullSpectrumSlider.setColorAt(0.0, QColor(255,0,0))
-        fullSpectrumSlider.setColorAt(0.16, QColor(255,255,0))
-        fullSpectrumSlider.setColorAt(0.33, QColor(0,255,0))
-        fullSpectrumSlider.setColorAt(0.5, QColor(0,255,255))
-        fullSpectrumSlider.setColorAt(0.76, QColor(0,0,255))
-        fullSpectrumSlider.setColorAt(0.85, QColor(255,0,255))
-        fullSpectrumSlider.setColorAt(1.0, QColor(255,0,0))
-
-
-        return fullSpectrumSlider
-
-
     def __init__(self, minValue, maxValue, alpha=None):
         super(ColorSlider, self).__init__()
 
@@ -553,7 +536,6 @@ class ColorSlider(QWidget):
         self._label = ""
         self._gradient = None
         
-        self._font = ResourcesCache.get("SmallFont")
         self._pickerPixmap = None
         self._background = None
         
@@ -813,9 +795,7 @@ class ColorSlider(QWidget):
 
 
         labelRect = QRect(200, 1, 20, 15)
-
-        p.setFont(self._font)
-
+        
         p.drawText(labelRect, Qt.AlignRight,  str(self._value))
 
         if len(self._label) > 0:
@@ -848,7 +828,6 @@ class ColorPicker(QWidget):
         self._primarySelectedColor = QColor()
         self._secondarySelectedColor = QColor()
         
-
         self._activeColorIndex = ColorIndex.Primary
         
         
@@ -858,14 +837,24 @@ class ColorPicker(QWidget):
         self._palette = ColorPalette()
 
         # Initialize Sliders
+        
+        
 
-        self._hueSlider = ColorSlider.hueSlider()
+        self._hueSlider = ColorSlider(0,359)
+        self._hueSlider.setColorAt(0.0, QColor(255,0,0))
+        self._hueSlider.setColorAt(0.16, QColor(255,255,0))
+        self._hueSlider.setColorAt(0.33, QColor(0,255,0))
+        self._hueSlider.setColorAt(0.5, QColor(0,255,255))
+        self._hueSlider.setColorAt(0.76, QColor(0,0,255))
+        self._hueSlider.setColorAt(0.85, QColor(255,0,255))
+        self._hueSlider.setColorAt(1.0, QColor(255,0,0))
+
         self._hueSlider.setLabel("Hue")
-
 
         self._satSlider = ColorSlider(0, 255)
         self._satSlider.setLabel("Saturation")
-
+        
+        
         self._valSlider = ColorSlider(0, 255)
         self._valSlider.setLabel("Value")
         self._valSlider.setStartColor(QColor("black"))
@@ -885,7 +874,7 @@ class ColorPicker(QWidget):
         self._blueSlider.setStartColor(QColor("black"))
         self._blueSlider.setEndColor(QColor("blue"))
         
-        self._alphaSlider = ColorSlider(0, 255, True)
+        self._alphaSlider = ColorSlider(0, 255)
         self._alphaSlider.setLabel("Alpha")
         self._alphaSlider.setStartColor(QColor("black"))
         self._alphaSlider.setEndColor(QColor("black"))
@@ -940,7 +929,8 @@ class ColorPicker(QWidget):
     def secondaryColor(self):
 
         return self._secondarySelectedColor
-
+    
+    
     def setPrimaryColor(self, c):
         print('Color Picker Set Primary Color')
         if self._primarySelectedColor is None:

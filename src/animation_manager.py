@@ -4,13 +4,46 @@ Created on 30/12/2013
 @author: Rafael
 '''
 
-from PyQt4.QtCore import Qt, QSize, pyqtSignal
+from PyQt4.QtCore import Qt, QSize, pyqtSignal, QTimer, QRect
 
 from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QComboBox, QLabel, QPushButton, QIcon, QPixmap, QFrame, QPainter
 
-from src.resources_cache import ResourcesCache
-
 from src.sprite import Animation
+
+
+
+class FrameStrip(QWidget):
+    
+    def __init__(self):
+        
+        super(FrameStrip, self).__init__()
+        
+        self._frameList = None
+        
+    def setFrameList(self, frameList):
+        
+        self._frameList = frameList
+        self.update()
+    
+    def paintEvent(self, e):
+        
+        p = QPainter(self)
+        
+        frameIndex = 0
+        
+        for frame in self._frameList:
+            
+            for surface in frame.surfaces():
+                
+                frameRect = QRect(frameIndex * 70, 0, 70, 70)
+                
+                p.drawImage(frameRect, surface.image(), surface.image().rect())
+                
+            frameIndex += 1
+    
+    def sizeHint(self):
+        
+        return QSize(70,70)
 
 class AnimationManager(QWidget):
     
@@ -24,10 +57,17 @@ class AnimationManager(QWidget):
 
         super(AnimationManager, self).__init__()
         
-        
         self._sprite = None
-                
+        
+        self._frameStrip = FrameStrip()    
+        
         mainLayout = QHBoxLayout()
+        
+        self._refreshSpeed = 16
+        
+        self._refreshTimer = QTimer()
+        self._refreshTimer.timeout.connect(self._refreshEvent)
+        self._refreshTimer.stop()
         
         self.setStyleSheet("""
                     
@@ -51,7 +91,6 @@ class AnimationManager(QWidget):
                         
         """);
         
-        self.setFont(ResourcesCache.get("MedFont"))
         
         label = QLabel('Animation')
         label.setAlignment(Qt.AlignCenter)
@@ -127,7 +166,7 @@ class AnimationManager(QWidget):
         self._removeFrameButton.setIconSize(QSize(6,6))
         self._removeFrameButton.setMinimumSize(70, 70)
         
-        #frameLayout.addWidget(self._framesFrame)
+        frameLayout.addWidget(self._frameStrip)
         frameLayout.addWidget(self._copyFrameButton)
         frameLayout.addWidget(self._addFrameButton)
         frameLayout.addWidget(self._removeFrameButton)
@@ -141,11 +180,11 @@ class AnimationManager(QWidget):
         
         self._sprite = sprite
         
-        self._updateFramesFrameSize()
-        
-        self.refresh()
+        self._updateAnimationCombo()
         
         self.animationSelectedChanged.emit(self._sprite.currentAnimation())
+        
+        self._frameStrip.setFrameList(sprite.currentAnimation().frames())
         
         
     
@@ -157,22 +196,7 @@ class AnimationManager(QWidget):
         
         self.update()
   
-    def refresh(self):
-        
-        if self._sprite is None:
-            return
-        
-        self._animationCombo.clear()
-        
-        for index, animation in enumerate(self._sprite.animations()):
-            
-            self._animationCombo.addItem(animation.name(), index)
-            
-        
-        self._animationCombo.setCurrentIndex(self._sprite.currentAnimationIndex())
-        
-        
-        self.update()
+   
   
     def addAnimation(self):
         
@@ -181,7 +205,7 @@ class AnimationManager(QWidget):
         
         self._sprite.addAnimation()
   
-        self.refresh()
+        self._updateAnimationCombo()
         
         self.animationSelectedChanged.emit(self._sprite.currentAnimation())
   
@@ -193,8 +217,6 @@ class AnimationManager(QWidget):
         
         self._sprite.setAnimation(index)
         
-        self._updateFramesFrameSize()
-        
         self.animationSelectedChanged.emit(self._sprite.currentAnimation())
   
     def removeCurrentAnimation(self):
@@ -204,7 +226,7 @@ class AnimationManager(QWidget):
         
         self._sprite.removeCurrentAnimation()
         
-        self.refresh()
+        self._updateAnimationCombo()
     
     
     def addFrame(self):
@@ -216,8 +238,7 @@ class AnimationManager(QWidget):
 
         currentAnimation.addEmptyFrame(currentAnimation.frameWidth(), currentAnimation.frameHeight())
         
-        self._updateFramesFrameSize()
-
+        self.update()
     
     def removeFrame(self, index=None):
 
@@ -231,9 +252,10 @@ class AnimationManager(QWidget):
         if animation.frameCount() == 0:
 
             self.addFrame()
-            
-        self._updateFramesFrameSize()
-
+        
+        self.update()
+        
+        
     def setFrame(self, index):
 
         if self._sprite is None:
@@ -242,7 +264,8 @@ class AnimationManager(QWidget):
         animation = self._sprite.currentAnimation()
         
         animation.setFrame(index)
-    
+        
+        self.update()
     
     def goToNextFrame(self):
 
@@ -255,6 +278,9 @@ class AnimationManager(QWidget):
             return
 
         animation.goToNextFrame()
+        
+        self.update()
+        
 
     def goToPreviousFrame(self):
 
@@ -267,6 +293,16 @@ class AnimationManager(QWidget):
             return
 
         animation.goToPreviousFrame()
+    
+        self.update()
+    
+    def _startRefreshing(self):
+        self._refreshTimer.start(self._refreshSpeed)
+        self._refreshing = True
+
+    def _stopRefreshing(self):
+        self._refreshTimer.stop()
+        self._refreshing = False
     
     
     def _onAddAnimationClicked(self):
@@ -296,15 +332,22 @@ class AnimationManager(QWidget):
         print('Edited to: ', newText)
         self._sprite.currentAnimation().setName(newText)
     
-    def _updateFramesFrameSize(self):
+    def _refreshEvent(self):
+        
+        self.update()
+        
+    def _updateAnimationCombo(self):
         
         if self._sprite is None:
             return
         
+        self._animationCombo.clear()
         
-        self._framesFrame.resize(QSize(self._sprite.currentAnimation().frameCount()*70, 70))
+        for index, animation in enumerate(self._sprite.animations()):
+            
+            self._animationCombo.addItem(animation.name(), index)
+            
         
-    
-  
+        self._animationCombo.setCurrentIndex(self._sprite.currentAnimationIndex())
         
-    
+        self.update()

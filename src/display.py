@@ -268,7 +268,7 @@ class Display(QWidget):
         if e.button() == Qt.MiddleButton:
             
             self._panning = False
-            self.setCursor(Qt.BlankCursor)
+            self.setCursor(Qt.ArrowCursor)
 
 
     def mouseMoveEvent(self, e):

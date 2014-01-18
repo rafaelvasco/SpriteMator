@@ -10,7 +10,7 @@
 import sys
 
 from PyQt4.QtCore import Qt, QEvent, QFile
-from PyQt4.QtGui import QApplication, QFontDatabase, QFont, QDialog
+from PyQt4.QtGui import QApplication, QFontDatabase, QFont, QDialog, QShortcut, QKeySequence
 
 
 
@@ -18,6 +18,7 @@ from src.main_window import MainWindow
 from src.sprite import Sprite
 from src.resources_cache import ResourcesCache
 
+import src.appdata as appdata
 
 import src.utils as utils
 from PyQt4 import QtCore
@@ -33,7 +34,11 @@ class Application(QApplication):
         self._loadFonts()
         
         self._view = MainWindow()
-                
+        
+        self._shortCuts = {}
+        
+        self._initializeShortcuts()
+        
         self.setQuitOnLastWindowClosed(True)
         
         self._currentSprite = None
@@ -49,12 +54,16 @@ class Application(QApplication):
         
         styleFile.close()
         
+        self.setFont(ResourcesCache.get('SmallFont'))
+        
         self._view.show()
         
         self._updateTopMenu()
         
         sys.exit(self.exec_())
 
+        
+        
         # --------------------------------------------------------------------------------------------------------------
 
 
@@ -192,39 +201,6 @@ class Application(QApplication):
 
     # GLOBAL INPUT EVENTS ------------------------------------------------------------------------------------------------
     
-    def _onKeyPressed(self, event):
-        
-        key = event.key()
-        
-        if key == Qt.Key_X:
-            
-            self._view.colorPicker().switchActiveColor()
-        
-        elif key == Qt.Key_C:
-            
-            self._view.canvas().clear()
-            
-        elif key == Qt.Key_R:
-            
-            self._view.canvas().resetView()
-            
-        elif key == Qt.Key_1:
-            
-            self._view.canvas().zoomTo(1.0)
-            
-        elif key == Qt.Key_2:
-            
-            self._view.canvas().zoomTo(2.0)
-            
-        elif key == Qt.Key_3:
-            
-            self._view.canvas().zoomTo(3.0)
-            
-        elif key == Qt.Key_4:
-            
-            self._view.canvas().zoomTo(4.0)    
-    
-    
     def _onMouseWheel(self, event):
         
         if event.modifiers() & Qt.ControlModifier:
@@ -245,9 +221,7 @@ class Application(QApplication):
     
     def notify(self, receiver, event):
         
-        if event.type() == QEvent.KeyPress and not event.isAutoRepeat():
-            self._onKeyPressed(event)
-        
+       
         if event.type() == QEvent.Wheel:
             self._onMouseWheel(event)
             
@@ -265,13 +239,72 @@ class Application(QApplication):
         smallFont = QFont("flxpixl")
         smallFont.setPointSize(12)
         
-        medFont = QFont("Nokia Cellphone FC")
-        medFont.setPointSize(8)
-        
-        ResourcesCache.registerResource("DefaultFont", defaultFont)
+        ResourcesCache.registerResource("BigFont", defaultFont)
         ResourcesCache.registerResource("SmallFont", smallFont)
-        ResourcesCache.registerResource("MedFont", medFont)
     
+    def _initializeShortcuts(self):
+        
+        shortCutData = appdata.shortcuts
+        
+        
+        for holder, shortCutGroup in shortCutData.items():
+            
+            self._shortCuts[holder] = {}
+            
+            for shortCutName, shortCutText in shortCutGroup.items():
+                
+                self._shortCuts[holder][shortCutName] = QShortcut(QKeySequence(shortCutText), self._view)
+                self._shortCuts[holder][shortCutName].activated.connect(lambda h=holder, n=shortCutName : self._onShortCutActivated(h, n))
+                
+                
+    def _onShortCutActivated(self, holder, shortCutName):
+        
+        target = None
+        
+        # CANVAS =============
+        
+        if holder == 'CANVAS':
+            
+            target = self._view.canvas()
+        
+            if shortCutName == 'RESET':
+                
+                target.resetView()
+                
+            elif shortCutName == 'CLEAR':
+                
+                target.clear()
+                
+            elif shortCutName == 'ZOOM1':
+                
+                target.zoomTo(1.0)
+                
+            elif shortCutName == 'ZOOM2':
+                
+                target.zoomTo(2.0)
+                
+            elif shortCutName == 'ZOOM3':
+                
+                target.zoomTo(3.0)
+                
+            elif shortCutName == 'ZOOM4':
+                
+                target.zoomTo(4.0)
+                
+                
+        
+        # COLORPICKER
+        
+        elif holder == 'COLORPICKER':
+            
+            target = self._view.colorPicker()
+            
+            if shortCutName == 'SWITCH_COLOR':
+                
+                target.switchActiveColor()
+            
+            
+                
     
     def _updateTopMenu(self):
         

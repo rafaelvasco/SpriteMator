@@ -107,6 +107,10 @@ class Canvas(Display):
     def setCurrentTool(self, name):
         
         self._currentTool = self.tool(name)
+        
+    def selectToolSlot(self, slot):
+        
+        self._toolBox.selectToolSlot(slot)
     
     def tool(self, name):
         
@@ -296,9 +300,6 @@ class Canvas(Display):
     def mouseReleaseEvent(self, e):
         
         if not self.spriteLoaded():
-            
-            
-            
             return
         
         tool = self._currentTool        
@@ -311,11 +312,11 @@ class Canvas(Display):
         
         self.toolEnded.emit(tool)
         
-        
         super().mouseReleaseEvent(e)
         
         if not self.isPanning():
             
+            self.setCursor(Qt.BlankCursor)
             self._overlaySurface.turnOn()
     
     def wheelEvent(self, e):

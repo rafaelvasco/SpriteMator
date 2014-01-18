@@ -154,14 +154,6 @@ class Sprite(object):
         
                 
         self._currentAnimation = self._animations[self._currentAnimationIndex]
-        
-        
-            
-        
-        
-
-
-    
 
 class Animation(object):
 
@@ -314,8 +306,6 @@ class Animation(object):
 
         self._frameWidth = width
         self._frameHeight = height
-
-
 
 class Frame(object):
 

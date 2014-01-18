@@ -23,6 +23,9 @@ from src.animation_manager import AnimationManager
 
 from src.resources_cache import ResourcesCache
 
+import src.appdata as appdata
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -62,6 +65,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._layerManager = LayerManager()
         
         self._newSpriteDialog  = NewSpriteDialog()
+        
         
         # --------------------------------------------------------------------------------------------------------------
         
@@ -126,6 +130,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             y = self.height() / 2 - self._logo.height() / 2
             
             p.drawPixmap(x, y, self._logo)
+            
+            p.drawText(x + 50, y + 200, '.:: SpriteMator ::. | Version: %s' % appdata.meta['VERSION'])
     
     def resizeEvent(self, e):
         
@@ -134,16 +140,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     def _initializeComponents(self):
         
-        toolbarFont = ResourcesCache.get("DefaultFont")
+        menuFont = ResourcesCache.get('BigFont')
         
-        self.actionNew.setFont(toolbarFont)
-        self.actionOpen.setFont(toolbarFont)
-        self.actionClose.setFont(toolbarFont)
-        self.actionExport.setFont(toolbarFont)
-        self.actionImport.setFont(toolbarFont)
-        self.actionQuit.setFont(toolbarFont)
-        self.actionSave.setFont(toolbarFont)
-        self.actionSaveAs.setFont(toolbarFont)
+        self.actionNew.setFont(menuFont)
+        self.actionOpen.setFont(menuFont)
+        self.actionClose.setFont(menuFont)
+        self.actionExport.setFont(menuFont)
+        self.actionImport.setFont(menuFont)
+        self.actionQuit.setFont(menuFont)
+        self.actionSave.setFont(menuFont)
+        self.actionSaveAs.setFont(menuFont)
+        
         
     def _initializeLayout(self):
         
@@ -212,6 +219,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
     
     
+    
     # =================== Event Handlers ==============================
     
     def _onColorPickerPrimaryColorChanged(self, color):
@@ -244,6 +252,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         self._animationDisplay._startRefreshing()
         self._layerManager._startRefreshing()
+        self._animationManager._startRefreshing()
     
     def _onCanvasToolEnded(self, tool):
         
@@ -256,6 +265,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._animationDisplay._stopRefreshing()
             
         self._layerManager._stopRefreshing()
+        self._animationManager._stopRefreshing()
         
         
         

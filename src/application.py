@@ -10,7 +10,7 @@
 import sys
 
 from PyQt4.QtCore import Qt, QEvent, QFile
-from PyQt4.QtGui import QApplication, QFontDatabase, QFont, QDialog, QShortcut, QKeySequence
+from PyQt4.QtGui import QApplication, QFontDatabase, QFont, QDialog, QShortcut, QKeySequence, QColor
 
 
 
@@ -31,7 +31,7 @@ class Application(QApplication):
         
         super(Application, self).__init__(args)
         
-        self._loadFonts()
+        self._loadAssets()
         
         self._view = MainWindow()
         
@@ -228,7 +228,9 @@ class Application(QApplication):
         return super(Application, self).notify(receiver, event)
         
         
-    def _loadFonts(self):
+    def _loadAssets(self):
+        
+        # Fonts #
         
         QFontDatabase.addApplicationFont(":/fonts/font_nokia")
         QFontDatabase.addApplicationFont(":/fonts/font_flx")
@@ -241,6 +243,12 @@ class Application(QApplication):
         
         ResourcesCache.registerResource("BigFont", defaultFont)
         ResourcesCache.registerResource("SmallFont", smallFont)
+    
+        # Pixmaps #
+        
+        checkerTileLight = utils.generateCheckerTile(8, QColor(222,222,222), QColor(253,253,253))
+        
+        ResourcesCache.registerResource("CheckerTileLight", checkerTileLight)
     
     def _initializeShortcuts(self):
         
@@ -334,5 +342,7 @@ class Application(QApplication):
 if __name__ == '__main__':
     
     application = Application(sys.argv)
+    
+    ResourcesCache.dispose()
 
     

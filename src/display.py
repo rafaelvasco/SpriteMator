@@ -14,6 +14,8 @@ from PyQt4.QtGui import QWidget, QPainter, QMatrix, QColor
 
 import src.utils as utils
 
+from src.resources_cache import ResourcesCache
+
 class Display(QWidget):
 
 
@@ -37,7 +39,7 @@ class Display(QWidget):
         self._keyTranslationVector = QPoint()
         self._currentObjectSize = QSize()
         
-        self._checkerTile = utils.generateCheckerTile(8, QColor(222,222,222), QColor(253,253,253))
+        self._checkerTile = ResourcesCache.get("CheckerTileLight")
         
         self.setMouseTracking(True)
         self.resetOrigin()

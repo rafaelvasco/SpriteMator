@@ -175,8 +175,7 @@ class Animation(object):
 
     def frames(self):
         return self._frames
-
-
+    
     def frameWidth(self):
         return self._frameWidth
 

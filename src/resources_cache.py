@@ -17,3 +17,8 @@ class ResourcesCache(object):
     def registerResource(name,  resource):
         
         ResourcesCache._resources[name] = resource
+        
+    @staticmethod
+    def dispose():
+        
+        ResourcesCache._resources.clear()

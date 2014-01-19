@@ -209,9 +209,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._canvas.toolEnded.connect(self._onCanvasToolEnded)
         
         self._animationManager.animationSelectedChanged.connect(self._onAnimationManagerAnimationSelectedChanged)
-        self._animationManager.animationListChanged.connect(self._onAnimationManagerAnimationListChanged)
         self._animationManager.frameSelectedChanged.connect(self._onAnimationManagerFrameSelectedChanged)
-        self._animationManager.frameListChanged.connect(self._onAnimationManagerFrameListChanged)
         
         self._layerManager.layerSelectedChanged.connect(self._onLayerManagerLayerSelectedChanged)
         self._layerManager.layerOrderChanged.connect(self._onLayerManagerLayerOrderChanged)
@@ -275,19 +273,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         self._canvas.refresh()
         self._layerManager.refresh()
-        
         self._animationDisplay.setAnimation(animation)
     
-    def _onAnimationManagerAnimationListChanged(self):
-        pass
         
-    def _onAnimationManagerFrameSelectedChanged(self):
+    def _onAnimationManagerFrameSelectedChanged(self, index):
         
         self._canvas.refresh()
         self._layerManager.refresh()
+        
+        self._animationDisplay.goToFrame(index)
+        self._animationDisplay.update()
     
-    def _onAnimationManagerFrameListChanged(self):
-        pass
         
     
     # ------- Layer Manager ----------------------------------------------

@@ -7,7 +7,7 @@
 # License:          
 #--------------------------------------------------
 from PyQt4.QtCore import QTimer, Qt, QSize
-from PyQt4.QtGui import QColor, QPen, QSizePolicy, QVBoxLayout, QHBoxLayout, QPushButton, QPainter, QIcon, QPixmap
+from PyQt4.QtGui import QColor, QPen, QSizePolicy, QVBoxLayout, QHBoxLayout, QPushButton, QIcon, QPixmap
 
 from src.display import Display
 
@@ -222,7 +222,7 @@ class AnimationDisplay(Display):
 
     def goToFrame(self, index):
 
-        if self._animation is None:
+        if self._animation is None or self._playing:
             return
 
         self._currentFrame = index
@@ -231,7 +231,7 @@ class AnimationDisplay(Display):
 
     def goToNextFrame(self):
 
-        if self._animation is None:
+        if self._animation is None or self._playing:
             return
 
         frameCount = self._animation.frameCount()
@@ -245,7 +245,7 @@ class AnimationDisplay(Display):
 
     def goToPreviousFrame(self):
 
-        if self._animation is None:
+        if self._animation is None or self._playing:
             return
 
         self._currentFrame -= 1

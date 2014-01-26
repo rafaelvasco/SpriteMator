@@ -7,9 +7,11 @@
     <file alias="style">resources/style.qss</file>
   </qresource>
   <qresource prefix="images">
+    <file alias="tool_cursor_1">resources/tool_cursor_1.png</file>
     <file alias="logo">resources/spritemator-logo.png</file>
   </qresource>
   <qresource prefix="icons">
+    <file alias="ico_pause">resources/ico_pause.png</file>
     <file alias="ico_copy_frame">resources/ico_copy_frame.png</file>
     <file alias="ico_small_minus">resources/small_minus.png</file>
     <file alias="ico_small_plus">resources/small_plus.png</file>

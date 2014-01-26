@@ -61,7 +61,6 @@ class FrameStrip(QWidget):
         
         self.setMinimumSize(self._frameSize * count + self._framePadding * count * 2 , self._frameSize + self._framePadding * 2)
     
-    
     def mousePressEvent(self, e):
         
         pos = e.pos()
@@ -73,13 +72,23 @@ class FrameStrip(QWidget):
         if clickedIndex != currentIndex:
         
             self.frameSelectedChanged.emit(clickedIndex)
+    
+    def wheelEvent(self, e):
         
+        delta = e.delta()
+        
+        if delta > 0:
+            
+            self.frameSelectedChanged.emit(self._sprite.currentAnimation().currentFrameIndex() + 1)
+            
+        elif delta < 0:
+            
+            self.frameSelectedChanged.emit(self._sprite.currentAnimation().currentFrameIndex() - 1)
         
     def paintEvent(self, e):
         
         p = QPainter(self)
         
-        frameIndex = 0
         
         currentFrameIndex = self._sprite.currentAnimation().currentFrameIndex()
         
@@ -90,17 +99,17 @@ class FrameStrip(QWidget):
         halfPadding = framePadding // 2
         twoPadding = framePadding * 2
         
-        for frame in frameList:
+        for frameIndex, frame in enumerate(frameList):
             
-            for surface in frame.surfaces():
-                
-                frameRect = QRect(
+            surfaces = frame.surfaces()
+            
+            frameRect = QRect(
                                   framePadding + frameIndex * frameSize + twoPadding * frameIndex , 
                                   framePadding, 
                                   frameSize, 
                                   frameSize)
-                
-                if currentFrameIndex == frameIndex:
+            
+            if currentFrameIndex == frameIndex:
                     
                     p.setPen(self._pen)
                     
@@ -110,14 +119,11 @@ class FrameStrip(QWidget):
                     
                     p.drawRect(frameRect.adjusted(-1,-1,0,0))
                 
-                p.drawTiledPixmap(frameRect, self._checkerTile)
+            p.drawTiledPixmap(frameRect, self._checkerTile)
+            
+            for surface in surfaces:
                 
                 p.drawImage(frameRect, surface.image(), surface.image().rect())
-                
-                
-                
-                
-            frameIndex += 1
     
     def sizeHint(self):
         
@@ -259,7 +265,6 @@ class AnimationManager(QWidget):
         self.animationSelectedChanged.emit(self._sprite.currentAnimation())
         
         self._frameStrip.setSprite(sprite)
-        
     
     def clear(self):
         
@@ -273,8 +278,6 @@ class AnimationManager(QWidget):
         
         self.update()
   
-   
-  
     def addAnimation(self):
         
         if self._sprite is None:
@@ -285,7 +288,6 @@ class AnimationManager(QWidget):
         self._updateAnimationCombo()
         
         self.animationSelectedChanged.emit(self._sprite.currentAnimation())
-  
   
     def setAnimation(self, index):
         
@@ -305,9 +307,8 @@ class AnimationManager(QWidget):
         
         self._updateAnimationCombo()
     
-    
     def addFrame(self):
-        print('Add Frame')
+
         if self._sprite is None:
             return
         
@@ -319,7 +320,7 @@ class AnimationManager(QWidget):
         
         self.update()
         
-        self.frameSelectedChanged.emit(currentAnimation.currentFrame())
+        self.frameSelectedChanged.emit(currentAnimation.currentFrameIndex())
     
     def removeFrame(self, index=None):
 
@@ -331,18 +332,31 @@ class AnimationManager(QWidget):
         animation.removeFrame(index)
 
         if animation.frameCount() == 0:
-
             self.addFrame()
         
         self._frameStrip.updateSize()
         
         self.update()
         
-        self.frameSelectedChanged.emit(self._sprite.currentAnimation().currentFrame())
+        self.frameSelectedChanged.emit(self._sprite.currentAnimation().currentFrameIndex())
+    
+    def copyFrame(self, index=None):
         
+        if self._sprite is None:
+            return
+        
+        currentAnimation = self._sprite.currentAnimation()
+        
+        currentAnimation.copyFrame(index)
+        
+        self._frameStrip.updateSize()
+        
+        self.update()
+        
+        self.frameSelectedChanged.emit(currentAnimation.currentFrameIndex())
         
     def setFrame(self, index):
-
+        
         if self._sprite is None:
             return
         
@@ -368,8 +382,7 @@ class AnimationManager(QWidget):
         
         self.update()
         
-        self.frameSelectedChanged.emit(animation.currentFrame())
-        
+        self.frameSelectedChanged.emit(animation.currentFrameIndex())
 
     def goToPreviousFrame(self):
 
@@ -385,7 +398,8 @@ class AnimationManager(QWidget):
     
         self.update()
         
-        self.frameSelectedChanged.emit(animation.currentFrame())
+        self.frameSelectedChanged.emit(animation.currentFrameIndex())
+    
     
     def _startRefreshing(self):
         self._refreshTimer.start(self._refreshSpeed)
@@ -395,7 +409,6 @@ class AnimationManager(QWidget):
         self._refreshTimer.stop()
         self._refreshing = False
     
-    
     def _onAddAnimationClicked(self):
         
         self.addAnimation()
@@ -403,7 +416,6 @@ class AnimationManager(QWidget):
     def _onRemoveAnimationClicked(self):
         
         self.removeCurrentAnimation()
-        
         
     def _onAnimationIndexChanged(self, index):
         
@@ -413,14 +425,12 @@ class AnimationManager(QWidget):
         if self._sprite.currentAnimationIndex() != index:
             
             self.setAnimation(index)
-      
     
     def _onAnimationComboEdited(self, newText):
         
         if self._sprite is None:
             return
         
-        print('Edited to: ', newText)
         self._sprite.currentAnimation().setName(newText)
     
     def _onAddFrameClicked(self):
@@ -433,7 +443,7 @@ class AnimationManager(QWidget):
     
     def _onCopyFrameClicked(self):
         
-        pass
+        self.copyFrame()
     
     def _onFrameStripFrameSelectedChanged(self, index):
         

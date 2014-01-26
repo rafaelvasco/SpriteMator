@@ -21,7 +21,7 @@ class AnimationDisplay(Display):
         self._playing = False
         self._refreshing = False
         self._refreshSpeed = 16
-        self._animationSpeed = 500
+        self._animationSpeed = 60
         self._loopEnabled = True
         self._pen = QPen()
         self._pen.setColor(QColor(10,10,10))
@@ -68,10 +68,12 @@ class AnimationDisplay(Display):
         
 
         self._playPauseBtn = QPushButton()
+        self._playPauseBtn.setCheckable(True)
         self._playPauseBtn.clicked.connect(self.togglePlay)
         
         playFrameicon = QIcon()
-        playFrameicon.addPixmap(QPixmap(":/icons/ico_play"))
+        playFrameicon.addPixmap(QPixmap(":/icons/ico_play"), QIcon.Normal, QIcon.Off)
+        playFrameicon.addPixmap(QPixmap(":/icons/ico_pause"), QIcon.Normal, QIcon.On)
         
         self._playPauseBtn.setIcon(playFrameicon)
         self._playPauseBtn.setIconSize(QSize(14,14))
@@ -154,7 +156,7 @@ class AnimationDisplay(Display):
 
     def onDrawObject(self, event, painter):
         
-        if self._animation is not None:
+        if self._animation is not None and self._animation.frameCount() > 0:
 
             layers = self._animation.frameAt(self._currentFrame).surfaces()
 
@@ -187,6 +189,8 @@ class AnimationDisplay(Display):
         self._refreshing = False
         self._refreshTimer.stop()
         self._animationTimer.stop()
+        self._playPauseBtn.setChecked(False)
+        self._currentFrame = 0
 
         self.update()
 
@@ -196,11 +200,11 @@ class AnimationDisplay(Display):
             return
 
         if not self._playing:
+            self._playPauseBtn.setChecked(True)
             self.play()
-            self._playPauseBtn.setText('||')
         else:
             self.pause()
-            self._playPauseBtn.setText('>')
+            self._playPauseBtn.setChecked(False)
 
     def play(self):
 
@@ -221,7 +225,7 @@ class AnimationDisplay(Display):
         self.update()
 
     def goToFrame(self, index):
-
+        
         if self._animation is None or self._playing:
             return
 

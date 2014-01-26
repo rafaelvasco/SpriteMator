@@ -75,6 +75,8 @@ class LayerManager(QWidget):
             
             self._listWidget.addItem(surface.name(), surface.image())
             
+        self._listWidget.setSelectedIndex(frame.currentSurfaceIndex())
+        
         self.layerListChanged.emit()
             
         self.update()

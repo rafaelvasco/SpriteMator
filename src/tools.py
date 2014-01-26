@@ -11,6 +11,7 @@ from PyQt4.QtGui import QPen, QColor, QIcon, QPixmap
 import src.drawing as drawing
 import src.utils as utils
 
+from src.resources_cache import ResourcesCache
 
 from quickpixler import floodFill
 
@@ -140,11 +141,6 @@ class Tool(object):
     def blit(self, painter, canvas):
         return
     
-    
-    
-        
-
-        
 # ======================================================================================================================
 
 class Picker(Tool):
@@ -163,18 +159,21 @@ class Picker(Tool):
         x = self._absoluteMousePos.x()
         y = self._absoluteMousePos.y()
         
-        size = canvas._pixelSize * canvas._zoom
+        size = 16 * canvas._zoom
+        
+        if size > 32:
+            size = 32
         
         
+        painter.setPen(Qt.white)
+            
         halfSize = size // 2
+        sizeBy8 = size // 8
         
-        painter.setPen(self._drawPen)
+        painter.drawRect(x - halfSize, y - halfSize, size, size)
         
-        
-        painter.drawRect(x - halfSize,
-                         y - halfSize,
-                         size - 1,
-                         size - 1)
+        painter.drawLine(x, y - sizeBy8, x, y + sizeBy8)
+        painter.drawLine(x - sizeBy8, y, x + sizeBy8, y)
     
     def onMousePress(self, canvas, mouseEvent):
         
@@ -296,24 +295,45 @@ class Filler(Tool):
         self._icon = QIcon()
         self._icon.addPixmap(QPixmap(":/icons/ico_fill"), QIcon.Normal, QIcon.Off)
         self._icon.addPixmap(QPixmap(":/icons/ico_fill_hover"), QIcon.Normal, QIcon.On)
-
+        
+        self._cursorPixmap = ResourcesCache.get("ToolCursor1")
+        
     
     def draw(self, painter, canvas):
         
         x = self._absoluteMousePos.x()
         y = self._absoluteMousePos.y()
         
-        size = canvas._pixelSize * canvas._zoom
+        cursorW = self._cursorPixmap.width()
+        cursorH = self._cursorPixmap.height()
         
+        painter.drawPixmap(x - cursorW // 2, y - cursorH // 2, self._cursorPixmap)
         
-        halfSize = size // 2
+#         size = 16 * canvas._zoom
+#         
+#         if size > 32:
+#             size = 32
+#         
+#         
+#         painter.setPen(Qt.white)
+#             
+#         halfSize = size // 2
+#         sizeBy8 = size // 8
+#         
+#         painter.drawRect(x - halfSize - 1, y - halfSize - 1, size, size)
+#         
+#         painter.drawLine(x, y - sizeBy8, x, y + sizeBy8)
+#         painter.drawLine(x - sizeBy8, y, x + sizeBy8, y)
+#         
+#         painter.setPen(Qt.black)
+#         
+#         painter.drawRect(x - halfSize, y - halfSize, size - 2, size - 2)
+#         
+#         painter.drawLine(x, y - sizeBy8, x, y + sizeBy8)
+#         painter.drawLine(x - sizeBy8, y, x + sizeBy8, y)
+
+
         
-        painter.setPen(self._drawPen)
-        
-        painter.drawRect(x - halfSize,
-                         y - halfSize,
-                         size - 1,
-                         size - 1)
     
     def onMousePress(self, canvas, mouseEvent):
         

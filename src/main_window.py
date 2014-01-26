@@ -236,6 +236,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._animationDisplay.update()
         
         self._layerManager.update()
+        
+        self._animationManager.update()
     
     def _onCanvasColorPicked(self, color, event):
         
@@ -273,6 +275,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         self._canvas.refresh()
         self._layerManager.refresh()
+        
+        self._animationDisplay.update()
         self._animationDisplay.setAnimation(animation)
     
         
@@ -281,8 +285,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._canvas.refresh()
         self._layerManager.refresh()
         
-        self._animationDisplay.goToFrame(index)
         self._animationDisplay.update()
+        self._animationDisplay.goToFrame(index)
+        
     
         
     
@@ -295,7 +300,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _onLayerManagerLayerOrderChanged(self):
     
         self._canvas.refresh()
+        self._animationDisplay.update()
+        self._animationManager.update()
     
     def _onLayerManagerLayerListChanged(self):
         
         self._canvas.refresh()
+        self._animationDisplay.update()
+        self._animationManager.update()

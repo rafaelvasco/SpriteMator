@@ -10,10 +10,12 @@
 import os
 import math
 import random
+import errno
+
+
 
 from PyQt4.QtCore import Qt, QDir, QByteArray, QBuffer, QIODevice, QPoint
-from PyQt4.QtGui import QImage, QFileDialog, QMatrix, QPainter, QPixmap, QColor
-
+from PyQt4.QtGui import QImage, QFileDialog, QMatrix, QPainter, QPixmap, QColor, QMessageBox
 
 
 def clamp(value, minimum, maximum):
@@ -83,6 +85,15 @@ def showSaveFileDialog(label, nameFilter):
     return QFileDialog.getSaveFileName(caption = label,
                                        directory = QDir.currentPath(),
                                        filter = nameFilter)
+
+def showSaveToFolderDialog(label):
+    
+    return QFileDialog.getExistingDirectory(caption = label, directory = QDir.currentPath())
+
+
+def showInfoMessage(parent, title, msg):
+    
+    QMessageBox.information(parent, title, msg)
 
 # -----------------------------------------------------------------------------
 
@@ -163,4 +174,23 @@ def randomColor(hue=None, sat=None, val=None):
 
 # --------------------------------------------------------
 
+def makeDir(rootFolder,dirName):
     
+    try:
+        
+        path = os.path.join(rootFolder, dirName)
+        
+        os.makedirs(path)
+    
+    except OSError as exception:
+        if exception.errno == errno.EEXIST:
+            print('Already exists')
+            return path
+        else:
+            raise exception
+    
+    return path
+        
+        
+
+

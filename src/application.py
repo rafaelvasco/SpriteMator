@@ -8,9 +8,11 @@
 #--------------------------------------------------
 
 import sys
+import logging
 
+from time import gmtime, strftime
 from PyQt4.QtCore import Qt, QEvent, QFile
-from PyQt4.QtGui import QApplication, QFontDatabase, QFont, QDialog, QShortcut, QKeySequence, QColor
+from PyQt4.QtGui import QApplication, QFontDatabase, QFont, QDialog, QShortcut, QKeySequence, QColor, QPixmap, QMessageBox
 
 
 
@@ -105,17 +107,18 @@ class Application(QApplication):
 
     def importSprite(self):
         pass
-        # imageFiles = Utils.showOpenFilesDialog('Select one or more images:', 'Image (*.png)')
+        imageFiles = utils.showOpenFilesDialog('Select one or more images:', 'PNG Image (*.png)')
 
-        # if len(imageFiles) > 0:
+        if len(imageFiles) > 0:
 
-            # sprite = self._spriteManager.importSprite(imageFiles)
+            sprite = Sprite.importFromImageFiles(imageFiles)
+            if sprite:
 
-            # if sprite:
-
-                # self._setSprite(sprite)
-                #
-                # print('Imported sprite from files: ', imageFiles)
+                self.setSprite(sprite)
+                
+                print('Imported sprite from files: ', imageFiles)
+                
+                self._updateTopMenu()
 
 
     def saveSprite(self):
@@ -166,7 +169,24 @@ class Application(QApplication):
             self.setSprite(newSprite)
 
     def exportSprite(self):
-        pass
+        
+        if self._currentSprite is None:
+            return
+        
+        targetFolder = utils.showSaveToFolderDialog('Choose a folder to save Sprite animations:')
+        
+        if targetFolder:
+            
+            try:
+            
+                Sprite.export(self._currentSprite, targetFolder)
+                
+            except Exception as e:
+                
+                self._raiseError('exportSprite', e)
+                return
+            
+            utils.showInfoMessage(self._view, 'Info', 'Sprite Exported Successfuly.')
 
     def closeSprite(self):
         # TODO Save Sprite Before Close Test
@@ -249,6 +269,12 @@ class Application(QApplication):
         checkerTileLight = utils.generateCheckerTile(8, QColor(222,222,222), QColor(253,253,253))
         
         ResourcesCache.registerResource("CheckerTileLight", checkerTileLight)
+        
+        toolCursor1 = QPixmap(':/images/tool_cursor_1')
+        
+        ResourcesCache.registerResource('ToolCursor1', toolCursor1)
+        
+        
     
     def _initializeShortcuts(self):
         
@@ -311,7 +337,12 @@ class Application(QApplication):
                 
                 target.switchActiveColor()
             
-            
+    def _raiseError(self, source, exception):
+
+        message = str(exception)
+        logging.warning('[{0}] {1}'.format(source, message))
+        
+        QMessageBox.warning(self._view, 'Warning', '[{0}] An error has ocurred: {1}'.format(source, message))        
                 
     
     def _updateTopMenu(self):

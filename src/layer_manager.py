@@ -6,12 +6,48 @@
 # Date:             04/08/13
 # License:          
 #--------------------------------------------------
-from PyQt4.QtCore import pyqtSignal, Qt, QTimer
+from PyQt4.QtCore import pyqtSignal, Qt, QTimer, QRect
 from PyQt4.QtGui import QWidget, QPushButton, QVBoxLayout, QSizePolicy
 
-from src.draggable_list import DraggableListWidget
+from src.draggable_list import DraggableListWidget, ListItem
 
 import src.utils as Utils
+
+
+class LayerListItem(ListItem):
+    
+    def __init__(self, parent, label, image):
+        
+        super().__init__(parent, label)
+        
+        self._layerImage = image
+        
+    def drawContent(self, painter, drawArea):
+        
+        painter.setPen(Qt.white)
+        painter.drawText(20, self._top + 20, self._label)
+        
+        if self._layerImage is not None:
+            
+            imageRect = QRect(drawArea.right() - 55, drawArea.top() + drawArea.height() / 2 - 24, 48, 48)
+            
+            border = self._borderColor if not self._selected else self._borderColorSelected
+            
+            painter.setPen(border)
+            
+            imageRect.adjust(0,0,-1,-1)
+            
+            painter.drawRect(imageRect)
+            
+            imageRect.adjust(1,1,-1,-1)
+            
+            painter.setPen(Qt.black)
+            painter.drawRect(imageRect)
+            
+            imageRect.adjust(1,1,0,0)
+            
+            painter.fillRect(imageRect, Qt.white)
+            painter.drawImage(imageRect, self._layerImage, QRect(0, 0, self._layerImage.width(), self._layerImage.height()))
 
 class LayerManager(QWidget):
     
@@ -21,7 +57,7 @@ class LayerManager(QWidget):
 
     def __init__(self, parent=None):
 
-        super(LayerManager, self).__init__(parent)
+        super().__init__(parent)
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
@@ -73,7 +109,9 @@ class LayerManager(QWidget):
         
         for surface in frame.surfaces():
             
-            self._listWidget.addItem(surface.name(), surface.image())
+            layerItem = LayerListItem(self._listWidget, surface.name(), surface.image())
+            
+            self._listWidget.addItem(layerItem)
             
         self._listWidget.setSelectedIndex(frame.currentSurfaceIndex())
         

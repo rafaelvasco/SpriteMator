@@ -15,10 +15,10 @@ from PyQt4.QtGui import QPainter, QColor, QWidget, QSizePolicy
 
 class ListItem(object):
 
-    def __init__(self, parent, label, image=None):
+    def __init__(self, parent, label):
 
 
-        self._posY = 0
+        self._top = 0
         self._index = 0
         self._list = parent
         self._height = parent.itemHeight()
@@ -31,9 +31,6 @@ class ListItem(object):
         self._borderColor = QColor(132,148,165)
         self._backColorSelected = QColor(47,74,96)
         self._borderColorSelected = QColor(101,172,227)
-        
-        self._image = image
-
 
 #-------------------------------------------------------------------------------
 
@@ -47,7 +44,6 @@ class ListItem(object):
 
         return self._label
 
-
 #-------------------------------------------------------------------------------
 
     def setIndex(self, index):
@@ -56,14 +52,8 @@ class ListItem(object):
 
         itemsLen = self._list.count()
         
-        self._posY = ((itemsLen-1)*self._height - index*(self._height))
+        self._top = ((itemsLen-1)*self._height - index*(self._height))
         
-#-------------------------------------------------------------------------------
-
-    def setImage(self, image):
-        
-        self._image = image
-
 #-------------------------------------------------------------------------------
 
     def index(self):
@@ -74,18 +64,18 @@ class ListItem(object):
 
     def top(self):
 
-        return self._posY
+        return self._top
 #-------------------------------------------------------------------------------
 
     def bottom(self):
 
-        return self._posY + self._height
+        return self._top + self._height
 
 #-------------------------------------------------------------------------------
 
     def move(self, pos):
 
-        self._posY = pos
+        self._top = pos
 
 #-------------------------------------------------------------------------------
 
@@ -135,7 +125,7 @@ class ListItem(object):
 
         width = self._list.width()
         
-        drawRect = QRect(0, self._posY, width, self._height)
+        drawRect = QRect(0, self._top, width, self._height)
         
         backColor = None
         borderColor = None
@@ -171,28 +161,14 @@ class ListItem(object):
         painter.drawRect(drawRect.adjusted(0,0,-2,-2))
         painter.fillRect(drawRect.adjusted(1,1,-2,-2), backColor)
         
-        painter.setPen(Qt.white)
-        painter.drawText(20, self._posY + 30, self._label)
+        self.drawContent(painter, drawRect)
         
-        if self._image is not None:
-            
-            imageRect = QRect(drawRect.right() - 55, drawRect.top() + drawRect.height() / 2 - 24, 48, 48)
-            
-            painter.setPen(borderColor)
-            
-            imageRect.adjust(0,0,-1,-1)
-            
-            painter.drawRect(imageRect)
-            
-            imageRect.adjust(1,1,-1,-1)
-            
-            painter.setPen(Qt.black)
-            painter.drawRect(imageRect)
-            
-            imageRect.adjust(1,1,0,0)
-            
-            painter.fillRect(imageRect, Qt.white)
-            painter.drawImage(imageRect, self._image, QRect(0, 0, self._image.width(), self._image.height()))
+       
+        
+    
+    def drawContent(self, painter, drawArea):
+        pass
+        
             
 
 
@@ -232,18 +208,17 @@ class DraggableListWidget(QWidget):
 
 #-------------------------------------------------------------------------------
 
-    def addItem(self, label, image=None):
+    def addItem(self, item):
 
-        newItem = ListItem(self, label, image)
-        newItem.setSelected(True)
+        item.setSelected(True)
 
         if self._selectedItem is not None:
 
             self._selectedItem.setSelected(False)
 
-        self._selectedItem = newItem
+        self._selectedItem = item
 
-        self._items.append(newItem)
+        self._items.append(item)
 
         self._updateItemIndexes()
         

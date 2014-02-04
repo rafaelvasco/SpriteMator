@@ -1,5 +1,4 @@
 /src/__pycache__
 /ui/__pycache__
-/.project
-/.pydevproject
+/.idea
 build

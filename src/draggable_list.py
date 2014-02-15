@@ -1,188 +1,175 @@
-#--------------------------------------------------
-# Name:             draggable_list    
-# Purpose:          
+#-----------------------------------------------------------------------------------------------------------------------
+# Name:        DraggableList
+# Purpose:     Generic draggable scroll list;
 #
-# Author:           Rafael Vasco
-# Date:             28/07/13
-# License:          
-#--------------------------------------------------
-
-from PyQt4.QtCore import Qt, pyqtSignal, QRect
-from PyQt4.QtGui import QPainter, QColor, QWidget, QSizePolicy
-
-
+# Author:      Rafael Vasco
+#
+# Created:     28/07/13
+# Copyright:   (c) Rafael 2013
+# Licence:     <your licence>
+#-----------------------------------------------------------------------------------------------------------------------
+from PyQt5.QtCore import Qt, pyqtSignal, QRect
+from PyQt5.QtGui import QPainter, QColor
+from PyQt5.QtWidgets import QWidget, QSizePolicy
 
 
 class ListItem(object):
-
     def __init__(self, parent, label):
-
 
         self._top = 0
         self._index = 0
         self._list = parent
-        self._height = parent.itemHeight()
+        self._height = parent.item_height()
         self._hovered = False
         self._selected = False
         self._dragging = False
         self._label = label
         self._hit = False
-        self._backColor = QColor(51,57,64)
-        self._borderColor = QColor(132,148,165)
-        self._backColorSelected = QColor(47,74,96)
-        self._borderColorSelected = QColor(101,172,227)
+        self._backColor = QColor(51, 57, 64)
+        self._borderColor = QColor(132, 148, 165)
+        self._backColorSelected = QColor(47, 74, 96)
+        self._borderColorSelected = QColor(101, 172, 227)
 
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 
-    def setLabel(self, v):
+    def set_label(self, v):
 
         self._label = v
 
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 
     def label(self):
 
         return self._label
 
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 
-    def setIndex(self, index):
+    def set_index(self, index):
 
         self._index = index
 
-        itemsLen = self._list.count()
-        
-        self._top = ((itemsLen-1)*self._height - index*(self._height))
-        
-#-------------------------------------------------------------------------------
+        items_length = self._list.count()
+
+        self._top = ((items_length - 1) * self._height - index * self._height)
+
+    #-------------------------------------------------------------------------------
 
     def index(self):
 
         return self._index
 
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 
     def top(self):
 
         return self._top
-#-------------------------------------------------------------------------------
+
+    #-------------------------------------------------------------------------------
 
     def bottom(self):
 
         return self._top + self._height
 
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 
     def move(self, pos):
 
         self._top = pos
 
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 
-    def setDragging(self, v):
+    def set_dragging(self, v):
 
         self._dragging = v
 
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 
-    def isBeingDragged(self):
+    def is_being_dragged(self):
 
         return self._dragging
 
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 
-    def setHovered(self, v):
+    def set_hovered(self, v):
 
         self._hovered = v
 
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 
     def hovered(self):
 
         return self._hovered
 
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 
-    def setSelected(self, v):
+    def set_selected(self, v):
 
         self._selected = v
 
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 
-    def toggleSelected(self):
+    def toggle_selected(self):
 
         self._selected = not self._selected
 
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 
-    def isSelected(self):
+    def is_selected(self):
 
         return self._selected
 
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 
-    def draw(self, painter, dragging):
+    def draw(self, painter):
 
         width = self._list.width()
-        
-        drawRect = QRect(0, self._top, width, self._height)
-        
-        backColor = None
-        borderColor = None
-        
+
+        draw_rect = QRect(0, self._top, width, self._height)
+
         if not self._hovered:
 
             if not self._selected:
-                
-                backColor = self._backColor
-                borderColor = self._borderColor
-                
+
+                back_color = self._backColor
+                border_color = self._borderColor
 
             else:
 
-                backColor = self._backColorSelected
-                borderColor = self._borderColorSelected
+                back_color = self._backColorSelected
+                border_color = self._borderColorSelected
 
         else:
 
-
             if not self._selected:
 
-                backColor = self._backColor.lighter(120)
-                borderColor = self._borderColor.lighter(120)
+                back_color = self._backColor.lighter(120)
+                border_color = self._borderColor.lighter(120)
 
             else:
 
-                backColor = self._backColorSelected.lighter(120)
-                borderColor = self._borderColorSelected.lighter(120)
-        
-        
-        painter.setPen(borderColor)
-        painter.drawRect(drawRect.adjusted(0,0,-2,-2))
-        painter.fillRect(drawRect.adjusted(1,1,-2,-2), backColor)
-        
-        self.drawContent(painter, drawRect)
-        
-       
-        
-    
-    def drawContent(self, painter, drawArea):
-        pass
-        
-            
+                back_color = self._backColorSelected.lighter(120)
+                border_color = self._borderColorSelected.lighter(120)
 
+        painter.setPen(border_color)
+        painter.drawRect(draw_rect.adjusted(0, 0, -2, -2))
+        painter.fillRect(draw_rect.adjusted(1, 1, -2, -2), back_color)
+
+        self.draw_content(painter, draw_rect)
+
+    def draw_content(self, painter, draw_area):
+        pass
 
 
 #===============================================================================
 
 class DraggableListWidget(QWidget):
-
     orderChanged = pyqtSignal(int, int)
     selectedItemChanged = pyqtSignal(int)
 
     def __init__(self):
         super(DraggableListWidget, self).__init__()
 
+        self._lastDragY = 0
         self._items = []
 
         self._selectedItem = None
@@ -205,27 +192,24 @@ class DraggableListWidget(QWidget):
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
+    #-------------------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------
+    def add_item(self, item):
 
-    def addItem(self, item):
-
-        item.setSelected(True)
+        item.set_selected(True)
 
         if self._selectedItem is not None:
-
-            self._selectedItem.setSelected(False)
+            self._selectedItem.set_selected(False)
 
         self._selectedItem = item
 
         self._items.append(item)
 
-        self._updateItemIndexes()
-        
-        self.update()
-        
+        self._update_item_indexes()
 
-    def setSelectedIndex(self, index):
+        self.update()
+
+    def set_selected_index(self, index):
 
         if index < 0:
 
@@ -235,28 +219,25 @@ class DraggableListWidget(QWidget):
 
             index = len(self._items) - 1
 
-
         if self._selectedItem is not None:
-
-            self._selectedItem.setSelected(False)
+            self._selectedItem.set_selected(False)
             self._selectedItem = None
 
         self._selectedItem = self._items[index]
-        self._selectedItem.setSelected(True)
+        self._selectedItem.set_selected(True)
 
         self.update()
 
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 
-    def _updateItemIndexes(self):
+    def _update_item_indexes(self):
 
         index = 0
         for item in self._items:
-
-            item.setIndex(index)
+            item.set_index(index)
             index += 1
 
-#-------------------------------------------------------------------------------
+        #-------------------------------------------------------------------------------
 
     def clear(self):
 
@@ -277,124 +258,116 @@ class DraggableListWidget(QWidget):
         self._dragTargetIndex = 0
 
         self.update()
-#-------------------------------------------------------------------------------
 
-    def itemHeight(self):
+    #-------------------------------------------------------------------------------
+
+    def item_height(self):
 
         return self._itemHeight
-
 
     def count(self):
 
         return len(self._items)
 
-#-------------------------------------------------------------------------------
-    def _onAddButtonClicked(self):
+    #-------------------------------------------------------------------------------
+    def _on_add_button_clicked(self):
 
         self.addClicked.emit()
         self.update()
 
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 
-    def _itemDragBegin(self, item, cursorPoint):
+    def _item_drag_begin(self, item, cursor_point):
 
-        item.setDragging(True)
+        item.set_dragging(True)
 
         self._draggedItem = item
 
-        self._currentDragOffset = cursorPoint - item.top()
+        self._currentDragOffset = cursor_point - item.top()
 
         self._dragSourceIndex = item.index()
 
         self._dragTargetIndex = self._dragSourceIndex
 
-        self._lastDragY = cursorPoint
+        self._lastDragY = cursor_point
 
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 
-    def _itemDragMove(self, item, cursorPoint):
+    def _item_drag_move(self, item, cursor_point):
 
-        item.move(cursorPoint - self._currentDragOffset)
+        item.move(cursor_point - self._currentDragOffset)
 
-        draggedItemCenter = item.top() + (item.bottom() - item.top()) // 2
+        dragged_item_center = item.top() + (item.bottom() - item.top()) // 2
 
         for layerItem in self._items:
 
-            if layerItem.isBeingDragged(): continue
+            if layerItem.is_being_dragged(): continue
 
+            layer_item_top = layerItem.top()
+            layer_item_bottom = layerItem.bottom()
 
-            layerItemTop = layerItem.top()
-            layerItemBottom = layerItem.bottom()
-
-            if layerItemTop <= draggedItemCenter < layerItemBottom - 30:
-
-                self._dragTargetIndex = layerItem.index()
-
-                layerItem.setIndex(layerItem.index() + 1)
-
-                break
-
-            elif layerItemBottom >= draggedItemCenter > layerItemTop + 30:
+            if layer_item_top <= dragged_item_center < layer_item_bottom - 30:
 
                 self._dragTargetIndex = layerItem.index()
 
-                layerItem.setIndex(layerItem.index() - 1)
+                layerItem.set_index(layerItem.index() + 1)
 
                 break
 
+            elif layer_item_bottom >= dragged_item_center > layer_item_top + 30:
+
+                self._dragTargetIndex = layerItem.index()
+
+                layerItem.set_index(layerItem.index() - 1)
+
+                break
 
         self.update()
 
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 
-    def _itemDragEnd(self, item, cursorPoint):
+    def _item_drag_end(self, item, cursor_point):
 
         print('Moved Layer from index: ', self._dragSourceIndex, ' to index: ', self._dragTargetIndex)
 
-        item.setIndex(self._dragTargetIndex)
+        item.set_index(self._dragTargetIndex)
 
-        item.setDragging(False)
+        item.set_dragging(False)
 
         self._draggedItem = None
 
-        if self._dragSourceIndex != self._dragTargetIndex :
-
+        if self._dragSourceIndex != self._dragTargetIndex:
             self.orderChanged.emit(self._dragSourceIndex, self._dragTargetIndex)
 
             self._currentDragOffset = 0
 
         self.update()
 
-#-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
 
-    def _moveItem(self, item, point):
+    def _move_item(self, item, point):
 
         if point < 0:
-
             point = 0
 
+        max_top = (len(self._items) - 1) * 60
 
-        maxTop = (len(self._items) - 1) * 60
-
-        if point > maxTop:
-
-            point = maxTop
+        if point > max_top:
+            point = max_top
 
         collided = False
 
         for layerItem in self._items:
 
             if layerItem.top() == point:
-
                 collided = True
 
                 break
 
         if not collided:
-
             item.move(point)
 
-#-------------------------------------------------------------------------------
+        #-------------------------------------------------------------------------------
 
     def paintEvent(self, e):
 
@@ -402,93 +375,84 @@ class DraggableListWidget(QWidget):
 
         painter.translate(0, self._scrollOffset)
 
-        dragging = self._draggedItem is not None
-
         for layerItem in self._items:
 
-            if not layerItem.isBeingDragged():
-                layerItem.draw(painter, dragging)
+            if not layerItem.is_being_dragged():
+                layerItem.draw(painter)
 
         if self._draggedItem is not None:
+            self._draggedItem.draw(painter)
 
-            self._draggedItem.draw(painter, dragging)
-
-#-------------------------------------------------------------------------------
+        #-------------------------------------------------------------------------------
 
     def mousePressEvent(self, e):
 
         if self._draggedItem is not None: return
 
-        pointerY = e.pos().y() - self._scrollOffset
+        pointer_x = e.pos().y() - self._scrollOffset
 
         if self._hoveredItem is not None:
 
             if e.button() == Qt.RightButton:
 
-                self._itemDragBegin(self._hoveredItem, pointerY)
+                self._item_drag_begin(self._hoveredItem, pointer_x)
 
             elif e.button() == Qt.LeftButton:
 
                 if self._selectedItem is not None:
-
-                    self._selectedItem.setSelected(False)
+                    self._selectedItem.set_selected(False)
                     self._selectedItem = None
 
                 self._selectedItem = self._hoveredItem
 
-                self._hoveredItem.setSelected(True)
+                self._hoveredItem.set_selected(True)
 
                 self.selectedItemChanged.emit(self._selectedItem.index())
 
                 self.update()
 
-
-#-------------------------------------------------------------------------------
+            #-------------------------------------------------------------------------------
 
     def mouseReleaseEvent(self, e):
 
-        pointerY = e.pos().y() - self._scrollOffset
+        pointer_y = e.pos().y() - self._scrollOffset
 
         if e.button() == Qt.RightButton:
 
             if self._draggedItem is not None:
+                self._item_drag_end(self._draggedItem, pointer_y)
 
-                self._itemDragEnd(self._draggedItem, pointerY)
-
-#-------------------------------------------------------------------------------
+            #-------------------------------------------------------------------------------
 
     def mouseMoveEvent(self, e):
 
-        pointerY = e.pos().y() - self._scrollOffset
-
+        pointer_y = e.pos().y() - self._scrollOffset
 
         if self._draggedItem is None:
 
             for layerItem in self._items:
 
-                if layerItem.top() <= pointerY <= layerItem.bottom():
+                if layerItem.top() <= pointer_y <= layerItem.bottom():
 
                     if self._hoveredItem is not None:
-
-                        self._hoveredItem.setHovered(False)
+                        self._hoveredItem.set_hovered(False)
                         self._hoveredItem = None
 
                     self._hoveredItem = layerItem
-                    self._hoveredItem.setHovered(True)
+                    self._hoveredItem.set_hovered(True)
                     self.update()
 
                     break
 
         else:
 
-            self._itemDragMove(self._draggedItem, pointerY)
+            self._item_drag_move(self._draggedItem, pointer_y)
 
-#-------------------------------------------------------------------------------
+        #-------------------------------------------------------------------------------
 
     def wheelEvent(self, e):
 
         if len(self._items) * 60 < self.height():
-
             return
 
         if self._draggedItem is not None: return
@@ -504,25 +468,17 @@ class DraggableListWidget(QWidget):
             self.update()
 
         if self._scrollOffset > 0:
-
             self._scrollOffset = 0
 
+        scroll_max = -((len(self._items)) * 60 - self.height())
 
-        scrollMax = -((len(self._items)) * 60 - self.height())
-
-        if self._scrollOffset < scrollMax:
-
-            self._scrollOffset = scrollMax
-
-
-
-#-------------------------------------------------------------------------------
+        if self._scrollOffset < scroll_max:
+            self._scrollOffset = scroll_max
 
     def leaveEvent(self, e):
 
         if self._hoveredItem is not None:
-
-            self._hoveredItem.setHovered(False)
+            self._hoveredItem.set_hovered(False)
             self._hoveredItem = None
             self.update()
 

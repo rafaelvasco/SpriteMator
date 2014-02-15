@@ -1,356 +1,327 @@
-#--------------------------------------------------
-# Name:             application    
-# Purpose:          
+#-----------------------------------------------------------------------------------------------------------------------
+# Name:        Application
+# Purpose:
 #
-# Author:           Rafael Vasco
-# Date:             10/08/13
-# License:          
-#--------------------------------------------------
+# Author:      Rafael Vasco
+#
+# Created:     10/08/2013
+# Copyright:   (c) Rafael 2013
+# Licence:     <your licence>
+#-----------------------------------------------------------------------------------------------------------------------
 
 import sys
 import logging
 
-from time import gmtime, strftime
-from PyQt4.QtCore import Qt, QEvent, QFile
-from PyQt4.QtGui import QApplication, QFontDatabase, QFont, QDialog, QShortcut, QKeySequence, QColor, QPixmap, QMessageBox
-
-
+from PyQt5.QtCore import Qt, QEvent, QFile, QIODevice
+from PyQt5.QtGui import QFontDatabase, QFont, QKeySequence, QColor, QPixmap
+from PyQt5.QtWidgets import QApplication, QDialog, QShortcut, QMessageBox
 
 from src.main_window import MainWindow
 from src.sprite import Sprite
 from src.resources_cache import ResourcesCache
-
 import src.appdata as appdata
-
 import src.utils as utils
-from PyQt4 import QtCore
+
 
 class Application(QApplication):
-    
     resources = {}
-    
+
     def __init__(self, args):
-        
+
         super(Application, self).__init__(args)
-        
-        self._loadAssets()
-        
+
+        self._load_assets()
+
         self._view = MainWindow()
-        
+
         self._shortCuts = {}
-        
-        self._initializeShortcuts()
-        
+
+        self._initialize_shortcuts()
+
         self.setQuitOnLastWindowClosed(True)
-        
+
         self._currentSprite = None
-        
-        self._connectWithView()
-        
-        styleFile = QFile(':/styles/style')
-        styleFile.open(QtCore.QIODevice.ReadOnly)
-        
-        if styleFile.isOpen():
-            
-            self.setStyleSheet(str(styleFile.readAll(), encoding='ascii'))
-        
-        styleFile.close()
-        
+
+        self._connect_with_view()
+
+        style_file = QFile(':/styles/style')
+        style_file.open(QIODevice.ReadOnly)
+
+        if style_file.isOpen():
+            self.setStyleSheet(str(style_file.readAll(), encoding='ascii'))
+
+        style_file.close()
+
         self.setFont(ResourcesCache.get('SmallFont'))
-        
+
         self._view.show()
-        
-        self._updateTopMenu()
-        
+
+        self._update_top_menu()
+
         sys.exit(self.exec_())
 
-        
-        
         # --------------------------------------------------------------------------------------------------------------
 
+    def new_sprite(self):
 
-    def newSprite(self):
+        if self._view.new_sprite_dialog().exec_() == QDialog.Accepted:
+            result = self._view.new_sprite_dialog().result()
 
-        if self._view.newSpriteDialog().exec_() == QDialog.Accepted:
-            result = self._view.newSpriteDialog().result()
-            
             if self._currentSprite is not None:
-                self.closeSprite()
-            
-            sprite = Sprite.create(result.choosenWidth, result.choosenHeight)
-            
-            self.setSprite(sprite)
-            
-            
-            
-            self._updateTopMenu()
-    
-    def setSprite(self, sprite):
+                self.close_sprite()
+
+            sprite = Sprite.create(result.choosen_width, result.choosen_height)
+
+            self.set_sprite(sprite)
+            self._update_top_menu()
+
+    def set_sprite(self, sprite):
 
         self._currentSprite = sprite
-        self._view.canvas().setSprite(self._currentSprite)
-        self._view.animationManager().setSprite(self._currentSprite)
-        self._view.layerManager().setSprite(self._currentSprite)
-        
-        self._view.showWorkspace()
+        self._view.canvas().set_sprite(self._currentSprite)
+        self._view.animation_manager().set_sprite(self._currentSprite)
+        self._view.layer_manager().set_sprite(self._currentSprite)
 
-    def loadSprite(self):
+        self._view.show_workspace()
 
-        spriteFile = utils.showOpenFileDialog('Open Sprite:', 'Sprite (*.spr)')
+    def load_sprite(self):
 
-        if spriteFile:
-            sprite = Sprite.loadFromFile(spriteFile)
+        sprite_file = utils.show_openfile_dialog('Open Sprite:', 'Sprite (*.spr)')
+        if sprite_file:
+            sprite = Sprite.load_from_file(sprite_file)
 
-            self.setSprite(sprite)
-            
-            self._updateTopMenu()
+            self.set_sprite(sprite)
 
-    def importSprite(self):
-        pass
-        imageFiles = utils.showOpenFilesDialog('Select one or more images:', 'PNG Image (*.png)')
+            self._update_top_menu()
 
-        if len(imageFiles) > 0:
+    def import_sprite(self):
 
-            sprite = Sprite.importFromImageFiles(imageFiles)
+        image_files = utils.show_open_files_dialog('Select one or more images:', 'PNG Image (*.png)')
+
+        if len(image_files) > 0:
+
+            sprite = Sprite.import_from_image_files(image_files)
             if sprite:
+                self.set_sprite(sprite)
 
-                self.setSprite(sprite)
-                
-                print('Imported sprite from files: ', imageFiles)
-                
-                self._updateTopMenu()
+                print('Imported sprite from files: ', image_files)
 
+                self._update_top_menu()
 
-    def saveSprite(self):
+    def save_sprite(self):
 
         if self._currentSprite is None:
             return
 
+        if self._currentSprite.file_path():
 
-        if self._currentSprite.filePath():
-
-            print('Saving sprite to path: ', self._currentSprite.filePath())
-            savePath = self._currentSprite.filePath()
+            print('Saving sprite to path: ', self._currentSprite.file_path())
+            save_path = self._currentSprite.file_path()
 
         else:
 
             print('Saving new sprite...')
-            savePath = utils.showSaveFileDialog('Save Sprite...', 'Sprite (*.spr)')
+            save_path = utils.show_savefile_dialog('Save Sprite...', 'Sprite (*.spr)')
 
-        if savePath is not None and len(savePath) > 0:
+        if save_path is not None and len(save_path) > 0:
+            Sprite.save(self._currentSprite, save_path)
 
-            Sprite.save(self._currentSprite, savePath)
+            print('Saved to: ', save_path)
 
-            print('Saved to: ', savePath)
-
-    def saveSpriteAs(self):
+    def save_sprite_as(self):
 
         if self._currentSprite is None:
             return
 
-        newSavePath = utils.showSaveFileDialog('Save Sprite As...', 'Sprite (*.spr)')
+        new_save_path = utils.show_savefile_dialog('Save Sprite As...', 'Sprite (*.spr)')
 
-        print('Saving to new path: ', newSavePath)
+        print('Saving to new path: ', new_save_path)
 
-        if newSavePath:
-
-            Sprite.save(self._currentSprite, newSavePath)
+        if new_save_path:
+            Sprite.save(self._currentSprite, new_save_path)
 
             print('Saved to new path')
 
-            self.closeSprite()
+            self.close_sprite()
 
             print('Unloaded current sprite')
 
-            newSprite = Sprite.loadFromFile(newSavePath)
+            new_sprite = Sprite.load_from_file(new_save_path)
 
             print('Loaded new sprite with new file path')
 
-            self.setSprite(newSprite)
+            self.set_sprite(new_sprite)
 
-    def exportSprite(self):
-        
+    def export_sprite(self):
+
         if self._currentSprite is None:
             return
-        
-        targetFolder = utils.showSaveToFolderDialog('Choose a folder to save Sprite animations:')
-        
-        if targetFolder:
-            
+
+        target_folder = utils.show_save_to_folder_dialog('Choose a folder to save Sprite animations:')
+
+        if target_folder:
+
             try:
-            
-                Sprite.export(self._currentSprite, targetFolder)
-                
+
+                Sprite.export(self._currentSprite, target_folder)
+
             except Exception as e:
-                
-                self._raiseError('exportSprite', e)
+
+                self._raise_error('exportSprite', e)
                 return
-            
-            utils.showInfoMessage(self._view, 'Info', 'Sprite Exported Successfuly.')
 
-    def closeSprite(self):
+            utils.show_info_message(self._view, 'Info', 'Sprite Exported Successfuly.')
+
+    def close_sprite(self):
+
         # TODO Save Sprite Before Close Test
-        self._view.canvas().unloadSprite()
-        self._view.animationDisplay().unloadAnimation()
-        self._view.layerManager().clear()
-        self._view.animationManager().clear()
+        self._view.canvas().unload_sprite()
+        self._view.animation_display().unload_animation()
+        self._view.layer_manager().clear()
+        self._view.animation_manager().clear()
         self._currentSprite = None
-        
-        self._view.hideWorkspace()
-        
-        self._updateTopMenu()
 
+        self._view.hide_workspace()
+
+        self._update_top_menu()
 
     def terminate(self):
 
-        self.closeSprite()
+        self.close_sprite()
         self._view.close()
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def _connectWithView(self):
+    def _connect_with_view(self):
 
-        self._view.actionNew.triggered.connect(self.newSprite)
-        self._view.actionOpen.triggered.connect(self.loadSprite)
-        self._view.actionImport.triggered.connect(self.importSprite)
-        self._view.actionSave.triggered.connect(self.saveSprite)
-        self._view.actionSaveAs.triggered.connect(self.saveSpriteAs)
-        self._view.actionExport.triggered.connect(self.exportSprite)
-        self._view.actionClose.triggered.connect(self.closeSprite)
+        self._view.actionNew.triggered.connect(self.new_sprite)
+        self._view.actionOpen.triggered.connect(self.load_sprite)
+        self._view.actionImport.triggered.connect(self.import_sprite)
+        self._view.actionSave.triggered.connect(self.save_sprite)
+        self._view.actionSaveAs.triggered.connect(self.save_sprite_as)
+        self._view.actionExport.triggered.connect(self.export_sprite)
+        self._view.actionClose.triggered.connect(self.close_sprite)
         self._view.actionQuit.triggered.connect(self.terminate)
 
-    # GLOBAL INPUT EVENTS ------------------------------------------------------------------------------------------------
-    
-    def _onMouseWheel(self, event):
-        
+    # GLOBAL INPUT EVENTS ----------------------------------------------------------------------------------------------
+
+    def _on_mouse_wheel(self, event):
+
         if event.modifiers() & Qt.ControlModifier:
-            
+
             if event.delta() > 0:
-                self._view.colorPicker().selectNextColorOnPalette()
+                self._view.color_picker().select_next_color_on_palette()
             elif event.delta() < 0:
-                self._view.colorPicker().selectPreviousColorOnPalette()
-        
+                self._view.color_picker().select_previous_color_on_palette()
+
         elif event.modifiers() & Qt.AltModifier:
-            
+
             if event.delta() > 0:
-                self._view.colorPicker().selectNextRampOnPalette()
+                self._view.color_picker().select_next_ramp_on_palette()
             elif event.delta() < 0:
-                self._view.colorPicker().selectPreviousRampOnPalette()
-            
+                self._view.color_picker().select_previous_ramp_on_palette()
+
     # ------------------------------------------------------------------------------------------------------------------
-    
+
     def notify(self, receiver, event):
-        
-       
+
         if event.type() == QEvent.Wheel:
-            self._onMouseWheel(event)
-            
+            self._on_mouse_wheel(event)
+
         return super(Application, self).notify(receiver, event)
-        
-        
-    def _loadAssets(self):
-        
+
+    @staticmethod
+    def _load_assets():
+
         # Fonts #
-        
+
         QFontDatabase.addApplicationFont(":/fonts/font_nokia")
         QFontDatabase.addApplicationFont(":/fonts/font_flx")
-        
-        defaultFont = QFont("Nokia Cellphone FC")
-        defaultFont.setPointSize(12)
-        
-        smallFont = QFont("flxpixl")
-        smallFont.setPointSize(12)
-        
-        ResourcesCache.registerResource("BigFont", defaultFont)
-        ResourcesCache.registerResource("SmallFont", smallFont)
-    
+
+        default_font = QFont("Nokia Cellphone FC")
+        default_font.setPointSize(12)
+
+        small_font = QFont("flxpixl")
+        small_font.setPointSize(12)
+
+        ResourcesCache.register_resource("BigFont", default_font)
+        ResourcesCache.register_resource("SmallFont", small_font)
+
         # Pixmaps #
-        
-        checkerTileLight = utils.generateCheckerTile(8, QColor(222,222,222), QColor(253,253,253))
-        
-        ResourcesCache.registerResource("CheckerTileLight", checkerTileLight)
-        
-        toolCursor1 = QPixmap(':/images/tool_cursor_1')
-        
-        ResourcesCache.registerResource('ToolCursor1', toolCursor1)
-        
-        
-    
-    def _initializeShortcuts(self):
-        
-        shortCutData = appdata.shortcuts
-        
-        
-        for holder, shortCutGroup in shortCutData.items():
-            
+
+        checker_tile_light = utils.generate_checker_tile(8, QColor(222, 222, 222), QColor(253, 253, 253))
+
+        ResourcesCache.register_resource("CheckerTileLight", checker_tile_light)
+
+        tool_cursor_1 = QPixmap(':/images/tool_cursor_1')
+
+        ResourcesCache.register_resource('ToolCursor1', tool_cursor_1)
+
+    def _initialize_shortcuts(self):
+
+        shortcut_data = appdata.shortcuts
+
+        for holder, shortCutGroup in shortcut_data.items():
+
             self._shortCuts[holder] = {}
-            
+
             for shortCutName, shortCutText in shortCutGroup.items():
-                
                 self._shortCuts[holder][shortCutName] = QShortcut(QKeySequence(shortCutText), self._view)
-                self._shortCuts[holder][shortCutName].activated.connect(lambda h=holder, n=shortCutName : self._onShortCutActivated(h, n))
-                
-                
-    def _onShortCutActivated(self, holder, shortCutName):
-        
-        target = None
-        
-        # CANVAS =============
-        
+                self._shortCuts[holder][shortCutName].activated.connect(
+                    lambda h=holder, n=shortCutName: self._on_shortcut_activated(h, n))
+
+    def _on_shortcut_activated(self, holder, shortcut_name):
+
+        # CANVAS
+
         if holder == 'CANVAS':
-            
+
             target = self._view.canvas()
-        
-            if shortCutName == 'RESET':
-                
-                target.resetView()
-                
-            elif shortCutName == 'CLEAR':
-                
+
+            if shortcut_name == 'RESET':
+
+                target.reset_view()
+
+            elif shortcut_name == 'CLEAR':
+
                 target.clear()
-                
-            elif shortCutName == 'ZOOM1':
-                
-                target.zoomTo(1.0)
-                
-            elif shortCutName == 'ZOOM2':
-                
-                target.zoomTo(2.0)
-                
-            elif shortCutName == 'ZOOM3':
-                
-                target.zoomTo(3.0)
-                
-            elif shortCutName == 'ZOOM4':
-                
-                target.zoomTo(4.0)
-                
-                
-        
+
+            elif shortcut_name == 'ZOOM1':
+
+                target.zoom_to(1.0)
+
+            elif shortcut_name == 'ZOOM2':
+
+                target.zoom_to(2.0)
+
+            elif shortcut_name == 'ZOOM3':
+
+                target.zoom_to(3.0)
+
+            elif shortcut_name == 'ZOOM4':
+
+                target.zoom_to(4.0)
+
         # COLORPICKER
-        
+
         elif holder == 'COLORPICKER':
-            
-            target = self._view.colorPicker()
-            
-            if shortCutName == 'SWITCH_COLOR':
-                
-                target.switchActiveColor()
-            
-    def _raiseError(self, source, exception):
+
+            target = self._view.color_picker()
+
+            if shortcut_name == 'SWITCH_COLOR':
+                target.switch_active_color()
+
+    def _raise_error(self, source, exception):
 
         message = str(exception)
         logging.warning('[{0}] {1}'.format(source, message))
-        
-        QMessageBox.warning(self._view, 'Warning', '[{0}] An error has ocurred: {1}'.format(source, message))        
-                
-    
-    def _updateTopMenu(self):
-        
-        
-        
+
+        QMessageBox.warning(self._view, 'Warning', '[{0}] An error has ocurred: {1}'.format(source, message))
+
+    def _update_top_menu(self):
+
         if self._currentSprite is not None:
-            
+
             self._view.actionNew.setEnabled(True)
             self._view.actionClose.setEnabled(True)
             self._view.actionSave.setEnabled(True)
@@ -358,9 +329,9 @@ class Application(QApplication):
             self._view.actionOpen.setEnabled(True)
             self._view.actionImport.setEnabled(True)
             self._view.actionExport.setEnabled(True)
-        
+
         else:
-            
+
             self._view.actionNew.setEnabled(True)
             self._view.actionClose.setEnabled(False)
             self._view.actionSave.setEnabled(False)
@@ -368,12 +339,10 @@ class Application(QApplication):
             self._view.actionOpen.setEnabled(True)
             self._view.actionImport.setEnabled(True)
             self._view.actionExport.setEnabled(False)
+
 # ======================================================================================================================
 
 if __name__ == '__main__':
-    
     application = Application(sys.argv)
-    
-    ResourcesCache.dispose()
 
-    
+    ResourcesCache.dispose()

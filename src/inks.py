@@ -1,15 +1,16 @@
-#--------------------------------------------------
-# Purpose:          Represents the ink of a Tool. An ink control how a tool modifies the canvas. Like solid painting,
-#                   erasing, etc.
+#-----------------------------------------------------------------------------------------------------------------------
+# Name:        Inks
+# Purpose:     Inks module used by Canvas. An Ink is a visual representation of a tool acting on the Canvas
 #
-# Author:           Rafael Vasco
-# Date:             28/04/13
-# License:          
-#--------------------------------------------------
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QPainter
+# Author:      Rafael Vasco
+#
+# Created:     28/04/13
+# Copyright:   (c) Rafael 2013
+# Licence:     <your licence>
+#-----------------------------------------------------------------------------------------------------------------------
 
-
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPainter
 
 
 class Ink(object):
@@ -34,6 +35,7 @@ class Solid(Ink):
 
     def blit(self, x, y, w, h, color, painter):
         painter.fillRect(x, y, w, h, color)
+
 
 class Eraser(Ink):
 

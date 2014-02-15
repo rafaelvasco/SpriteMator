@@ -1,23 +1,26 @@
-#--------------------------------------------------
-# Purpose:          Drawing Helpers.
+#-----------------------------------------------------------------------------------------------------------------------
+# Name:        Drawing
+# Purpose:     Common drawing operations used by Canvas
 #
-# Author:           Rafael Vasco
-# Date:             31/03/13
-# License:          
-#--------------------------------------------------
+# Author:      Rafael Vasco
+#
+# Created:     31/03/13
+# Copyright:   (c) Rafael 2013
+# Licence:     <your licence>
+#-----------------------------------------------------------------------------------------------------------------------
 
-from PyQt4.QtGui import QPainter
+from PyQt5.QtGui import QPainter
 
 
-
-def pasteImage(imageToPaste, targetImage):
+def paste_image(image_to_paste, target_image):
     
     painter = QPainter()
-    painter.begin(targetImage)
-    painter.drawImage(0, 0, imageToPaste)
+    painter.begin(target_image)
+    painter.drawImage(0, 0, image_to_paste)
     painter.end()
 
-def drawLine(start, end, size, ink, color, painter):
+
+def draw_line(start, end, size, ink, color, painter):
 
     x1 = start.x()
     y1 = start.y()

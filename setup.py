@@ -31,7 +31,6 @@ setup(
     name="Spritemator",
     version="0.6",
     description="A Sprite editor and animator",
-    requires=['pyqt4 (>=4.8)'],
     executables=[exe],
-    options=options
+    options=options, requires=['PyQt5']
 )

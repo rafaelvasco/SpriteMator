@@ -20,7 +20,6 @@ QToolTip
 {
      border: 1px solid black;
      background: #378CBE;
-     opacity: 70;
 }
 
 

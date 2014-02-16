@@ -91,6 +91,17 @@ class ToolBox(QWidget):
 
                 self._freeToolsIds.append(tool.name())
 
+    def register_ink(self, ink, slot=None):
+
+        if not ink.name() in self._registeredInks:
+
+            self._registeredInks.append(ink.name())
+
+            if slot is not None:
+
+                if slot == 0 or slot == 1:
+                    self._assign_ink_to_slot(ink, slot)
+
     def select_tool_slot(self, slot):
 
         self._toolSlots[slot]['button'].setChecked(True)
@@ -103,7 +114,7 @@ class ToolBox(QWidget):
 
         index = len(self._toolSlots)
 
-        if selected is not None and selected == True:
+        if selected is not None and selected is True:
             slot_button.setChecked(True)
 
         slot_button.activated.connect(self._tool_slot_triggered)
@@ -170,17 +181,6 @@ class ToolBox(QWidget):
         self._inkSlots[slot]['id'] = label
 
         self._inkSlots[slot]['button'].setText(label)
-
-    def register_ink(self, ink, slot=None):
-
-        if not ink.name() in self._registeredInks:
-
-            self._registeredInks.append(ink.name())
-
-            if slot is not None:
-
-                if slot == 0 or slot == 1:
-                    self._assign_ink_to_slot(ink, slot)
 
     ####### EVENTS ###################################################################
 

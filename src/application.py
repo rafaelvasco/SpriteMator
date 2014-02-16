@@ -206,25 +206,25 @@ class Application(QApplication):
     # GLOBAL INPUT EVENTS ----------------------------------------------------------------------------------------------
 
     def _on_mouse_wheel(self, event):
-
+        print('Mouse Wheel')
         if event.modifiers() & Qt.ControlModifier:
 
-            if event.delta() > 0:
+            if event.angleDelta().y() > 0:
                 self._view.color_picker().select_next_color_on_palette()
-            elif event.delta() < 0:
+            elif event.angleDelta().y() < 0:
                 self._view.color_picker().select_previous_color_on_palette()
 
         elif event.modifiers() & Qt.AltModifier:
 
-            if event.delta() > 0:
+            if event.angleDelta().y() > 0:
                 self._view.color_picker().select_next_ramp_on_palette()
-            elif event.delta() < 0:
+            elif event.angleDelta().y() < 0:
                 self._view.color_picker().select_previous_ramp_on_palette()
 
     # ------------------------------------------------------------------------------------------------------------------
 
     def notify(self, receiver, event):
-
+        #TODO Fix Global Event System
         if event.type() == QEvent.Wheel:
             self._on_mouse_wheel(event)
 

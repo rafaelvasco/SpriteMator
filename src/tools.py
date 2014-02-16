@@ -8,6 +8,7 @@
 
 from PyQt5.QtCore import QPoint, Qt
 from PyQt5.QtGui import QPen, QColor, QIcon, QPixmap
+from quickpixler import floodFill
 
 import src.drawing as drawing
 import src.utils as utils

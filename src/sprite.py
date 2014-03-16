@@ -512,7 +512,6 @@ class Surface(object):
         state = self.__dict__.copy()
 
         del state['_image']
-        del state['_id']
 
         return state
 

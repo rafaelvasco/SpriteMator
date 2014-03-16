@@ -15,10 +15,10 @@ from PyQt5.QtGui import QPainter, QColor, QMouseEvent
 
 from src.display import Display
 from src.canvas_overlay import CanvasOverlay
-
 from src import tools, inks
 from src.toolbox import ToolBox
 from src.tools import Tool
+
 
 #-----------------------------------------------------------------------------------------------------------------------
 
@@ -111,10 +111,6 @@ class Canvas(Display):
     def set_current_tool(self, name):
 
         self._currentTool = self.tool(name)
-
-    def select_tool_slot(self, slot):
-
-        self._toolBox.select_tool_slot(slot)
 
     def tool(self, name):
 

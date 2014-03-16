@@ -6,19 +6,21 @@
 # License:          
 #--------------------------------------------------
 
+from quickpixler import floodFill
+
 from PyQt5.QtCore import QPoint, Qt
 from PyQt5.QtGui import QPen, QColor, QIcon, QPixmap
-from quickpixler import floodFill
 
 import src.drawing as drawing
 import src.utils as utils
-
 from src.resources_cache import ResourcesCache
-#from quickpixler import floodFill
+from src.properties import PropertyHolder
 
 
-class Tool(object):
+class Tool(PropertyHolder):
     def __init__(self):
+
+        super(Tool, self).__init__()
 
         self._name = ''
         self._active = False
@@ -137,7 +139,6 @@ class Tool(object):
 
     def blit(self, painter, canvas):
         return
-
 
 # ======================================================================================================================
 
@@ -300,29 +301,6 @@ class Filler(Tool):
         cursor_h = self._cursorPixmap.height()
 
         painter.drawPixmap(x - cursor_w // 2, y - cursor_h // 2, self._cursorPixmap)
-
-    #         size = 16 * canvas._zoom
-    #
-    #         if size > 32:
-    #             size = 32
-    #
-    #
-    #         painter.setPen(Qt.white)
-    #
-    #         halfSize = size // 2
-    #         sizeBy8 = size // 8
-    #
-    #         painter.drawRect(x - halfSize - 1, y - halfSize - 1, size, size)
-    #
-    #         painter.drawLine(x, y - sizeBy8, x, y + sizeBy8)
-    #         painter.drawLine(x - sizeBy8, y, x + sizeBy8, y)
-    #
-    #         painter.setPen(Qt.black)
-    #
-    #         painter.drawRect(x - halfSize, y - halfSize, size - 2, size - 2)
-    #
-    #         painter.drawLine(x, y - sizeBy8, x, y + sizeBy8)
-    #         painter.drawLine(x - sizeBy8, y, x + sizeBy8, y)
 
     def on_mouse_press(self, canvas, mouse_event):
 

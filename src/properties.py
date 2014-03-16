@@ -1,7 +1,12 @@
+from PyQt5.QtWidgets import QSpinBox
+
+from src.widgets import OnOffButton, Slider
+
+
 class Property(object):
-    def __init__(self, name):
+    def __init__(self, name, value):
         self._name = name
-        self._value = None
+        self._value = value
 
     def name(self):
         return self._name
@@ -12,11 +17,26 @@ class Property(object):
     def set_value(self, v):
         self._value = v
 
+    def build_property_widget(self):
+        pass
 
-class BooleanValue(Property):
+
+class NumberProperty(Property):
+    def __init__(self, name, value=None):
+        super(NumberProperty, self).__init__(name, value)
+
+    def build_property_widget(self):
+        number_input = QSpinBox()
+        number_input.setValue(self.value())
+        number_input.valueChanged.connect(lambda v: self.set_value(v))
+
+        return number_input
+
+
+class BooleanProperty(Property):
     def __init__(self, name, on=None):
 
-        super(BooleanValue, self).__init__(name)
+        super(BooleanProperty, self).__init__(name, on)
 
         if on is not None:
 
@@ -30,15 +50,27 @@ class BooleanValue(Property):
 
         self._value = on
 
+    def toggle(self):
+
+        self._value = not self._value
+
     def is_on(self):
 
         return self._value is True
 
+    def build_property_widget(self):
 
-class RangedValue(Property):
+        bool_input = OnOffButton()
+        bool_input.setChecked(self.is_on())
+        bool_input.toggled.connect(lambda: self.toggle())
+
+        return bool_input
+
+
+class RangedProperty(Property):
     def __init__(self, name, min_value, max_value, initial_value=None):
 
-        super(RangedValue, self).__init__(name)
+        super(RangedProperty, self).__init__(name, initial_value)
 
         self._minValue = min_value
         self._maxValue = max_value
@@ -46,7 +78,16 @@ class RangedValue(Property):
         if initial_value is not None:
             self._value = initial_value
         else:
-            self._value = 0
+            self._value = self._minValue
+
+    def set_value(self, v):
+
+        self._value = v
+
+        if self._value < self._minValue:
+            self._value = self._minValue
+        elif self._value > self._maxValue:
+            self._value = self._maxValue
 
     def min(self):
 
@@ -64,19 +105,41 @@ class RangedValue(Property):
 
         self._maxValue = v
 
+    def build_property_widget(self):
+
+        ranged_input = Slider(self.min(), self.max())
+        ranged_input.set_value(self.value())
+        ranged_input.valueChanged.connect(lambda v: self.set_value(v))
+
+        return ranged_input
+
 
 class PropertyHolder(object):
     def __init__(self):
         self._properties = {}
 
-    def name(self):
-        return None
-
     def properties(self):
         return self._properties
 
     def property(self, name):
+        return self._properties[name]
+
+    def has_property(self, name):
+        return name in self._properties.keys()
+
+    def property_value(self, name):
         return self._properties[name].value()
 
     def add_property(self, prop):
         self._properties[prop.name()] = prop
+
+    def add_property(self, prop_name, prop_value):
+
+        if type(prop_value) is int:
+            self._properties[prop_name] = NumberProperty(prop_name, prop_value)
+        elif type(prop_value) is bool:
+            self._properties[prop_name] = BooleanProperty(prop_name, prop_value)
+
+    def add_ranged_property(self, prop_name, prop_min, prop_max, prop_value=None):
+        self._properties[prop_name] = RangedProperty(prop_name, prop_min, prop_max, prop_value)
+

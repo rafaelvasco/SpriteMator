@@ -26,6 +26,11 @@ import src.utils as utils
 class Application(QApplication):
     resources = {}
 
+    #TODO picker - go back to last tool on end
+    #TODO add hot keys to tools and frame navigation
+    #TODO add option to switch to dark checkerboard
+    #TODO add indication if file is modified / saved
+
     def __init__(self, args):
 
         super(Application, self).__init__(args)
@@ -206,7 +211,6 @@ class Application(QApplication):
     # GLOBAL INPUT EVENTS ----------------------------------------------------------------------------------------------
 
     def _on_mouse_wheel(self, event):
-        print('Mouse Wheel')
         if event.modifiers() & Qt.ControlModifier:
 
             if event.angleDelta().y() > 0:

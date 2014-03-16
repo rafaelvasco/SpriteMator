@@ -1,19 +1,15 @@
-
-
 from PyQt5.QtCore import Qt, pyqtSignal, QSize, QRect, QTimer, QPoint
-
 from PyQt5.QtGui import (QColor, QPainter,
                          QFontMetrics,
                          QIcon)
+from PyQt5.QtWidgets import QWidget, QAbstractButton, QToolTip, \
+    QPushButton
 
-from PyQt5.QtWidgets import QWidget, QFrame, QVBoxLayout, QHBoxLayout, QStackedLayout, QAbstractButton, QToolTip
-
-import math
 import src.utils as utils
-from src.properties import BooleanValue, RangedValue
 
 
 class Button(QAbstractButton):
+    clicked = pyqtSignal(int)
     leftClicked = pyqtSignal()
     middleClicked = pyqtSignal()
     rightClicked = pyqtSignal()
@@ -55,10 +51,10 @@ class Button(QAbstractButton):
 
         self.update()
 
-    def setIconSize(self, width, height):
+    def setIconSize(self, size):
 
-        self._iconSize.setWidth(width)
-        self._iconSize.setHeight(height)
+        self._iconSize.setWidth(size.width())
+        self._iconSize.setHeight(size.height())
 
         self._update_icon_pixmaps()
 
@@ -105,6 +101,8 @@ class Button(QAbstractButton):
         elif e.button() == Qt.RightButton:
 
             self.rightClicked.emit()
+
+        self.clicked.emit(e.button())
 
     def enterEvent(self, e):
 
@@ -203,402 +201,209 @@ class Button(QAbstractButton):
         QToolTip.showText(self.mapToGlobal(QPoint(0, self.height())), text)
 
 
-######################################################################################
+class Slider(QWidget):
+    valueChanged = pyqtSignal(int)
+
+    def __init__(self, min_value, max_value):
+
+        super(Slider, self).__init__()
+
+        self._value = 0
+        self._minValue = min_value
+        self._maxValue = max_value
+        self._step = 1
+        self._thumbWidth = 20
+        self._thumbRect = QRect()
+        self._slidingAreaRect = QRect()
+
+        self._bgColor = QColor(20, 20, 20)
+        self._indicatorColor = QColor(30, 108, 125)
+        self._thumbColor = QColor(42, 157, 182)
+
+        self._sliding = False
+
+        self._fontMetrics = QFontMetrics(self.font())
+
+    def value(self):
+
+        return self._value
+
+    def set_value(self, v):
+
+        v = max(self._minValue, min(v, self._maxValue))
+
+        if v != self._value:
+
+            if self._step == 1:
+
+                self._value = int(round(v))
+
+            elif self._step > 1:
+
+                self._value = int(round(utils.snap(v, self._step)))
+
+        self.valueChanged.emit(self._value)
+
+        self._update_thumb()
+
+    def max_value(self):
+
+        return self._maxValue
+
+    def set_max_value(self, v):
+
+        if v < self._minValue:
+            v = self._minValue
+
+        self._maxValue = v
+
+    def min_value(self):
+
+        return self._minValue
+
+    def set_min_value(self, v):
+
+        if v > self._maxValue:
+            v = self._maxValue
+
+        self._minValue = v
+
+    def step(self):
+
+        return self._step
+
+    def set_step(self, v):
+
+        self._step = v
+
+    def _get_value_from_position(self, pos):
+
+        pos -= self._thumbWidth / 2
+
+        size = self.width() - self._thumbWidth
+
+        if pos > size:
+            return self._maxValue
+
+        if pos < 0:
+            return self._minValue
+
+        percent = pos / size
+
+        return self._minValue + round((self._maxValue - self._minValue) * percent)
+
+    def _update_thumb(self):
+
+        size = self.width() - self._thumbWidth
+
+        pos = round(max(0, min(size * ((self._value - self._minValue) /
+                                       (self._maxValue - self._minValue)), size)))
+
+        self._thumbRect.setRect(pos, 0, self._thumbWidth, self.height())
+
+        self.update()
+
+    def sizeHint(self):
+
+        return QSize(200, 25)
+
+    def resizeEvent(self, e):
+
+        self._update_thumb()
+
+    def mousePressEvent(self, e):
+
+        self._sliding = True
+
+        mouse_pos = e.pos().x()
+
+        self.set_value(self._get_value_from_position(mouse_pos))
+
+    def mouseReleaseEvent(self, e):
+
+        if self._sliding:
+            self._sliding = False
+            self.update()
+
+    def mouseMoveEvent(self, e):
+
+        if self._sliding:
+            mouse_pos = e.pos().x()
+
+            self.set_value(self._get_value_from_position(mouse_pos))
+
+    def wheelEvent(self, e):
+
+        self.set_value(self._value + utils.sign(e.angleDelta().y() > 0) * self._step)
+
+    def paintEvent(self, e):
+
+        draw_rect = e.rect()
+
+        p = QPainter(self)
+
+        # SLIDER---------------------------------------------------------------------
+
+        # BAR --------
+
+        #bar_rect = draw_rect.adjusted(0, draw_rect.height() / 2, 0, draw_rect.height() * 2)
+
+        p.setPen(self._bgColor.lighter(200))
+
+        p.drawRect(draw_rect.adjusted(0, 0, -1, -1))
+
+        p.fillRect(draw_rect.adjusted(1, 1, -1, -1), self._bgColor)
+
+        # THUMB --------
+
+        p.setPen(self._thumbColor.lighter())
+
+        p.drawRect(self._thumbRect.adjusted(0, 0, -1, -1))
+
+        p.fillRect(self._thumbRect.adjusted(1, 1, -1, -1), self._thumbColor)
+
+        # VALUE LABEL --------
+
+        value_text = str(self._value)
+
+        value_label_size = QSize(self._fontMetrics.width(value_text), self._fontMetrics.height())
+
+        value_indicator_rect = QRect(self._thumbRect.right() + 2, self._thumbRect.top(), value_label_size.width() + 10,
+                                     self._thumbRect.height())
+
+        if value_indicator_rect.right() > draw_rect.right():
+            value_indicator_rect.setRect(self._thumbRect.left() - value_indicator_rect.width() - 1,
+                                         value_indicator_rect.top(), value_indicator_rect.width(),
+                                         value_indicator_rect.height())
+
+        p.setPen(self._indicatorColor.lighter())
+
+        p.drawRect(value_indicator_rect.adjusted(0, 0, -1, -1))
+
+        p.fillRect(value_indicator_rect.adjusted(1, 1, -1, -1), self._indicatorColor)
+
+        p.setPen(Qt.white)
+
+        p.drawText(value_indicator_rect.left() + value_indicator_rect.width() / 2 - value_label_size.width() / 2,
+                   value_indicator_rect.top() + value_indicator_rect.height() / 2 + value_label_size.height() / 3,
+                   value_text)
 
 
-# class Slider(QWidget):
-#     valueChanged = pyqtSignal(int)
-#
-#     def __init__(self, minValue, maxValue, label=None):
-#
-#         super(Slider, self).__init__()
-#
-#         self._value = 0
-#         self._minValue = minValue
-#         self._maxValue = maxValue
-#         self._step = 1
-#         self._thumbWidth = 20
-#         self._thumbRect = QRect()
-#         self._slidingAreaRect = QRect()
-#
-#         if label is not None:
-#
-#             self._label = label
-#
-#         else:
-#
-#             self._label = 'Slider'
-#
-#         self._labelBarColor = QColor(63, 91, 110)
-#         self._bgColor = QColor(20, 20, 20)
-#         self._indicatorColor = QColor(30, 108, 125)
-#         self._thumbColor = QColor(42, 157, 182)
-#
-#         self._sliding = False
-#
-#         self._fontMetrics = QFontMetrics(self.font())
-#
-#
-#     def value(self):
-#
-#         return self._value
-#
-#     def setValue(self, v):
-#
-#         v = max(self._minValue, min(v, self._maxValue))
-#
-#         if v != self._value:
-#
-#             if self._step == 1:
-#
-#                 self._value = int(round(v))
-#
-#             elif self._step > 1:
-#
-#                 self._value = int(round(utils.snap(v, self._step)))
-#
-#         self.valueChanged.emit(self._value)
-#
-#         self._updateThumb()
-#
-#     def maxValue(self):
-#
-#         return self._maxValue
-#
-#     def setMaxValue(self, v):
-#
-#         if v < self._minValue:
-#             v = self._minValue
-#
-#         self._maxValue = v
-#
-#     def minValue(self):
-#
-#         return self._minValue
-#
-#     def setMinValue(self, v):
-#
-#         if v > self._maxValue:
-#             v = self._maxValue
-#
-#         self._minValue = v
-#
-#     def step(self):
-#
-#         return self._step
-#
-#     def setStep(self, v):
-#
-#         self._step = v
-#
-#
-#     def _getValueFromPosition(self, pos):
-#
-#         pos -= self._thumbWidth / 2
-#
-#         size = self.width() - self._thumbWidth
-#
-#         if pos > size:
-#             return self._maxValue
-#
-#         if pos < 0:
-#             return self._minValue
-#
-#         percent = pos / size
-#
-#         return round((self._maxValue - self._minValue) * percent)
-#
-#     def _updateThumb(self):
-#
-#         size = self.width() - self._thumbWidth
-#
-#         pos = round(max(0, min(size * ( ( self._value - self._minValue ) /
-#                                         ( self._maxValue - self._minValue ) ), size)))
-#
-#         self._thumbRect.setRect(pos, self.height() / 2, self._thumbWidth, self.height() / 2)
-#
-#         self.update()
-#
-#
-#     def sizeHint(self):
-#
-#         return QSize(200, 80)
-#
-#     def resizeEvent(self, e):
-#
-#
-#         self._updateThumb()
-#
-#     def mousePressEvent(self, e):
-#
-#         self._sliding = True
-#
-#         mousePos = e.pos().x()
-#
-#         self.setValue(self._getValueFromPosition(mousePos))
-#
-#     def mouseReleaseEvent(self, e):
-#
-#         if self._sliding:
-#             self._sliding = False
-#             self.update()
-#
-#
-#     def mouseMoveEvent(self, e):
-#
-#         if self._sliding:
-#             mousePos = e.pos().x()
-#
-#             self.setValue(self._getValueFromPosition(mousePos))
-#
-#
-#     def wheelEvent(self, e):
-#
-#         self.setValue(self._value + utils.sign(e.delta()) * self._step)
-#
-#     def paintEvent(self, e):
-#
-#         drawRect = e.rect()
-#
-#         p = QPainter(self)
-#
-#         # LABEL --------------------------------------------------------------------
-#
-#         labelRect = drawRect.adjusted(0, 0, 0, -drawRect.height() / 2 - 1)
-#
-#         p.setPen(self._labelBarColor.lighter())
-#
-#         p.drawRect(labelRect.adjusted(0, 0, -1, -1))
-#
-#         p.fillRect(labelRect.adjusted(1, 1, -1, -1), self._labelBarColor)
-#
-#         labelSize = QSize(self._fontMetrics.width(self._label), self._fontMetrics.height())
-#
-#         p.setPen(Qt.white)
-#
-#         p.drawText(labelRect.width() / 2 - labelSize.width() / 2, labelRect.height() / 2 + labelSize.height() / 3,
-#                    self._label)
-#
-#
-#         # ---------------------------------------------------------------------------
-#
-#         # SLIDER---------------------------------------------------------------------
-#
-#         # BAR --------
-#
-#         barRect = drawRect.adjusted(0, drawRect.height() / 2, 0, drawRect.height() * 2)
-#
-#         p.setPen(self._bgColor.lighter(200))
-#
-#         p.drawRect(barRect.adjusted(0, 0, -1, -1))
-#
-#         p.fillRect(barRect.adjusted(1, 1, -1, -1), self._bgColor)
-#
-#         # THUMB --------
-#
-#         p.setPen(self._thumbColor.lighter())
-#
-#         p.drawRect(self._thumbRect.adjusted(0, 0, -1, -1))
-#
-#         p.fillRect(self._thumbRect.adjusted(1, 1, -1, -1), self._thumbColor)
-#
-#         # VALUE LABEL --------
-#
-#         valueText = str(self._value)
-#
-#         valueLabelSize = QSize(self._fontMetrics.width(valueText), self._fontMetrics.height())
-#
-#         valueIndicatorRect = QRect(self._thumbRect.right() + 2, self._thumbRect.top(), valueLabelSize.width() + 10,
-#                                    self._thumbRect.height())
-#
-#         if (valueIndicatorRect.right() > barRect.right()):
-#             valueIndicatorRect.setRect(self._thumbRect.left() - valueIndicatorRect.width() - 1,
-#                                        valueIndicatorRect.top(), valueIndicatorRect.width(),
-#                                        valueIndicatorRect.height())
-#
-#         p.setPen(self._indicatorColor.lighter())
-#
-#         p.drawRect(valueIndicatorRect.adjusted(0, 0, -1, -1))
-#
-#         p.fillRect(valueIndicatorRect.adjusted(1, 1, -1, -1), self._indicatorColor)
-#
-#         p.setPen(Qt.white)
-#
-#         p.drawText(valueIndicatorRect.left() + valueIndicatorRect.width() / 2 - valueLabelSize.width() / 2,
-#                    valueIndicatorRect.top() + valueIndicatorRect.height() / 2 + valueLabelSize.height() / 3, valueText)
-#
-#
-# # ========== Vertical Menu ==============================================================
-#
-# class VerticalMenuItem(object):
-#     def __init__(self, label):
-#         super(VerticalMenuItem, self).__init__()
-#
-#         self._label = label
-#         self._data = None
-#
-#
-#     def setData(self, d):
-#         self._data = d
-#
-#     def data(self):
-#         return self._data
-#
-#     def label(self):
-#         return self._label
-#
-#
-# class VerticalMenu(QWidget):
-#     itemSelectedChanged = pyqtSignal(VerticalMenuItem)
-#     itemIndexChanged = pyqtSignal(int)
-#     itemClicked = pyqtSignal(VerticalMenuItem)
-#
-#     def __init__(self):
-#
-#         super(VerticalMenu, self).__init__()
-#
-#         self._items = []
-#         self._itemHeight = 30
-#         self._selectedItemIndex = 0
-#         self._bgColor = QColor(30, 30, 30)
-#         self._itemBgColor = QColor(40, 40, 40)
-#         self._itemSelectedBgColor = QColor(42, 157, 182)
-#
-#     def addItem(self, item):
-#
-#         self._items.append(item)
-#
-#         self.update()
-#
-#
-#     def mousePressEvent(self, e):
-#
-#         clickedPos = e.pos()
-#
-#         if clickedPos.y() < len(self._items) * (self._itemHeight):
-#
-#             oldIndex = self._selectedItemIndex
-#
-#             self._selectedItemIndex = int(math.floor(clickedPos.y() / self._itemHeight))
-#
-#             self.itemClicked.emit(self._items[self._selectedItemIndex])
-#
-#             if self._selectedItemIndex != oldIndex:
-#                 self.itemSelectedChanged.emit(self._items[self._selectedItemIndex])
-#                 self.itemIndexChanged.emit(self._selectedItemIndex)
-#
-#                 self.update()
-#
-#
-#     def paintEvent(self, e):
-#
-#         widgetArea = e.rect()
-#         p = QPainter(self)
-#
-#         p.fillRect(widgetArea, self._bgColor)
-#
-#         for index, item in enumerate(self._items):
-#
-#             itemRect = QRect(0, (index * (self._itemHeight + 1)), self.width(), self._itemHeight)
-#             if self._selectedItemIndex is None or self._selectedItemIndex != index:
-#                 p.fillRect(itemRect, self._itemBgColor)
-#             else:
-#                 p.fillRect(itemRect, self._itemSelectedBgColor)
-#
-#             p.setPen(QColor('white'))
-#             p.drawText(itemRect.left() + 20, itemRect.top() + (itemRect.height() / 2 + 4), item.label())
-#
-#
-# # ========================================================================================
-#
-#
-# class Inspector(QWidget):
-#     def __init__(self):
-#
-#         super(Inspector, self).__init__()
-#
-#         self._inspectedItemsMenu = VerticalMenu()
-#
-#         self._inspectedItemsMenu.itemIndexChanged.connect(self._onItemSelectedChanged)
-#
-#         self._propertyPages = QStackedLayout()
-#
-#         self._bgColor = QColor(30, 30, 30)
-#
-#         mainLayout = QHBoxLayout()
-#         mainLayout.setContentsMargins(0, 0, 0, 0)
-#
-#         mainLayout.addWidget(self._inspectedItemsMenu)
-#
-#         mainLayout.addLayout(self._propertyPages)
-#
-#         mainLayout.setStretch(0, 1)
-#         mainLayout.setStretch(1, 1)
-#
-#         self.setLayout(mainLayout)
-#
-#     def addItem(self, propertyHolder):
-#
-#         menuItem = VerticalMenuItem(propertyHolder.name())
-#         menuItem.setData(propertyHolder)
-#
-#         self._inspectedItemsMenu.addItem(menuItem)
-#
-#         self._buildPropertyPage(propertyHolder)
-#
-#
-#     def _buildPropertyPage(self, propertyHolder):
-#
-#         page = QFrame()
-#
-#         layout = QVBoxLayout()
-#         layout.setAlignment(Qt.AlignTop)
-#
-#         page.setLayout(layout)
-#
-#         for propName, propObject in propertyHolder.properties().items():
-#
-#
-#             if isinstance(propObject, BooleanValue):
-#
-#                 onOffButton = Button(propName)
-#                 onOffButton.setCheckable(True)
-#                 onOffButton.setChecked(propObject.is_on())
-#
-#                 onOffButton.toggled.connect(lambda v, prop=propObject: prop.set_value(v))
-#
-#                 layout.addWidget(onOffButton)
-#
-#
-#             elif isinstance(propObject, RangedValue):
-#
-#
-#                 slider = Slider(propObject.min(), propObject.max(), propName)
-#                 slider.setValue(propObject.value())
-#
-#                 slider.valueChanged.connect(lambda v, prop=propObject: prop.set_value(v))
-#
-#                 layout.addWidget(slider)
-#
-#         self._propertyPages.addWidget(page)
-#
-#     def _onItemSelectedChanged(self, index):
-#
-#         self.showPage(index)
-#
-#
-#     def showPage(self, index):
-#
-#         self._propertyPages.setCurrentIndex(index)
-#
-#         self.update()
-#
-#     def paintEvent(self, e):
-#
-#         p = QPainter(self)
-#
-#         p.fillRect(e.rect(), self._bgColor)
-#
-#     def sizeHint(self):
-#
-#         return QSize(800, 400)
+class OnOffButton(QPushButton):
+    def __init__(self):
+
+        super(OnOffButton, self).__init__()
+
+        self.setCheckable(True)
+
+        self.toggled.connect(self._on_toggle)
+
+    def _on_toggle(self):
+
+        if self.isChecked():
+
+            self.setText('ON')
+
+        else:
+
+            self.setText('OFF')

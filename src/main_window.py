@@ -222,12 +222,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._animationManager.update()
 
-    def _on_canvas_color_picked(self, color, event):
+    def _on_canvas_color_picked(self, color, button_pressed):
 
-        if event.button() == Qt.LeftButton:
+        if button_pressed == Qt.LeftButton:
 
             self._colorPicker.set_primary_color(color)
-        else:
+
+        elif button_pressed == Qt.RightButton:
 
             self._colorPicker.set_secondary_color(color)
 
@@ -250,7 +251,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._layerManager.stop_refreshing()
         self._animationManager.stop_refreshing()
 
-
     # ------ Animation Manager ------------------------------------------
 
     def _on_animation_manager_animation_selected_changed(self, animation):
@@ -261,7 +261,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._animationDisplay.update()
         self._animationDisplay.set_animation(animation)
 
-
     def _on_animation_manager_frame_selected_changed(self, index):
 
         self._canvas.refresh()
@@ -269,7 +268,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._animationDisplay.update()
         self._animationDisplay.go_to_frame(index)
-
 
     # ------- Layer Manager ----------------------------------------------
 

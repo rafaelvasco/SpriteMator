@@ -42,6 +42,7 @@ class ToolBox(QWidget):
         self._ink_slots = []
 
         self._current_active_toolslot = None
+        self._last_active_toolslot = None
 
         self._subpanel_expanded = False
 
@@ -87,6 +88,9 @@ class ToolBox(QWidget):
 
         return self._registered_tools[name]
 
+    def go_back_to_last_tool(self):
+        self.switch_tool_slot(self._last_active_toolslot)
+
     def register_tool(self, tool, is_default=None):
 
         if tool.name() not in self._registered_tools:
@@ -109,6 +113,23 @@ class ToolBox(QWidget):
         if not ink.name() in self._registered_inks:
             self._registered_inks[ink.name()] = ink
             self._assign_ink_to_slot(ink, slot)
+
+    def switch_tool_slot(self, slot):
+
+        self._last_active_toolslot = self._current_active_toolslot
+
+        self._current_active_toolslot = slot
+
+        tool_name = self._tool_slots[slot]['id']
+
+        self._tool_slots[slot]['button'].setChecked(True)
+
+        self.toolChanged.emit(tool_name)
+
+        correspondend_tool_list_item = self._tools_list_widget.findItems(tool_name, Qt.MatchExactly)[0]
+
+        if correspondend_tool_list_item is not None:
+            self._tools_list_widget.setCurrentItem(correspondend_tool_list_item)
 
     def _add_tool_slot(self, selected=None):
 
@@ -211,7 +232,7 @@ class ToolBox(QWidget):
 
         self._tools_list_widget.setMaximumSize(QSize(150, 200))
 
-        self._tools_list_widget.currentTextChanged.connect(self._tool_list_item_changed)
+        self._tools_list_widget.itemClicked.connect(self._tool_list_item_clicked)
 
         # Tools Subpanel
 
@@ -259,8 +280,6 @@ class ToolBox(QWidget):
 
     def _build_tool_options_pane(self, tool):
 
-        print('build tool options pane')
-
         pane = QWidget()
 
         pane_layout = QVBoxLayout()
@@ -270,7 +289,7 @@ class ToolBox(QWidget):
         for prop in tool.properties().values():
             field_layout = QHBoxLayout()
 
-            field_layout.addWidget(QLabel(prop.name()))
+            field_layout.addWidget(QLabel(prop.description()))
 
             prop_widget = prop.build_property_widget()
 
@@ -281,7 +300,6 @@ class ToolBox(QWidget):
         self._tools_options_panel.addWidget(pane)
 
     def mousePressEvent(self, e):
-
         if not self._subpanel_expanded:
             self._subpanel_expanded = True
             self.resize(self.width(), 300)
@@ -324,21 +342,16 @@ class ToolBox(QWidget):
 
         triggered_slot = self._toolsButtonGroup.checkedId()
 
-        self._current_active_toolslot = triggered_slot
+        if self._current_active_toolslot == self._last_active_toolslot:
+            return
 
-        tool_name = self._tool_slots[triggered_slot]['id']
-
-        self.toolChanged.emit(tool_name)
-
-        correspondend_tool_list_item = self._tools_list_widget.findItems(tool_name, Qt.MatchExactly)[0]
-
-        if correspondend_tool_list_item is not None:
-            self._tools_list_widget.setCurrentItem(correspondend_tool_list_item)
+        self.switch_tool_slot(triggered_slot)
 
         self.update()
 
-    def _tool_list_item_changed(self, new_item_name):
+    def _tool_list_item_clicked(self, new_item):
 
+        new_item_name = new_item.text()
         self._assign_tool_to_slot(self.get_tool_by_name(new_item_name), self._current_active_toolslot)
         self.toolChanged.emit(new_item_name)
 

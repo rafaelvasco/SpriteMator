@@ -394,7 +394,6 @@ class AnimationManager(QWidget):
 
         self.frameSelectedChanged.emit(animation.current_frame_index())
 
-
     def start_refreshing(self):
         self._refreshTimer.start(self._refreshSpeed)
         self._refreshing = True

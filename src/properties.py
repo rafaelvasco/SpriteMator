@@ -4,12 +4,16 @@ from src.widgets import OnOffButton, Slider
 
 
 class Property(object):
-    def __init__(self, name, value):
+    def __init__(self, name, description, value):
         self._name = name
+        self._description = description
         self._value = value
 
     def name(self):
         return self._name
+
+    def description(self):
+        return self._description
 
     def value(self):
         return self._value
@@ -22,8 +26,8 @@ class Property(object):
 
 
 class NumberProperty(Property):
-    def __init__(self, name, value=None):
-        super(NumberProperty, self).__init__(name, value)
+    def __init__(self, name, description=None, value=None, ):
+        super(NumberProperty, self).__init__(name, value, description)
 
     def build_property_widget(self):
         number_input = QSpinBox()
@@ -34,9 +38,9 @@ class NumberProperty(Property):
 
 
 class BooleanProperty(Property):
-    def __init__(self, name, on=None):
+    def __init__(self, name, description=None, on=None):
 
-        super(BooleanProperty, self).__init__(name, on)
+        super(BooleanProperty, self).__init__(name, description, on)
 
         if on is not None:
 
@@ -68,9 +72,9 @@ class BooleanProperty(Property):
 
 
 class RangedProperty(Property):
-    def __init__(self, name, min_value, max_value, initial_value=None):
+    def __init__(self, name, min_value, max_value, description, initial_value=None):
 
-        super(RangedProperty, self).__init__(name, initial_value)
+        super(RangedProperty, self).__init__(name, description, initial_value)
 
         self._minValue = min_value
         self._maxValue = max_value
@@ -133,13 +137,13 @@ class PropertyHolder(object):
     def add_property(self, prop):
         self._properties[prop.name()] = prop
 
-    def add_property(self, prop_name, prop_value):
+    def add_property(self, prop_name, prop_value, prop_description=None):
 
         if type(prop_value) is int:
-            self._properties[prop_name] = NumberProperty(prop_name, prop_value)
+            self._properties[prop_name] = NumberProperty(prop_name, prop_description, prop_value)
         elif type(prop_value) is bool:
-            self._properties[prop_name] = BooleanProperty(prop_name, prop_value)
+            self._properties[prop_name] = BooleanProperty(prop_name, prop_description, prop_value)
 
-    def add_ranged_property(self, prop_name, prop_min, prop_max, prop_value=None):
-        self._properties[prop_name] = RangedProperty(prop_name, prop_min, prop_max, prop_value)
+    def add_ranged_property(self, prop_name, prop_min, prop_max, prop_value=None, prop_description=None):
+        self._properties[prop_name] = RangedProperty(prop_name, prop_min, prop_max, prop_description, prop_value,)
 

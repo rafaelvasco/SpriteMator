@@ -42,4 +42,4 @@ class CanvasOverlay(QWidget):
         painter = QPainter(self)
         painter.setCompositionMode(QPainter.CompositionMode_Difference)
         
-        self._canvas.current_tool().draw(painter, self._canvas)
+        self._canvas.current_tool().draw(self._canvas, painter)

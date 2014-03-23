@@ -14,7 +14,7 @@ import logging
 
 from PyQt5.QtCore import Qt, QEvent, QFile, QIODevice
 from PyQt5.QtGui import QFontDatabase, QFont, QKeySequence, QColor, QPixmap
-from PyQt5.QtWidgets import QApplication, QDialog, QShortcut, QMessageBox
+from PyQt5.QtWidgets import QApplication, QDialog, QShortcut, QMessageBox, QStyle
 
 from src.main_window import MainWindow
 from src.sprite import Sprite
@@ -26,10 +26,10 @@ import src.utils as utils
 class Application(QApplication):
     resources = {}
 
-    #TODO picker - go back to last tool on end
-    #TODO add hot keys to tools and frame navigation
-    #TODO add option to switch to dark checkerboard
     #TODO add indication if file is modified / saved
+    #TODO fix color palette cell navigation
+    #TODO fix color picker palette.. black is not entirelly black white is not entirelly white
+    #TODO fix animation strip add scrolling
 
     def __init__(self, args):
 
@@ -38,6 +38,9 @@ class Application(QApplication):
         self._load_assets()
 
         self._view = MainWindow()
+
+        self._view.setGeometry(
+            QStyle.alignedRect(Qt.LeftToRight, Qt.AlignCenter, self._view.size(), self.desktop().availableGeometry()))
 
         self._shortCuts = {}
 
@@ -195,6 +198,11 @@ class Application(QApplication):
         self.close_sprite()
         self._view.close()
 
+    def toggle_luminosity(self):
+
+        self._view.canvas().toggle_back_luminosity()
+        self._view.animation_display().toggle_back_luminosity()
+
     # ------------------------------------------------------------------------------------------------------------------
 
     def _connect_with_view(self):
@@ -253,9 +261,11 @@ class Application(QApplication):
 
         # Pixmaps #
 
-        checker_tile_light = utils.generate_checker_tile(8, QColor(222, 222, 222), QColor(253, 253, 253))
+        checker_tile_light = utils.generate_checker_tile(8, QColor(238, 238, 238), QColor(255, 255, 255))
+        checker_tile_dark = utils.generate_checker_tile(8, QColor(59, 59, 59), QColor(63, 63, 63))
 
         ResourcesCache.register_resource("CheckerTileLight", checker_tile_light)
+        ResourcesCache.register_resource("CheckerTileDark", checker_tile_dark)
 
         tool_cursor_1 = QPixmap(':/images/tool_cursor_1')
 
@@ -276,9 +286,19 @@ class Application(QApplication):
 
     def _on_shortcut_activated(self, holder, shortcut_name):
 
+        # APPLICATION
+
+        if holder == 'APPLICATION':
+
+            target = self
+
+            if shortcut_name == 'TOGGLE_LUMINOSITY':
+
+                target.toggle_luminosity()
+
         # CANVAS
 
-        if holder == 'CANVAS':
+        elif holder == 'CANVAS':
 
             target = self._view.canvas()
 
@@ -306,7 +326,21 @@ class Application(QApplication):
 
                 target.zoom_to(4.0)
 
-        # COLORPICKER
+        # ANIMATION MANAGER
+
+        elif holder == 'ANIMATION_MANAGER':
+
+            target = self._view.animation_manager()
+
+            if shortcut_name == 'GO_PREV_FRAME':
+
+                target.go_to_previous_frame()
+
+            elif shortcut_name == 'GO_NEXT_FRAME':
+
+                target.go_to_next_frame()
+
+        # COLOR PICKER
 
         elif holder == 'COLORPICKER':
 
@@ -314,6 +348,19 @@ class Application(QApplication):
 
             if shortcut_name == 'SWITCH_COLOR':
                 target.switch_active_color()
+
+        # TOOLBOX
+
+        elif holder == 'TOOLBOX':
+
+            target = self._view.canvas().tool_box()
+
+            if shortcut_name == 'TOOL_SLOT_0':
+                target.switch_tool_slot(0)
+            elif shortcut_name == 'TOOL_SLOT_1':
+                target.switch_tool_slot(1)
+            elif shortcut_name == 'TOOL_SLOT_2':
+                target.switch_tool_slot(2)
 
     def _raise_error(self, source, exception):
 

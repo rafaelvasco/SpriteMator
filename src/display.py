@@ -40,7 +40,10 @@ class Display(QWidget):
         self._keyTranslationVector = QPoint()
         self._currentObjectSize = QSize()
 
-        self._checkerTile = ResourcesCache.get("CheckerTileLight")
+        self._checkerTileLight = ResourcesCache.get("CheckerTileLight")
+        self._checkerTileDark = ResourcesCache.get("CheckerTileDark")
+
+        self._lights_on = True
 
         self.setMouseTracking(True)
         self.reset_origin()
@@ -174,6 +177,21 @@ class Display(QWidget):
         self._translationTransform.translate(x, y)
         self.update()
 
+    def toggle_back_luminosity(self):
+
+        self._lights_on = not self._lights_on
+        self.update()
+
+    def lights_on(self):
+
+        self._lights_on = True
+        self.update()
+
+    def lights_off(self):
+
+        self._lights_on = False
+        self.update()
+
     def on_draw_object(self, event, painter):
         return
 
@@ -226,7 +244,13 @@ class Display(QWidget):
 
         painter.setTransform(self._combinedTransform)
 
-        painter.drawTiledPixmap(0, 0, object_width, object_height, self._checkerTile)
+        if self._lights_on:
+
+            painter.drawTiledPixmap(0, 0, object_width, object_height, self._checkerTileLight)
+
+        else:
+
+            painter.drawTiledPixmap(0, 0, object_width, object_height, self._checkerTileDark)
 
         self.on_draw_object(event, painter)
 

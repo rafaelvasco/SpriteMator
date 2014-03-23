@@ -10,21 +10,35 @@ meta = {
 
 shortcuts = {
 
+    'APPLICATION': {
+
+        'TOGGLE_LUMINOSITY': 'L',
+
+    },
+
     'CANVAS': {
 
         'CLEAR': 'C',
         'RESET': 'R',
-        'ZOOM1': '1',
-        'ZOOM2': '2',
-        'ZOOM3': '3',
-        'ZOOM4': '4',
-
     },
 
     'COLORPICKER': {
 
         'SWITCH_COLOR': 'X',
 
+    },
+
+    'TOOLBOX': {
+
+        'TOOL_SLOT_0': '1',
+        'TOOL_SLOT_1': '2',
+        'TOOL_SLOT_2': '3',
+    },
+
+    'ANIMATION_MANAGER': {
+
+        'GO_NEXT_FRAME': 'Right',
+        'GO_PREV_FRAME': 'Left',
     }
 
 }

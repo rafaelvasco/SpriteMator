@@ -9,16 +9,17 @@
 # Licence:     <your licence>
 #-----------------------------------------------------------------------------------------------------------------------
 
-from PyQt5.QtCore import Qt, pyqtSignal, QPoint
+from PyQt5.QtCore import Qt, pyqtSignal, QEvent
 from PyQt5.QtWidgets import QSizePolicy
-from PyQt5.QtGui import QPainter, QColor, QMouseEvent
+from PyQt5.QtGui import QPainter, QColor
+from src.canvas_mouse_state import CanvasMouseState
 
+import src.utils as utils
 from src.display import Display
 from src.canvas_overlay import CanvasOverlay
 from src import tools, inks
 from src.toolbox import ToolBox
 from src.tools import Tool
-
 
 #-----------------------------------------------------------------------------------------------------------------------
 
@@ -26,7 +27,7 @@ from src.tools import Tool
 class Canvas(Display):
     surfaceChanged = pyqtSignal()
 
-    colorPicked = pyqtSignal(QColor, QMouseEvent)
+    colorPicked = pyqtSignal(QColor, int)  # Color, Button Pressed
     toolStarted = pyqtSignal(Tool)
     toolEnded = pyqtSignal(Tool)
 
@@ -41,6 +42,7 @@ class Canvas(Display):
         self._drawingSurface = None
         self._drawingSurfacePixelData = None
         self._currentTool = None
+        self._lastTool = None
         self._primaryInk = None
         self._secondaryInk = None
         self._primaryColor = None
@@ -48,9 +50,9 @@ class Canvas(Display):
         self._pixelSize = 0
         self._drawGrid = True
 
-        self._absoluteMousePosition = QPoint()
-        self._spriteMousePosition = QPoint()
-        self._lastButtonPressed = None
+        self._snap_enabled = True
+
+        self._mouse_state = CanvasMouseState()
 
         # ======================================
 
@@ -77,9 +79,17 @@ class Canvas(Display):
 
         return self._currentTool
 
+    def last_tool(self):
+
+        return self._lastTool
+
     def primary_color(self):
 
         return self._primaryColor
+
+    def tool_box(self):
+
+        return self._toolBox
 
     def set_primary_color(self, color):
 
@@ -110,7 +120,9 @@ class Canvas(Display):
 
     def set_current_tool(self, name):
 
+        self._lastTool = self._currentTool
         self._currentTool = self.tool(name)
+        self.refresh()
 
     def tool(self, name):
 
@@ -126,7 +138,7 @@ class Canvas(Display):
 
     def sprite_mouse_pos(self):
 
-        return self._spriteMousePosition
+        return self._sprite_mouse_position
 
     def sprite_is_loaded(self):
 
@@ -140,10 +152,9 @@ class Canvas(Display):
 
         return self._drawingSurfacePixelData
 
-    def last_button_pressed(self):
+    def mouse_state(self):
 
-        return self._lastButtonPressed
-
+        return self._mouse_state
 
     # ----- PUBLIC API -------------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
@@ -158,7 +169,7 @@ class Canvas(Display):
         self._sprite = sprite
 
         super().set_object_size(sprite.current_animation().frame_width(),
-                              sprite.current_animation().frame_height())
+                                sprite.current_animation().frame_height())
 
         self.refresh()
 
@@ -226,20 +237,20 @@ class Canvas(Display):
         for layer in layers:
             painter.drawImage(0, 0, layer.image())
 
-        # if self._drawGrid and self._zoom >= 16.0:
-        #
-        #     w = self._drawingSurface.width()
-        #     h = self._drawingSurface.height()
-        #
-        #     painter.setPen(QColor(0, 0, 0, 80))
-        #
-        #     for x in range(0, w):
-        #         #xz = x * self._pixelSize
-        #         painter.drawLine(x, 0, x, h)
-        #
-        #     for y in range(0, h):
-        #         #yz = y * self._pixelSize
-        #         painter.drawLine(0, y, w, y)
+            # if self._drawGrid and self._zoom >= 16.0:
+            #
+            #     w = self._drawingSurface.width()
+            #     h = self._drawingSurface.height()
+            #
+            #     painter.setPen(QColor(0, 0, 0, 80))
+            #
+            #     for x in range(0, w):
+            #         #xz = x * self._pixelSize
+            #         painter.drawLine(x, 0, x, h)
+            #
+            #     for y in range(0, h):
+            #         #yz = y * self._pixelSize
+            #         painter.drawLine(0, y, w, y)
 
     def resizeEvent(self, e):
 
@@ -261,18 +272,21 @@ class Canvas(Display):
 
         tool = self._currentTool
 
-        tool._process_mouse_press(self, e)
+        self.toolStarted.emit(tool)
 
-        if tool.is_active():
-            self.toolStarted.emit(tool)
+        if tool.uses_painter():
 
             painter = QPainter()
 
             painter.begin(self._drawingSurface)
 
-            tool.blit(painter, self)
+            tool.on_mouse_press(self, painter)
 
             painter.end()
+
+        else:
+
+            tool.on_mouse_press(self, None)
 
         self.update()
 
@@ -287,18 +301,20 @@ class Canvas(Display):
 
         tool = self._currentTool
 
-        tool._process_mouse_move(self, e)
-
         if not self._panning:
 
-            if tool.is_active():
+            if tool.uses_painter():
                 painter = QPainter()
 
                 painter.begin(self._drawingSurface)
 
-                tool.blit(painter, self)
+                tool.on_mouse_move(self, painter)
 
                 painter.end()
+
+            else:
+
+                tool.on_mouse_move(self, None)
 
         self.update()
 
@@ -307,11 +323,11 @@ class Canvas(Display):
         if not self.sprite_is_loaded():
             return
 
-        tool = self._currentTool
-
         self._update_mouse_state(e)
 
-        tool._process_mouse_release(self, e)
+        tool = self._currentTool
+
+        tool.on_mouse_release(self, None)
 
         self.update()
 
@@ -418,16 +434,27 @@ class Canvas(Display):
 
     def _update_mouse_state(self, e):
 
-        if e.type() == 2 and e.button() is not None:
-            self._lastButtonPressed = e.button()
+        if e.type() == QEvent.MouseButtonPress:
+
+            self._mouse_state.set_mouse_pressing(True)
+
+            if e.button() is not None:
+                self._mouse_state.set_last_button_pressed(e.button())
+
+        elif e.type() == QEvent.MouseButtonRelease:
+
+            self._mouse_state.set_mouse_pressing(False)
 
         object_mouse_pos = super().object_mouse_pos()
 
-        object_mouse_pos.setX(round(object_mouse_pos.x(), 2))
-        object_mouse_pos.setY(round(object_mouse_pos.y(), 2))
+        self._mouse_state.set_last_sprite_mouse_position(self._mouse_state.sprite_mouse_position())
 
-        self._spriteMousePosition.setX(object_mouse_pos.x())
-        self._spriteMousePosition.setY(object_mouse_pos.y())
+        self._mouse_state.set_canvas_mouse_position(e.pos())
+
+        if self._pixelSize > 1 and self._snap_enabled:
+            self._mouse_state.set_sprite_mouse_position(utils.snap(object_mouse_pos, self._pixelSize))
+        else:
+            self._mouse_state.set_sprite_mouse_position(object_mouse_pos)
 
     def _update_drawing_surface(self):
 

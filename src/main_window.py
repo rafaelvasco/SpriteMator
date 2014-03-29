@@ -9,7 +9,7 @@
 # Licence:     <your licence>
 #-----------------------------------------------------------------------------------------------------------------------
 
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt, QTimer, QEvent
 from PyQt5.QtGui import QPixmap, QPainter
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QDockWidget, QHBoxLayout
 
@@ -126,6 +126,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             p.drawPixmap(x, y, self._logo)
 
             p.drawText(x + 50, y + 200, '.:: SpriteMator ::. | Version: %s' % app_data.meta['VERSION'])
+
+    def eventFilter(self, target, event):
+
+        # TEST IF THE EVENT SHOULD BE HANDLED AS A GLOBAL APPLICATION EVENT
+
+        if event.type() == QEvent.Wheel:
+
+            if event.modifiers() & Qt.ControlModifier:
+
+                if event.angleDelta().y() > 0:
+                    self.color_picker().select_next_color_on_palette()
+                elif event.angleDelta().y() < 0:
+                    self.color_picker().select_previous_color_on_palette()
+
+                return True
+
+            elif event.modifiers() & Qt.AltModifier:
+
+                if event.angleDelta().y() > 0:
+                    self.color_picker().select_next_ramp_on_palette()
+                elif event.angleDelta().y() < 0:
+                    self.color_picker().select_previous_ramp_on_palette()
+
+                return True
+
+        # IF NOT CONTINUE PROPAGTING THE EVENT NORMALLY
+
+        return super(QMainWindow, self).eventFilter(target, event)
 
     def resizeEvent(self, e):
 

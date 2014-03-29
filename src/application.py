@@ -27,8 +27,6 @@ class Application(QApplication):
     resources = {}
 
     #TODO add indication if file is modified / saved
-    #TODO fix color palette cell navigation
-    #TODO fix color picker palette.. black is not entirelly black white is not entirelly white
     #TODO fix animation strip add scrolling
 
     def __init__(self, args):
@@ -38,6 +36,8 @@ class Application(QApplication):
         self._load_assets()
 
         self._view = MainWindow()
+
+        self.installEventFilter(self._view)
 
         self._view.setGeometry(
             QStyle.alignedRect(Qt.LeftToRight, Qt.AlignCenter, self._view.size(), self.desktop().availableGeometry()))
@@ -195,6 +195,7 @@ class Application(QApplication):
 
     def terminate(self):
 
+        self.removeEventFilter(self._view)
         self.close_sprite()
         self._view.close()
 
@@ -216,31 +217,7 @@ class Application(QApplication):
         self._view.actionClose.triggered.connect(self.close_sprite)
         self._view.actionQuit.triggered.connect(self.terminate)
 
-    # GLOBAL INPUT EVENTS ----------------------------------------------------------------------------------------------
-
-    def _on_mouse_wheel(self, event):
-        if event.modifiers() & Qt.ControlModifier:
-
-            if event.angleDelta().y() > 0:
-                self._view.color_picker().select_next_color_on_palette()
-            elif event.angleDelta().y() < 0:
-                self._view.color_picker().select_previous_color_on_palette()
-
-        elif event.modifiers() & Qt.AltModifier:
-
-            if event.angleDelta().y() > 0:
-                self._view.color_picker().select_next_ramp_on_palette()
-            elif event.angleDelta().y() < 0:
-                self._view.color_picker().select_previous_ramp_on_palette()
-
     # ------------------------------------------------------------------------------------------------------------------
-
-    def notify(self, receiver, event):
-        #TODO Fix Global Event System
-        if event.type() == QEvent.Wheel:
-            self._on_mouse_wheel(event)
-
-        return super(Application, self).notify(receiver, event)
 
     @staticmethod
     def _load_assets():

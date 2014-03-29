@@ -41,7 +41,6 @@ class ColorBox(QWidget):
         return self._primaryColor
 
     def set_primary_color(self, v):
-        print('Color Box set Primary Color')
         if self._primaryColor is None:
             self._primaryColor = QColor()
 
@@ -52,7 +51,6 @@ class ColorBox(QWidget):
         return self._secondaryColor
 
     def set_secondary_color(self, v):
-        print('Color Box set Secondary Color')
         if self._secondaryColor is None:
             self._secondaryColor = QColor()
 
@@ -142,6 +140,9 @@ class ColorRamp:
             value = min((16 * (16 - i)), 255)
             bw._colArray[i].setHsv(0, 0, value)
 
+        bw._colArray[0].setHsv(0, 0, 255)
+        bw._colArray[15].setHsv(0, 0, 0)
+
         return bw
 
     def __init__(self, hue=None, base_sat=None):
@@ -217,8 +218,33 @@ class ColorRamp:
 
             self._colArray[i] = (QColor.fromHsv(self._hueArray[i], new_sat, new_val))
 
+        first_color = self._colArray[15]
+        last_color = self._colArray[0]
+
+        first_color.setHsv(0, 0, 0)
+        last_color.setHsv(0, 0, 255)
 
 # ======================================================================================================================
+
+
+class PaletteCell(object):
+
+    def __init__(self, index):
+
+        self._index = index
+
+    def index(self):
+
+        return self._index
+
+    def set_index(self, value):
+
+        self._index = value
+
+    def add_to_index(self, v):
+
+        self._index += v
+
 
 class ColorPalette(QWidget):
     colorHovered = pyqtSignal(QColor)
@@ -237,11 +263,12 @@ class ColorPalette(QWidget):
         self.setMouseTracking(True)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self._rampIndex = 0
-        self._hoveredCell = -1
-        self._selectedCellA = 0
-        self._selectedCellB = 15
-        self._activeCell = 0
-        self._activeSlot = 0
+        self._hoveredCellIndex = -1
+
+        self._selectedCellA2 = PaletteCell(index=0)
+        self._selectedCellB2 = PaletteCell(index=15)
+
+        self._activeCell = self._selectedCellA2
         self._primaryIndicatorColor = QColor(0, 245, 255)
         self._secondaryIndicatorColor = QColor(255, 145, 0)
         self._locked = True
@@ -260,9 +287,8 @@ class ColorPalette(QWidget):
         return self._ramps[ramp_index].color_at(15 - col_index)
 
     def set_color(self, color):
-        print('Color Pallete Set Color')
-        ramp_index = self._cell_to_ramp_index(self._activeCell)
-        col_index = self._activeCell % 16
+        ramp_index = self._cell_to_ramp_index(self._activeCell.index())
+        col_index = self._activeCell.index() % 16
 
         self._ramps[ramp_index].set_color_at(15 - col_index, color)
 
@@ -283,36 +309,38 @@ class ColorPalette(QWidget):
 
     def switch_slot(self):
 
-        if self._activeCell == self._selectedCellA:
-            self._activeCell = self._selectedCellB
-            self._rampIndex = self._cell_to_ramp_index(self._selectedCellB)
+        if self._activeCell == self._selectedCellA2:
+
+            self._activeCell = self._selectedCellB2
+
         else:
-            self._activeCell = self._selectedCellA
-            self._rampIndex = self._cell_to_ramp_index(self._selectedCellA)
+
+            self._activeCell = self._selectedCellA2
+
+        self._rampIndex = self._cell_to_ramp_index(self._activeCell.index())
+
+        # if self._activeCell == self._selectedCellA:
+        #     self._activeCell = self._selectedCellB
+        #     self._rampIndex = self._cell_to_ramp_index(self._selectedCellB)
+        # else:
+        #     self._activeCell = self._selectedCellA
+        #     self._rampIndex = self._cell_to_ramp_index(self._selectedCellA)
 
         self.update()
 
     def move_color_selection(self, delta):
 
-        if self._activeCell == self._selectedCellA:
+        self._activeCell.add_to_index(delta)
 
-            self._activeCell += delta
+        self._activeCell.set_index(max(16 * self._rampIndex, min(self._activeCell.index(), 16 * self._rampIndex + 15)))
 
-            self._activeCell = max(16 * self._rampIndex, min(self._activeCell, 16 * self._rampIndex + 15))
+        if self._activeCell == self._selectedCellA2:
 
-            if self._selectedCellA != self._activeCell:
-                self.colorSelected.emit(self.color_at(self._activeCell), 0)
-                self._selectedCellA = self._activeCell
+            self.colorSelected.emit(self.color_at(self._activeCell.index()), 0)
 
-        elif self._activeCell == self._selectedCellB:
+        elif self._activeCell == self._selectedCellB2:
 
-            self._activeCell += delta
-
-            self._activeCell = max(16 * self._rampIndex, min(self._activeCell, 16 * self._rampIndex + 15))
-
-            if self._selectedCellB != self._activeCell:
-                self.colorSelected.emit(self.color_at(self._activeCell), 1)
-                self._selectedCellB = self._activeCell
+            self.colorSelected.emit(self.color_at(self._activeCell.index()), 1)
 
     def move_ramp_selection(self, delta):
 
@@ -322,20 +350,17 @@ class ColorPalette(QWidget):
 
         self._rampIndex = max(0, min(self._rampIndex, 15))
 
-        if self._activeCell == self._selectedCellA:
+        if 0 <= self._activeCell.index() + delta * 16 < 256:
 
-            if 0 <= delta * 16 + self._activeCell + delta * 16 < 256:
-                self._activeCell += delta * 16
-                self.colorSelected.emit(self.color_at(self._activeCell), 0)
-                self._selectedCellA = self._activeCell
+            self._activeCell.add_to_index(delta*16)
 
-        elif self._activeCell == self._selectedCellB:
+            if self._activeCell == self._selectedCellA2:
 
-            if 0 <= delta * 16 + self._activeCell + delta * 16 < 256:
-                self._activeCell += delta * 16
+                self.colorSelected.emit(self.color_at(self._activeCell.index()), 0)
 
-                self.colorSelected.emit(self.color_at(self._activeCell), 1)
-                self._selectedCellB = self._activeCell
+            elif self._activeCell == self._selectedCellB2:
+
+                self.colorSelected.emit(self.color_at(self._activeCell.index()), 1)
 
     def mouseMoveEvent(self, e):
 
@@ -343,8 +368,8 @@ class ColorPalette(QWidget):
 
         hovered_cell = max(0, min(self._cell_index(mouse_pos), 255))
 
-        if self._hoveredCell != hovered_cell:
-            self._hoveredCell = hovered_cell
+        if self._hoveredCellIndex != hovered_cell:
+            self._hoveredCellIndex = hovered_cell
             self.colorHovered.emit(self.color_at(hovered_cell))
 
     def enterEvent(self, e):
@@ -353,18 +378,16 @@ class ColorPalette(QWidget):
 
     def mousePressEvent(self, e):
 
-        if self._hoveredCell == -1:
+        if self._hoveredCellIndex == -1:
             return
 
-        selected_color = self.color_at(self._hoveredCell)
+        selected_color = self.color_at(self._hoveredCellIndex)
 
-        self._activeCell = self._hoveredCell
-
-        self._rampIndex = self._cell_to_ramp_index(self._activeCell)
+        self._rampIndex = self._cell_to_ramp_index(self._hoveredCellIndex)
 
         if e.button() == Qt.LeftButton:
 
-            self._selectedCellA = self._activeCell
+            self._activeCell = self._selectedCellA2
 
             self.colorSelected.emit(selected_color, 0)
 
@@ -372,11 +395,13 @@ class ColorPalette(QWidget):
 
         elif e.button() == Qt.RightButton:
 
-            self._selectedCellB = self._activeCell
+            self._activeCell = self._selectedCellB2
 
             self.colorSelected.emit(selected_color, 1)
 
             self.update()
+
+        self._activeCell.set_index(self._hoveredCellIndex)
 
     def paintEvent(self, e):
 
@@ -403,41 +428,41 @@ class ColorPalette(QWidget):
 
             ramp_index += 1
 
-        if self._selectedCellA != -1 or self._selectedCellB != -1:
+        pen = QPen()
 
-            pen = QPen()
+        pen.setWidth(self._cellIndicatorSize)
+        pen.setJoinStyle(Qt.MiterJoin)
 
-            pen.setWidth(self._cellIndicatorSize)
-            pen.setJoinStyle(Qt.MiterJoin)
+        border_adjust = self._cellIndicatorSize / 2
 
-            border_adjust = self._cellIndicatorSize / 2
+        # PAINT SELECTED CELL A
 
-            if self._selectedCellA != -1:
-                pen.setColor(self._primaryIndicatorColor)
-                p.setPen(pen)
+        pen.setColor(self._primaryIndicatorColor)
+        p.setPen(pen)
 
-                cell_rect = self._cell_rect(self._selectedCellA)
+        cell_rect = self._cell_rect(self._selectedCellA2.index())
 
-                p.drawRect(cell_rect.adjusted(border_adjust,
-                                              border_adjust,
-                                              -border_adjust,
-                                              -border_adjust))
+        p.drawRect(cell_rect.adjusted(border_adjust,
+                                      border_adjust,
+                                      -border_adjust,
+                                      -border_adjust))
 
-            if self._selectedCellB != -1:
-                pen.setColor(self._secondaryIndicatorColor)
-                p.setPen(pen)
+        # PAINT SELECTED CELL B
 
-                cell_rect = self._cell_rect(self._selectedCellB)
+        pen.setColor(self._secondaryIndicatorColor)
+        p.setPen(pen)
 
-                p.drawRect(cell_rect.adjusted(border_adjust,
-                                              border_adjust,
-                                              -border_adjust,
-                                              -border_adjust))
+        cell_rect = self._cell_rect(self._selectedCellB2.index())
+
+        p.drawRect(cell_rect.adjusted(border_adjust,
+                                      border_adjust,
+                                      -border_adjust,
+                                      -border_adjust))
 
     def leaveEvent(self, e):
 
         self.mouseLeave.emit()
-        self._hoveredCell = -1
+        self._hoveredCellIndex = -1
 
     @staticmethod
     def _cell_to_ramp_index(cell):
@@ -458,20 +483,20 @@ class ColorPalette(QWidget):
 
         self._ramps.append(ColorRamp.black_white())
         self._ramps.append(ColorRamp())
-        self._ramps.append(ColorRamp(17))
-        self._ramps.append(ColorRamp(33))
-        self._ramps.append(ColorRamp(47))
-        self._ramps.append(ColorRamp(60))
-        self._ramps.append(ColorRamp(78))
-        self._ramps.append(ColorRamp(96))
-        self._ramps.append(ColorRamp(108))
-        self._ramps.append(ColorRamp(180))
-        self._ramps.append(ColorRamp(207))
-        self._ramps.append(ColorRamp(240))
-        self._ramps.append(ColorRamp(252))
-        self._ramps.append(ColorRamp(265))
-        self._ramps.append(ColorRamp(285))
-        self._ramps.append(ColorRamp(300))
+        self._ramps.append(ColorRamp(17, 50))
+        self._ramps.append(ColorRamp(33, 50))
+        self._ramps.append(ColorRamp(47, 50))
+        self._ramps.append(ColorRamp(60, 50))
+        self._ramps.append(ColorRamp(78, 50))
+        self._ramps.append(ColorRamp(96, 50))
+        self._ramps.append(ColorRamp(108, 50))
+        self._ramps.append(ColorRamp(180, 50))
+        self._ramps.append(ColorRamp(207, 50))
+        self._ramps.append(ColorRamp(240, 50))
+        self._ramps.append(ColorRamp(252, 50))
+        self._ramps.append(ColorRamp(265, 50))
+        self._ramps.append(ColorRamp(285, 50))
+        self._ramps.append(ColorRamp(300, 50))
 
     def sizeHint(self):
 
@@ -697,7 +722,7 @@ class ColorSlider(QWidget):
 
     def wheelEvent(self, e):
 
-        self.set_value(self._value + utils.sign(e.delta()) * self._slideStep)
+        self.set_value(self._value + utils.sign(e.angleDelta().y()) * self._slideStep)
 
         self.valueChanged.emit(self._value)
 
@@ -1042,7 +1067,6 @@ class ColorPicker(QWidget):
         self._colorBox.mouseClicked.connect(self._on_colorbox_clicked)
 
     def _update_sliders(self, update_alpha_value=None):
-        print('Update Sliders')
         color = (self._primarySelectedColor
                  if self._activeColorIndex == ColorIndex.Primary
                  else self._secondarySelectedColor)
@@ -1091,7 +1115,6 @@ class ColorPicker(QWidget):
         self.primaryColorChanged.emit(self._primarySelectedColor)
 
     def _on_secondary_color_changed(self, update_alpha_value=None):
-        print('Color Picker onSecondaryColorChanged')
         self._colorBox.set_secondary_color(self._secondarySelectedColor)
 
         self._update_sliders(update_alpha_value)
@@ -1112,7 +1135,6 @@ class ColorPicker(QWidget):
 
     def _on_palette_color_changed(self, color, color_index):
 
-        print('Color Picker onPalette Color Changed')
         if color_index == ColorIndex.Primary:
             self.set_primary_color(color)
             self._activeColorIndex = ColorIndex.Primary

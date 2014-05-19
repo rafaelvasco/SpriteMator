@@ -129,8 +129,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def eventFilter(self, target, event):
 
-        # TEST IF THE EVENT SHOULD BE HANDLED AS A GLOBAL APPLICATION EVENT
-
         if event.type() == QEvent.Wheel:
 
             if event.modifiers() & Qt.ControlModifier:
@@ -150,8 +148,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.color_picker().select_previous_ramp_on_palette()
 
                 return True
-
-        # IF NOT CONTINUE PROPAGTING THE EVENT NORMALLY
 
         return super(QMainWindow, self).eventFilter(target, event)
 
@@ -233,6 +229,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._layerManager.layerListChanged.connect(self._on_layer_manager_layer_list_changed)
 
     # =================== Event Handlers ==============================
+
+    # ------- Color Picker -----------------------------------------
+
     def _on_colorpicker_primary_color_changed(self, color):
 
         self._canvas.set_primary_color(color)

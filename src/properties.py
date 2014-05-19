@@ -134,9 +134,6 @@ class PropertyHolder(object):
     def property_value(self, name):
         return self._properties[name].value()
 
-    def add_property(self, prop):
-        self._properties[prop.name()] = prop
-
     def add_property(self, prop_name, prop_value, prop_description=None):
 
         if type(prop_value) is int:

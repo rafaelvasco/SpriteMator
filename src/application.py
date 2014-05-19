@@ -12,7 +12,7 @@
 import sys
 import logging
 
-from PyQt5.QtCore import Qt, QEvent, QFile, QIODevice
+from PyQt5.QtCore import Qt, QFile, QIODevice
 from PyQt5.QtGui import QFontDatabase, QFont, QKeySequence, QColor, QPixmap
 from PyQt5.QtWidgets import QApplication, QDialog, QShortcut, QMessageBox, QStyle
 
@@ -24,14 +24,24 @@ import src.utils as utils
 
 
 class Application(QApplication):
+
     resources = {}
 
     #TODO add indication if file is modified / saved
     #TODO fix animation strip add scrolling
+    #TODO Decide on resizing logistic
 
     def __init__(self, args):
 
         super(Application, self).__init__(args)
+
+        logging.basicConfig(
+
+            filename='log.txt',
+            filemode='w',
+            format='%(asctime)s :: %(levelname)s :: %(message)s',
+            level=logging.DEBUG
+        )
 
         self._load_assets()
 
@@ -48,7 +58,7 @@ class Application(QApplication):
 
         self.setQuitOnLastWindowClosed(True)
 
-        self._currentSprite = None
+        self._current_sprite = None
 
         self._connect_with_view()
 
@@ -75,7 +85,7 @@ class Application(QApplication):
         if self._view.new_sprite_dialog().exec_() == QDialog.Accepted:
             result = self._view.new_sprite_dialog().result()
 
-            if self._currentSprite is not None:
+            if self._current_sprite is not None:
                 self.close_sprite()
 
             sprite = Sprite.create(result.choosen_width, result.choosen_height)
@@ -85,10 +95,10 @@ class Application(QApplication):
 
     def set_sprite(self, sprite):
 
-        self._currentSprite = sprite
-        self._view.canvas().set_sprite(self._currentSprite)
-        self._view.animation_manager().set_sprite(self._currentSprite)
-        self._view.layer_manager().set_sprite(self._currentSprite)
+        self._current_sprite = sprite
+        self._view.canvas().set_sprite(self._current_sprite)
+        self._view.animation_manager().set_sprite(self._current_sprite)
+        self._view.layer_manager().set_sprite(self._current_sprite)
 
         self._view.show_workspace()
 
@@ -112,57 +122,43 @@ class Application(QApplication):
             if sprite:
                 self.set_sprite(sprite)
 
-                print('Imported sprite from files: ', image_files)
-
                 self._update_top_menu()
 
     def save_sprite(self):
 
-        if self._currentSprite is None:
+        if self._current_sprite is None:
             return
 
-        if self._currentSprite.file_path():
+        if self._current_sprite.file_path():
 
-            print('Saving sprite to path: ', self._currentSprite.file_path())
-            save_path = self._currentSprite.file_path()
+            save_path = self._current_sprite.file_path()
 
         else:
 
-            print('Saving new sprite...')
             save_path = utils.show_savefile_dialog('Save Sprite...', 'Sprite (*.spr)')
 
         if save_path is not None and len(save_path) > 0:
-            Sprite.save(self._currentSprite, save_path)
-
-            print('Saved to: ', save_path)
+            Sprite.save(self._current_sprite, save_path)
 
     def save_sprite_as(self):
 
-        if self._currentSprite is None:
+        if self._current_sprite is None:
             return
 
         new_save_path = utils.show_savefile_dialog('Save Sprite As...', 'Sprite (*.spr)')
 
-        print('Saving to new path: ', new_save_path)
-
         if new_save_path:
-            Sprite.save(self._currentSprite, new_save_path)
-
-            print('Saved to new path')
+            Sprite.save(self._current_sprite, new_save_path)
 
             self.close_sprite()
 
-            print('Unloaded current sprite')
-
             new_sprite = Sprite.load_from_file(new_save_path)
-
-            print('Loaded new sprite with new file path')
 
             self.set_sprite(new_sprite)
 
     def export_sprite(self):
 
-        if self._currentSprite is None:
+        if self._current_sprite is None:
             return
 
         target_folder = utils.show_save_to_folder_dialog('Choose a folder to save Sprite animations:')
@@ -171,7 +167,7 @@ class Application(QApplication):
 
             try:
 
-                Sprite.export(self._currentSprite, target_folder)
+                Sprite.export(self._current_sprite, target_folder)
 
             except Exception as e:
 
@@ -187,7 +183,7 @@ class Application(QApplication):
         self._view.animation_display().unload_animation()
         self._view.layer_manager().clear()
         self._view.animation_manager().clear()
-        self._currentSprite = None
+        self._current_sprite = None
 
         self._view.hide_workspace()
 
@@ -342,13 +338,13 @@ class Application(QApplication):
     def _raise_error(self, source, exception):
 
         message = str(exception)
-        logging.warning('[{0}] {1}'.format(source, message))
+        logging.error('[{0}] {1}'.format(source, message))
 
         QMessageBox.warning(self._view, 'Warning', '[{0}] An error has ocurred: {1}'.format(source, message))
 
     def _update_top_menu(self):
 
-        if self._currentSprite is not None:
+        if self._current_sprite is not None:
 
             self._view.actionNew.setEnabled(True)
             self._view.actionClose.setEnabled(True)

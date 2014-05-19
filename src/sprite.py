@@ -10,25 +10,28 @@
 import pickle
 import os
 
+
 from PyQt5.QtGui import QPainter
 
 import src.utils as utils
-import src.drawing as drawing
 
 
 class Sprite(object):
-    def __init__(self):
 
+    def __init__(self, width, height):
+
+        self._width = width
+        self._height = height
         self._animations = []
-        self._filePath = ""
-        self._currentAnimation = None
-        self._currentAnimationIndex = -1
+        self._file_path = ""
+        self._current_animation = None
+        self._current_animation_index = -1
 
     def current_animation(self):
-        return self._currentAnimation
+        return self._current_animation
 
     def current_animation_index(self):
-        return self._currentAnimationIndex
+        return self._current_animation_index
 
     def animations(self):
 
@@ -38,15 +41,56 @@ class Sprite(object):
 
         return len(self._animations)
 
+    def width(self):
+        return self._width
+
+    def height(self):
+        return self._height
+
+    def resize(self, width, height):
+
+        self._width = width
+        self._height = height
+
+        for animation in self._animations:
+
+            for frame in animation.frames():
+
+                frame.resize(width, height)
+
+    def scale(self, scale_width, scale_height=None):
+
+        self._width = int(round(self._width * scale_width))
+        self._height = int(round(self._height * scale_height))
+
+        if scale_height is None:
+
+            scale_height = scale_width
+
+        for animation in self._animations:
+
+            for frame in animation.frames():
+
+                frame.scale(scale_width, scale_height)
+
+    def paste_image(self, image):
+
+        self._current_animation.current_frame().paste_image(image)
+
+    def active_surface(self):
+
+        return self._current_animation.current_frame().current_surface().image()
+
     # ----- STATIC METHODS ---------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     def create(width, height):
 
-        new_sprite = Sprite()
+        new_sprite = Sprite(width, height)
         new_sprite.add_animation()
-        new_sprite.current_animation().add_empty_frame(width, height)
+
+        new_sprite.current_animation().add_empty_frame()
 
         return new_sprite
 
@@ -77,11 +121,25 @@ class Sprite(object):
     @staticmethod
     def import_from_image_files(image_files):
 
-        new_sprite = Sprite()
-        new_sprite.add_animation()
+        biggest_width = 0
+        biggest_height = 0
+
+        image_list = []
 
         for imageFile in image_files:
             image = utils.load_image(imageFile)
+            image_list.append(image)
+
+            if image.width() > biggest_width:
+                biggest_width = image.width()
+            if image.height() > biggest_height:
+                biggest_height = image.height()
+
+        new_sprite = Sprite(biggest_width, biggest_height)
+        new_sprite.add_animation()
+
+        for image in image_list:
+
             new_sprite.current_animation().add_frame(image)
 
         return new_sprite
@@ -138,17 +196,17 @@ class Sprite(object):
     # ------------------------------------------------------------------------------------------------------------------
 
     def file_path(self):
-        return self._filePath
+        return self._file_path
 
     def set_file_path(self, path):
-        self._filePath = path
+        self._file_path = path
 
     def set_animation(self, index):
 
         index = utils.clamp(index, 0, len(self._animations) - 1)
 
-        self._currentAnimationIndex = index
-        self._currentAnimation = self._animations[index]
+        self._current_animation_index = index
+        self._current_animation = self._animations[index]
 
     def animation_at(self, index):
         index = utils.clamp(index, 0, len(self._animations) - 1)
@@ -157,28 +215,25 @@ class Sprite(object):
     def add_animation(self):
 
         name = 'Animation ' + str(len(self._animations) + 1)
-        new_animation = Animation(name)
-
-        if self._currentAnimation is not None:
-            new_animation.add_empty_frame(self._currentAnimation.frame_width(), self._currentAnimation.frame_height())
+        new_animation = Animation(name, self)
 
         self._animations.append(new_animation)
 
-        self._currentAnimation = new_animation
-        self._currentAnimationIndex += 1
+        self._current_animation = new_animation
+        self._current_animation_index += 1
 
     def remove_current_animation(self):
 
-        del self._animations[self._currentAnimationIndex]
+        del self._animations[self._current_animation_index]
 
-        if self._currentAnimationIndex == len(self._animations) - 1:
-            self._currentAnimationIndex -= 1
+        if self._current_animation_index == len(self._animations) - 1:
+            self._current_animation_index -= 1
 
-        self._currentAnimation = self._animations[self._currentAnimationIndex]
+        self._current_animation = self._animations[self._current_animation_index]
 
 
 class Animation(object):
-    def __init__(self, name):
+    def __init__(self, name, sprite):
 
         self._frames = []
         self._currentFrame = None
@@ -186,6 +241,10 @@ class Animation(object):
         self._name = name
         self._frameWidth = 0
         self._frameHeight = 0
+        self._sprite = sprite
+
+    def sprite(self):
+        return self._sprite
 
     def name(self):
         return self._name
@@ -196,12 +255,6 @@ class Animation(object):
 
     def frames(self):
         return self._frames
-
-    def frame_width(self):
-        return self._frameWidth
-
-    def frame_height(self):
-        return self._frameHeight
 
     def frame_count(self):
 
@@ -238,15 +291,7 @@ class Animation(object):
 
             if self._frameWidth < image.width() or self._frameHeight < image.height():
 
-                self.resize(image.width(), image.height())
-
-            elif self._frameWidth > image.width() or self._frameHeight > image.height():
-
-                frame_image = utils.create_image(self._frameWidth, self._frameHeight)
-
-                drawing.paste_image(image, frame_image)
-
-                image = frame_image
+                self._sprite.resize(image.width(), image.height())
 
         new_frame = Frame(self, image)
 
@@ -257,9 +302,9 @@ class Animation(object):
 
         self.set_frame(len(self._frames) - 1)
 
-    def add_empty_frame(self, width, height, at=None):
+    def add_empty_frame(self, at=None):
 
-        frame_image = utils.create_image(width, height)
+        frame_image = utils.create_image(self._sprite.width(), self._sprite.height())
         self.add_frame(frame_image, at)
 
     def remove_frame(self, index=None):
@@ -326,14 +371,6 @@ class Animation(object):
 
         self.set_frame(self._currentFrameIndex - 1)
 
-    def resize(self, width, height):
-
-        for frame in self._frames:
-            frame.resize(width, height)
-
-        self._frameWidth = width
-        self._frameHeight = height
-
 
 class Frame(object):
     def __init__(self, animation, image=None):
@@ -364,20 +401,38 @@ class Frame(object):
         self._currentSurfaceIndex = index
         self._currentSurface = self._surfaces[index]
 
-    def add_empty_surface(self, width, height, at=None):
+    def add_empty_surface(self, at=None):
 
-        surface_image = utils.create_image(width, height)
+        surface_image = utils.create_image(self._animation.sprite().width(), self._animation.sprite().height())
         self.add_surface(surface_image, at)
+
+    def paste_image(self, image):
+
+        if image.width() > self._animation.sprite().width() or image.height() > self._animation.sprite().height():
+
+            self._animation.sprite().resize(image.width(), image.height())
+
+        self.current_surface().paste(image)
 
     def add_surface(self, image, at=None):
 
         sid = len(self._surfaces)
 
-        new_surface = Surface(image, 'Layer ' + str(sid))
-        new_surface._id = sid
+        frame_width = self._animation.sprite().width()
+        frame_height = self._animation.sprite().height()
 
-        if new_surface.width() > self._animation.frame_width() or new_surface.height() > self._animation.frame_height():
-            self._animation.resize(new_surface.width(), new_surface.height())
+        if image.width() > frame_width or image.height() > frame_height:
+
+            frame_width = image.width()
+            frame_height = image.height()
+
+            self._animation.sprite().resize(frame_height, frame_height)
+
+        new_surface = Surface('Layer ' + str(sid), frame_width, frame_height)
+
+        new_surface.paste(image)
+
+        new_surface._id = sid
 
         if at is None:
             self._surfaces.append(new_surface)
@@ -420,6 +475,15 @@ class Frame(object):
     def current_surface_index(self):
         return self._currentSurfaceIndex
 
+    def clone(self):
+
+        clone = Frame(self._animation)
+
+        for surface in self._surfaces:
+            clone.add_surface(surface.image().copy())
+
+        return clone
+
     def flatten(self):
 
         if len(self._surfaces) == 1:
@@ -440,34 +504,19 @@ class Frame(object):
     def resize(self, width, height):
 
         for surface in self._surfaces:
+
             surface.resize(width, height)
 
-    def scale_to_size(self, width, height):
+    def scale(self, scale_width, scale_height):
 
         for surface in self._surfaces:
-            old_width = surface.width()
-            old_height = surface.height()
 
-            surface.scale(width / old_width, height / old_height)
-
-    def scale_to_factor(self, factor):
-
-        for surface in self._surfaces:
-            surface.scale(factor, factor)
-
-    def clone(self):
-
-        clone = Frame(self._animation)
-
-        for surface in self._surfaces:
-            clone.add_surface(surface.image().copy())
-
-        return clone
+            surface.scale(scale_width, scale_height)
 
 
 class Surface(object):
-    def __init__(self, image, name):
-        self._image = image
+    def __init__(self, name, width, height):
+        self._image = utils.create_image(width, height)
         self._name = name
         self._bytes = None
         self._id = 0
@@ -488,6 +537,7 @@ class Surface(object):
         return self._id
 
     def resize(self, width, height):
+
         new_image = utils.create_image(width, height)
 
         painter = QPainter(new_image)
@@ -496,14 +546,29 @@ class Surface(object):
 
         self._image = new_image
 
-    def scale(self, scale_x, scale_y):
+    def scale(self, scale_width, scale_height):
+
         cur_width = self.width()
         cur_height = self.height()
 
-        new_width = cur_width * scale_x
-        new_height = cur_height * scale_y
+        new_width = cur_width * scale_width
+        new_height = cur_height * scale_height
 
         self._image = self._image.scaled(new_width, new_height)
+
+    def paste(self, image, x=None, y=None):
+
+        painter = QPainter(self._image)
+
+        if x is None:
+
+            x = self._image.width() // 2 - image.width() // 2
+
+        if y is None:
+
+            y = self._image.height() // 2 - image.height() // 2
+
+        painter.drawImage(x, y, image)
 
     def __getstate__(self):
         if self._bytes is None or self._bytes.isEmpty():
@@ -519,4 +584,3 @@ class Surface(object):
         self.__dict__.update(state)
         self._image = utils.byte_array_to_image(self._bytes)
         self._bytes.clear()
-

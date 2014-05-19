@@ -149,6 +149,8 @@ class AnimationManager(QWidget):
 
         self._refreshSpeed = 16
 
+        self._refreshing = False
+
         self._refreshTimer = QTimer()
         self._refreshTimer.timeout.connect(self._refresh_event)
         self._refreshTimer.stop()
@@ -277,7 +279,7 @@ class AnimationManager(QWidget):
         if self._sprite is None:
             return
 
-        self._sprite.addAnimation()
+        self._sprite.add_animation()
 
         self._update_animation_combo()
 
@@ -288,7 +290,7 @@ class AnimationManager(QWidget):
         if self._sprite is None:
             return
 
-        self._sprite.setAnimation(index)
+        self._sprite.set_animation(index)
 
         self.animationSelectedChanged.emit(self._sprite.current_animation())
 
@@ -308,7 +310,7 @@ class AnimationManager(QWidget):
 
         current_animation = self._sprite.current_animation()
 
-        current_animation.add_empty_frame(current_animation.frame_width(), current_animation.frame_height())
+        current_animation.add_empty_frame()
 
         self._frameStrip.update_size()
 
@@ -415,7 +417,7 @@ class AnimationManager(QWidget):
         if self._sprite is None:
             return
 
-        if self._sprite.current_animationIndex() != index:
+        if self._sprite.current_animation_index() != index:
             self.set_animation(index)
 
     def _on_animation_combo_edited(self, new_text):

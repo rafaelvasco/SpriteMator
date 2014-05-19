@@ -138,7 +138,6 @@ class Display(QWidget):
 
         scale_transform.translate(-x, -y)
 
-        #utils.multiply_matrix(self._scaleTransform, scale_transform)
         self._scaleTransform *= scale_transform
 
         self.update()
@@ -304,56 +303,3 @@ class Display(QWidget):
             self.zoom(2.0, self._globalMousePos)
         else:
             self.zoom(0.5, self._globalMousePos)
-
-    def keyPressEvent(self, e):
-
-        if self.current_object_size().isEmpty():
-            return
-
-        if e.key() == Qt.Key_Left:
-
-            self.pan(round(-1), 0)
-
-        elif e.key() == Qt.Key_Right:
-
-            self.pan(round(1), 0)
-
-        elif e.key() == Qt.Key_Up:
-
-            self.pan(0, round(-1))
-
-        elif e.key() == Qt.Key_Down:
-
-            self.pan(0, round(1))
-
-        elif e.key() == Qt.Key_F:
-
-            self.toggle_fit_in_view()
-
-        elif e.key() == Qt.Key_A:
-
-            self.set_maintain_aspect_ratio(not self._maintainAspectRatio)
-
-        elif e.key() == Qt.Key_R:
-
-            self.reset_view()
-
-        elif e.key() == Qt.Key_1:
-
-            self.zoom_to(1.0)
-
-        elif e.key() == Qt.Key_2:
-
-            self.zoom_to(2.0)
-
-        elif e.key() == Qt.Key_3:
-
-            self.zoom_to(3.0)
-
-        elif e.key() == Qt.Key_4:
-
-            self.zoom_to(4.0)
-
-        elif e.key() == Qt.Key_5:
-
-            self.zoom_to(5.0)

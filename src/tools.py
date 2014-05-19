@@ -1,5 +1,5 @@
 #--------------------------------------------------
-# Purpose:          Concentrates the funcionalities of all tools of Canvas like Pen, Picker, Rectangle etc.
+# Purpose:          Defines default set of Canvas Tools
 #
 # Author:           Rafael Vasco
 # Date:             31/03/13
@@ -8,11 +8,10 @@
 
 from quickpixler import floodFill
 
-from PyQt5.QtCore import QPoint, Qt
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPen, QColor, QIcon, QPixmap
 
 import src.drawing as drawing
-import src.utils as utils
 from src.resources_cache import ResourcesCache
 from src.properties import PropertyHolder
 
@@ -56,13 +55,13 @@ class Tool(PropertyHolder):
 
         return self._uses_painter
 
-    def on_mouse_press(self, canvas, painter):
+    def on_mouse_press(self, canvas, painter, event):
         pass
 
-    def on_mouse_move(self, canvas, painter):
+    def on_mouse_move(self, canvas, painter, event):
         pass
 
-    def on_mouse_release(self, canvas, painter):
+    def on_mouse_release(self, canvas, painter, event):
         pass
 
     def draw(self, canvas, painter):
@@ -101,11 +100,11 @@ class Picker(Tool):
         painter.drawLine(x, y - size_by_8, x, y + size_by_8)
         painter.drawLine(x - size_by_8, y, x + size_by_8, y)
 
-    def on_mouse_press(self, canvas, painter):
+    def on_mouse_press(self, canvas, painter, event):
 
         mouse_state = canvas.mouse_state()
 
-        picked_color = QColor(canvas.drawing_surface().pixel(mouse_state.sprite_mouse_position()))
+        picked_color = QColor(canvas.current_drawing_surface().pixel(mouse_state.sprite_mouse_position()))
         canvas.colorPicked.emit(picked_color, mouse_state.last_button_pressed())
 
         if self.property_value('returnlasttool'):
@@ -123,6 +122,9 @@ class Pen(Tool):
         self._deltaY = 0
 
         self.set_name('Pen')
+
+        self._lock_horizontal = False
+        self._lock_vertical = False
 
         self._icon = QIcon()
         self._icon.addPixmap(QPixmap(":/icons/ico_pen"), QIcon.Normal, QIcon.Off)
@@ -195,6 +197,12 @@ class Pen(Tool):
         mouse_pos = canvas.mouse_state().sprite_mouse_position()
         last_mouse_pos = canvas.mouse_state().last_sprite_mouse_position()
 
+        if self._lock_horizontal and not self._lock_vertical:
+            mouse_pos.setY(last_mouse_pos.y())
+
+        elif self._lock_vertical and not self._lock_horizontal:
+            mouse_pos.setX(last_mouse_pos.x())
+
         delta_x = abs(mouse_pos.x() - last_mouse_pos.x())
         delta_y = abs(mouse_pos.y() - last_mouse_pos.y())
 
@@ -219,15 +227,33 @@ class Pen(Tool):
             elif delta_x == 1 or delta_y == 1 or just_pressed:
                 ink.blit(mouse_pos.x(), mouse_pos.y(), size, size, color, painter)
 
-    def on_mouse_press(self, canvas, painter):
+    def on_mouse_press(self, canvas, painter, event):
 
         self._blit(canvas, painter, just_pressed=True)
 
-    def on_mouse_move(self, canvas, painter):
+    def on_mouse_move(self, canvas, painter, event):
+
+        if event.modifiers() & Qt.ControlModifier:
+
+            self._lock_horizontal = True
+            self._lock_vertical = False
+
+        elif event.modifiers() & Qt.AltModifier:
+
+            self._lock_horizontal = False
+            self._lock_vertical = True
+
+        else:
+
+            self._lock_vertical = self._lock_horizontal = False
 
         if canvas.mouse_state().is_mouse_pressing():
 
             self._blit(canvas, painter, just_pressed=False)
+
+    def on_mouse_release(self, canvas, painter, event):
+
+        self._lock_horizontal = self._lock_vertical = False
 
 # ======================================================================================================================
 
@@ -256,9 +282,9 @@ class Filler(Tool):
 
         painter.drawPixmap(x - cursor_w // 2, y - cursor_h // 2, self._cursorPixmap)
 
-    def on_mouse_press(self, canvas, painter):
+    def on_mouse_press(self, canvas, painter, event):
 
-        image = canvas.drawing_surface()
+        image = canvas.current_drawing_surface()
         button = canvas.mouse_state().last_button_pressed()
         mouse_pos = canvas.mouse_state().sprite_mouse_position()
 

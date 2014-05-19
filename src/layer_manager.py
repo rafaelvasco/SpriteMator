@@ -89,6 +89,8 @@ class LayerManager(QWidget):
 
         self._sprite = None
 
+        self.setAcceptDrops(True)
+
     def set_sprite(self, sprite):
 
         self._sprite = sprite
@@ -142,11 +144,12 @@ class LayerManager(QWidget):
         animation = self._sprite.current_animation()
 
         if source_image is None:
-            width = animation.frame_width()
-            height = animation.frame_height()
-            source_image = utils.create_image(width, height)
 
-        animation.current_frame().add_surface(source_image, at)
+            animation.current_frame().add_empty_surface()
+
+        else:
+
+            animation.current_frame().add_surface(source_image, at)
 
         self.refresh()
 
@@ -183,6 +186,25 @@ class LayerManager(QWidget):
         self._refreshTimer.stop()
 
         self._refreshing = False
+
+    def dragEnterEvent(self, e):
+        if e.mimeData().hasUrls():
+            e.accept()
+        else:
+            e.ignore()
+
+    def dragMoveEvent(self, e):
+
+        super(LayerManager, self).dragMoveEvent(e)
+
+    def dropEvent(self, e):
+        if e.mimeData().hasUrls():
+
+            for url in e.mimeData().urls():
+
+                image = utils.load_image(url.toLocalFile())
+
+                self.add_layer(image)
 
     def _on_add_layer_btn_clicked(self):
 

@@ -2,3 +2,4 @@
 /ui/__pycache__
 /.idea
 build
+*.log

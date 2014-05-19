@@ -9,16 +9,6 @@
 # Licence:     <your licence>
 #-----------------------------------------------------------------------------------------------------------------------
 
-from PyQt5.QtGui import QPainter
-
-
-def paste_image(image_to_paste, target_image):
-    
-    painter = QPainter()
-    painter.begin(target_image)
-    painter.drawImage(0, 0, image_to_paste)
-    painter.end()
-
 
 def draw_line(start, end, size, ink, color, painter):
 

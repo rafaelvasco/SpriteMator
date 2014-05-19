@@ -156,7 +156,7 @@ class AnimationDisplay(Display):
 
         self._animation = animation
 
-        self.set_object_size(self._animation.frame_width(), self._animation.frame_height())
+        self.set_object_size(self._animation.sprite().width(), self._animation.sprite().height())
 
         self._currentFrame = 0
 

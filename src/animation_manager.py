@@ -15,8 +15,10 @@ from PyQt5.QtCore import Qt, QSize, pyqtSignal, QTimer, QRect
 from PyQt5.QtGui import QIcon, QPixmap, QPen, QPainter, QColor
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QComboBox, QLabel, QPushButton
 
+import src.utils as utils
 from src.sprite import Animation
 from src.resources_cache import ResourcesCache
+
 
 #-----------------------------------------------------------------------------------------------------------------------
 
@@ -34,7 +36,11 @@ class FrameStrip(QWidget):
 
         self._frameSize = 70
 
+        self._max_frames_on_view = 6
+
         self._framePadding = 4
+
+        self._horizontal_shift = 0
 
         self._pen = QPen(QColor(0, 179, 255))
         self._pen.setCapStyle(Qt.SquareCap)
@@ -42,6 +48,8 @@ class FrameStrip(QWidget):
         self._pen.setWidth(4.0)
 
         self.setContentsMargins(0, 0, 0, 0)
+
+
 
         self.setMinimumSize(self._frameSize + self._framePadding * 2, self._frameSize + self._framePadding * 2)
         self.setMaximumHeight(self._frameSize + self._framePadding * 2)
@@ -52,27 +60,58 @@ class FrameStrip(QWidget):
 
         self._sprite = sprite
 
-        self.update_size()
+        self.update_strip_layout()
 
-        self.update()
+    def frame_size(self):
 
-    def update_size(self):
+        return self._frameSize
+
+    def total_frame_size(self):
+
+        return self._frameSize + self._framePadding*2
+
+    def set_max_frames_on_view(self, v):
+
+        self._horizontal_shift = 0
+        self._max_frames_on_view = v
+        self.update_strip_layout()
+
+    def update_strip_layout(self):
 
         if self._sprite is None:
             self.setMinimumSize(self._frameSize + self._framePadding * 2, self._frameSize + self._framePadding * 2)
             return
 
+
+        self.setMinimumSize((self._frameSize + self._framePadding * 2) * self._max_frames_on_view, self._frameSize + self._framePadding * 2)
+
         count = self._sprite.current_animation().frame_count()
 
-        self.setMinimumSize(self._frameSize * count + self._framePadding * count * 2,
-                            self._frameSize + self._framePadding * 2)
+
+        new_width = self._frameSize * count + self._framePadding * count * 2
+
+        if count <= self._max_frames_on_view:
+            if self._horizontal_shift != 0:
+                self._horizontal_shift = 0
+
+            self.setMinimumSize(new_width, self._frameSize + self._framePadding * 2)
+
+        else:
+
+            current_frame_index = self._sprite.current_animation().current_frame_index()
+
+            if (current_frame_index + 1) > self._max_frames_on_view:
+                self._horizontal_shift = ((current_frame_index+1) - self._max_frames_on_view) * (self._frameSize + 2 * self._framePadding)
+            else:
+                self._horizontal_shift = 0
+
+        self.update()
 
     def mousePressEvent(self, e):
 
         pos = e.pos()
 
-        clicked_index = int(math.floor(pos.x() / (self._frameSize + self._framePadding)))
-
+        clicked_index = int(math.floor((pos.x()+self._horizontal_shift) / (self._frameSize + self._framePadding*2)))
         current_index = self._sprite.current_animation().current_frame_index()
 
         if clicked_index != current_index:
@@ -80,15 +119,33 @@ class FrameStrip(QWidget):
 
     def wheelEvent(self, e):
 
-        delta = e.delta()
+        delta = e.angleDelta().y()
+
+        excedent_frames =  self._sprite.current_animation().frame_count() - self._max_frames_on_view
+
+        if excedent_frames < 0:
+            excedent_frames = 0
+
+        total_frame_size = self._frameSize + 2 * self._framePadding
 
         if delta > 0:
 
-            self.frameSelectedChanged.emit(self._sprite.current_animation().current_frame_index() + 1)
+            self._horizontal_shift += total_frame_size
+
+            if self._horizontal_shift > excedent_frames * total_frame_size:
+                self._horizontal_shift = excedent_frames * total_frame_size
+
+            self.update()
+
 
         elif delta < 0:
 
-            self.frameSelectedChanged.emit(self._sprite.current_animation().current_frame_index() - 1)
+            self._horizontal_shift -= self._frameSize + 2 * self._framePadding
+
+            if self._horizontal_shift < -excedent_frames * total_frame_size + excedent_frames * total_frame_size:
+                self._horizontal_shift = -excedent_frames * total_frame_size + excedent_frames * total_frame_size
+
+            self.update()
 
     def paintEvent(self, e):
 
@@ -103,6 +160,10 @@ class FrameStrip(QWidget):
         half_padding = frame_padding // 2
         two_padding = frame_padding * 2
 
+        if self._horizontal_shift != 0:
+
+            p.translate(-self._horizontal_shift, 0)
+
         for frameIndex, frame in enumerate(frame_list):
 
             surfaces = frame.surfaces()
@@ -112,6 +173,8 @@ class FrameStrip(QWidget):
                 frame_padding,
                 frame_size,
                 frame_size)
+
+
 
             if current_frame_index == frameIndex:
                 p.setPen(self._pen)
@@ -127,6 +190,10 @@ class FrameStrip(QWidget):
             for surface in surfaces:
                 p.drawImage(frame_rect, surface.image(), surface.image().rect())
 
+            p.setPen(Qt.black)
+            p.drawText(frame_rect.left() + two_padding, frame_rect.top() + two_padding*2, str(frameIndex+1))
+
+
     def sizeHint(self):
 
         return QSize(self._frameSize, self._frameSize)
@@ -140,12 +207,15 @@ class AnimationManager(QWidget):
 
         super(AnimationManager, self).__init__()
 
+        self.setAcceptDrops(True)
+
         self._sprite = None
 
         self._frameStrip = FrameStrip()
         self._frameStrip.frameSelectedChanged.connect(self._on_framestrip_frame_selected_changed)
 
         main_layout = QHBoxLayout()
+        main_layout.setAlignment(Qt.AlignLeft)
 
         self._refreshSpeed = 16
 
@@ -224,24 +294,26 @@ class AnimationManager(QWidget):
         icon_copy_frame = QIcon()
         icon_copy_frame.addPixmap(QPixmap(":/icons/ico_copy_frame"))
 
+        strip_frame_size = self._frameStrip.frame_size()
+
         self._copyFrameButton = QPushButton()
         self._copyFrameButton.clicked.connect(self._on_copy_frame_clicked)
         self._copyFrameButton.setObjectName('copy-frame-button')
         self._copyFrameButton.setIcon(icon_copy_frame)
         self._copyFrameButton.setIconSize(QSize(41, 41))
-        self._copyFrameButton.setMinimumSize(70, 70)
+        self._copyFrameButton.setMinimumSize(strip_frame_size, strip_frame_size)
 
         self._addFrameButton = QPushButton()
         self._addFrameButton.clicked.connect(self._on_add_frame_clicked)
         self._addFrameButton.setIcon(icon_add)
         self._addFrameButton.setIconSize(QSize(6, 6))
-        self._addFrameButton.setMinimumSize(70, 70)
+        self._addFrameButton.setMinimumSize(strip_frame_size, strip_frame_size)
 
         self._removeFrameButton = QPushButton()
         self._removeFrameButton.clicked.connect(self._on_remove_frame_clicked)
         self._removeFrameButton.setIcon(icon_remove)
         self._removeFrameButton.setIconSize(QSize(6, 6))
-        self._removeFrameButton.setMinimumSize(70, 70)
+        self._removeFrameButton.setMinimumSize(strip_frame_size, strip_frame_size)
 
         frame_layout.addWidget(self._frameStrip)
         frame_layout.addWidget(self._copyFrameButton)
@@ -270,10 +342,6 @@ class AnimationManager(QWidget):
 
         self._frameStrip.set_sprite(None)
 
-        self._frameStrip.update_size()
-
-        self.update()
-
     def add_animation(self):
 
         if self._sprite is None:
@@ -282,6 +350,8 @@ class AnimationManager(QWidget):
         self._sprite.add_animation()
 
         self._update_animation_combo()
+
+        self._frameStrip.update_strip_layout()
 
         self.animationSelectedChanged.emit(self._sprite.current_animation())
 
@@ -292,6 +362,8 @@ class AnimationManager(QWidget):
 
         self._sprite.set_animation(index)
 
+        self._frameStrip.update_strip_layout()
+
         self.animationSelectedChanged.emit(self._sprite.current_animation())
 
     def remove_current_animation(self):
@@ -299,9 +371,13 @@ class AnimationManager(QWidget):
         if self._sprite is None:
             return
 
-        self._sprite.removecurrent_animation()
+        self._sprite.remove_current_animation()
 
         self._update_animation_combo()
+
+        self._frameStrip.update_strip_layout()
+
+        self.animationSelectedChanged.emit(self._sprite.current_animation())
 
     def add_frame(self):
 
@@ -312,9 +388,7 @@ class AnimationManager(QWidget):
 
         current_animation.add_empty_frame()
 
-        self._frameStrip.update_size()
-
-        self.update()
+        self._frameStrip.update_strip_layout()
 
         self.frameSelectedChanged.emit(current_animation.current_frame_index())
 
@@ -330,9 +404,7 @@ class AnimationManager(QWidget):
         if animation.frame_count() == 0:
             self.add_frame()
 
-        self._frameStrip.update_size()
-
-        self.update()
+        self._frameStrip.update_strip_layout()
 
         self.frameSelectedChanged.emit(self._sprite.current_animation().current_frame_index())
 
@@ -345,9 +417,7 @@ class AnimationManager(QWidget):
 
         current_animation.copy_frame(index)
 
-        self._frameStrip.update_size()
-
-        self.update()
+        self._frameStrip.update_strip_layout()
 
         self.frameSelectedChanged.emit(current_animation.current_frame_index())
 
@@ -404,6 +474,40 @@ class AnimationManager(QWidget):
         self._refreshTimer.stop()
         self._refreshing = False
 
+
+    def on_window_resize(self, size):
+
+        frame_strip_max_frames = int(math.floor((size.width() - (488)) / (self._frameStrip.total_frame_size())))
+        self._frameStrip.set_max_frames_on_view(frame_strip_max_frames)
+
+
+    def dragEnterEvent(self, e):
+        if e.mimeData().hasUrls():
+            e.accept()
+        else:
+            e.ignore()
+
+    def dragMoveEvent(self, e):
+
+        super(AnimationManager, self).dragMoveEvent(e)
+
+    def dropEvent(self, e):
+        if e.mimeData().hasUrls():
+
+            current_animation = self._sprite.current_animation()
+
+            for url in e.mimeData().urls():
+
+                image = utils.load_image(url.toLocalFile())
+
+                current_animation.add_frame(image)
+
+            self._frameStrip.update_strip_layout()
+
+            self.frameSelectedChanged.emit(current_animation.current_frame_index())
+
+            self.update()
+
     def _on_add_animation_clicked(self):
 
         self.add_animation()
@@ -446,6 +550,11 @@ class AnimationManager(QWidget):
     def _refresh_event(self):
 
         self.update()
+
+    def _check_strip_size(self):
+
+        if self._frameStrip.width() > self.width():
+            self._frameStrip.advance_view()
 
     def _update_animation_combo(self):
 

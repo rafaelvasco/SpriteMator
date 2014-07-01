@@ -10,11 +10,9 @@
 #-----------------------------------------------------------------------------------------------------------------------
 
 
-from PyQt5.QtCore import QPointF, QPoint, Qt, QSize
+from PyQt5.QtCore import QPointF, QPoint, Qt, QSize, QRect
 from PyQt5.QtGui import QPainter, QTransform, QColor
 from PyQt5.QtWidgets import QWidget
-
-import src.utils as utils
 
 from src.resources_cache import ResourcesCache
 
@@ -82,6 +80,10 @@ class Display(QWidget):
     def current_object_size(self):
 
         return self._currentObjectSize
+
+    def current_object_bounding_box(self):
+
+        return QRect(0, 0, self._currentObjectSize.width(), self._currentObjectSize.height())
 
     def set_object_size(self, width, height):
 

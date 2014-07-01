@@ -23,6 +23,7 @@ from src.animation_manager import AnimationManager
 from src.resources_cache import ResourcesCache
 import src.appdata as app_data
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -154,6 +155,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def resizeEvent(self, e):
 
         self.rightPanel.setMaximumWidth(round(0.37 * e.size().width()))
+        self._animationManager.on_window_resize(e.size())
 
     def _initialize_components(self):
 

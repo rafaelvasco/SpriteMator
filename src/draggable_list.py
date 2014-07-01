@@ -10,7 +10,12 @@
 #-----------------------------------------------------------------------------------------------------------------------
 from PyQt5.QtCore import Qt, pyqtSignal, QRect
 from PyQt5.QtGui import QPainter, QColor
-from PyQt5.QtWidgets import QWidget, QSizePolicy
+from PyQt5.QtWidgets import QWidget, \
+                            QSizePolicy, \
+                            QListWidget, \
+                            QListWidgetItem, \
+                            QAbstractItemView, \
+                            QApplication
 
 
 class ListItem(object):
@@ -301,7 +306,8 @@ class DraggableListWidget(QWidget):
 
         for layerItem in self._items:
 
-            if layerItem.is_being_dragged(): continue
+            if layerItem.is_being_dragged():
+                continue
 
             layer_item_top = layerItem.top()
             layer_item_bottom = layerItem.bottom()
@@ -387,7 +393,8 @@ class DraggableListWidget(QWidget):
 
     def mousePressEvent(self, e):
 
-        if self._draggedItem is not None: return
+        if self._draggedItem is not None:
+            return
 
         pointer_x = e.pos().y() - self._scrollOffset
 
@@ -483,3 +490,95 @@ class DraggableListWidget(QWidget):
             self.update()
 
 #-------------------------------------------------------------------------------
+
+
+class DraggableListWidget2(QListWidget):
+
+    itemMoved = pyqtSignal(int, int, QListWidgetItem)
+
+    def __init__(self):
+        super(DraggableListWidget2, self).__init__()
+        self._initUi()
+        self._draggedItem = None
+        self._draggedRow = None
+
+    def _initUi(self):
+        self.setMouseTracking(True)
+        self.setSelectionRectVisible(False)
+        self.setDragEnabled(True)
+        self.setAcceptDrops(True)
+        self.setDragDropMode(QAbstractItemView.InternalMove)
+
+        self.itemSelectionChanged.connect(self._onItemSelected)
+        self.itemMoved.connect(self._onItemMoved)
+
+    def paintEvent(self, e):
+
+        p = QPainter(self)
+
+        p.fillRect(e.rect(), QColor(20,20,20))
+
+        super(DraggableListWidget2, self).paintEvent(e)
+
+    def dropEvent(self, e):
+
+        super(DraggableListWidget2, self).dropEvent(e)
+
+        print(self.row(self._draggedItem))
+
+        self.itemMoved.emit(self._draggedRow, self.row(self._draggedItem), self._draggedItem)
+
+    def startDrag(self, e):
+
+        self._draggedItem = self.currentItem()
+        self._draggedRow= self.row(self._draggedItem)
+
+        super(DraggableListWidget2, self).startDrag(e)
+
+    def _onItemSelected(self):
+        pass
+
+    def _onItemMoved(self, original_index, new_index, item):
+
+        pass
+
+
+class DraggableListItem(QListWidgetItem):
+
+    def __init__(self, title):
+        super(DraggableListItem, self).__init__()
+
+        self.setText(title)
+
+    def set_draggable(self, draggable):
+
+        if draggable:
+
+            self.setFlags(self.flags() | Qt.ItemIsDragEnabled)
+
+        else:
+
+            self.setFlags(self.flags() & ~Qt.ItemIsDragEnabled)
+
+
+if __name__ == "__main__":
+
+    import sys
+
+    app = QApplication(sys.argv)
+
+    listWidget = DraggableListWidget2()
+
+    listWidget.addItem(DraggableListItem('Item1'))
+    listWidget.addItem(DraggableListItem('Item2'))
+    listWidget.addItem(DraggableListItem('Item3'))
+
+    item = DraggableListItem('Item4')
+    item.set_draggable(False)
+
+    listWidget.addItem(item)
+
+
+    listWidget.show()
+
+    sys.exit(app.exec_())

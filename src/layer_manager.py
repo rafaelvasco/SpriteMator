@@ -15,15 +15,19 @@ from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QSizePolicy
 from src.draggable_list import DraggableListWidget, ListItem
 import src.utils as utils
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 
 class LayerListItem(ListItem):
-    def __init__(self, parent, label, image):
+    def __init__(self, parent, layer):
 
-        super().__init__(parent, label)
+        super().__init__(parent, layer.name())
 
-        self._layerImage = image
+        self._layerImage = layer.image()
+
+        self._layer = layer
+
 
     def draw_content(self, painter, draw_area):
 
@@ -31,27 +35,33 @@ class LayerListItem(ListItem):
 
         painter.drawText(20, self._top + 20, self._label)
 
-        if self._layerImage is not None:
-            image_rect = QRect(draw_area.right() - 55, draw_area.top() + draw_area.height() / 2 - 24, 48, 48)
+        icon = self._layer.image()
 
-            border = self._borderColor if not self._selected else self._borderColorSelected
+        # Draw Icon
 
-            painter.setPen(border)
+        icon_draw_area = QRect(draw_area.right() - 55, draw_area.top() + draw_area.height() / 2 - 24, 48, 48)
 
-            image_rect.adjust(0, 0, -1, -1)
+        border = self._borderColor if not self._selected else self._borderColorSelected
 
-            painter.drawRect(image_rect)
+        painter.setPen(border)
 
-            image_rect.adjust(1, 1, -1, -1)
+        icon_draw_area.adjust(0, 0, -1, -1)
 
-            painter.setPen(Qt.black)
-            painter.drawRect(image_rect)
+        painter.drawRect(icon_draw_area)
 
-            image_rect.adjust(1, 1, 0, 0)
+        icon_draw_area.adjust(1, 1, -1, -1)
 
-            painter.fillRect(image_rect, Qt.white)
-            painter.drawImage(image_rect, self._layerImage,
-                              QRect(0, 0, self._layerImage.width(), self._layerImage.height()))
+        painter.setPen(Qt.black)
+        painter.drawRect(icon_draw_area)
+
+        icon_draw_area.adjust(1, 1, 0, 0)
+
+        painter.fillRect(icon_draw_area, Qt.white)
+
+        if icon is not None:
+
+            painter.drawImage(icon_draw_area, icon,
+                              QRect(0, 0, icon.width(), icon.height()))
 
 
 class LayerManager(QWidget):
@@ -115,7 +125,7 @@ class LayerManager(QWidget):
         self._listWidget.clear()
 
         for surface in frame.surfaces():
-            layer_item = LayerListItem(self._listWidget, surface.name(), surface.image())
+            layer_item = LayerListItem(self._listWidget, surface)
 
             self._listWidget.add_item(layer_item)
 
@@ -153,14 +163,14 @@ class LayerManager(QWidget):
 
         self.refresh()
 
-    def delete_layer(self, index):
+    def delete_layer(self):
 
         if self._sprite is None:
             return
 
         frame = self._sprite.current_animation().current_frame()
 
-        frame.remove_surface(index)
+        frame.remove_current_surface()
 
         self.refresh()
 

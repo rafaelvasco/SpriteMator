@@ -28,8 +28,14 @@ class Application(QApplication):
     resources = {}
 
     #TODO add indication if file is modified / saved
-    #TODO fix animation strip add scrolling
     #TODO Decide on resizing logistic
+    #TODO Add tolerance to Filler
+    #TODO Layers: Add Change Opacity, Visibility
+    #TODO Add Import and Export from Spritesheets
+
+    #TODO [Post 1.0] Add Effects Support
+    #TODO [Post 1.0] Add More Tools : Move, Square, Circle, Line, Color Replacer, Text
+    #TODO [Post 1.0] Add More Inks: Add, Bright, Dark, Tile, Grain, H. Grad, V. Grad, Jumnble, Sweep
 
     def __init__(self, args):
 
@@ -167,7 +173,8 @@ class Application(QApplication):
 
             try:
 
-                Sprite.export(self._current_sprite, target_folder)
+                #Sprite.export(self._current_sprite, target_folder)
+                Sprite.export_to_spritesheet(self._current_sprite, target_folder)
 
             except Exception as e:
 

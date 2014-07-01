@@ -126,6 +126,8 @@ class Pen(Tool):
         self._lock_horizontal = False
         self._lock_vertical = False
 
+        self._was_locking_mouse = False
+
         self._icon = QIcon()
         self._icon.addPixmap(QPixmap(":/icons/ico_pen"), QIcon.Normal, QIcon.Off)
         self._icon.addPixmap(QPixmap(":/icons/ico_pen_hover"), QIcon.Normal, QIcon.On)
@@ -203,6 +205,11 @@ class Pen(Tool):
         elif self._lock_vertical and not self._lock_horizontal:
             mouse_pos.setX(last_mouse_pos.x())
 
+        elif self._was_locking_mouse and not self._lock_horizontal and not self._lock_vertical:
+            last_mouse_pos.setX(mouse_pos.x())
+            last_mouse_pos.setY(mouse_pos.y())
+            self._was_locking_mouse = False
+
         delta_x = abs(mouse_pos.x() - last_mouse_pos.x())
         delta_y = abs(mouse_pos.y() - last_mouse_pos.y())
 
@@ -235,11 +242,13 @@ class Pen(Tool):
 
         if event.modifiers() & Qt.ControlModifier:
 
+            self._was_locking_mouse = True
             self._lock_horizontal = True
             self._lock_vertical = False
 
         elif event.modifiers() & Qt.AltModifier:
 
+            self._was_locking_mouse = True
             self._lock_horizontal = False
             self._lock_vertical = True
 
@@ -287,6 +296,11 @@ class Filler(Tool):
         image = canvas.current_drawing_surface()
         button = canvas.mouse_state().last_button_pressed()
         mouse_pos = canvas.mouse_state().sprite_mouse_position()
+
+        sprite_bounding_box = canvas.current_object_bounding_box()
+
+        if not sprite_bounding_box.contains(mouse_pos):
+            return
 
         if image is not None:
 

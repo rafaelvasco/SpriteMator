@@ -12,14 +12,15 @@
 from PyQt5.QtCore import Qt, pyqtSignal, QEvent
 from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtGui import QPainter, QColor
-from src.canvas_mouse_state import CanvasMouseState
 
+from src.canvas_mouse_state import CanvasMouseState
 import src.utils as utils
 from src.display import Display
 from src.canvas_overlay import CanvasOverlay
 from src import tools, inks
 from src.toolbox import ToolBox
 from src.tools import Tool
+
 
 #-----------------------------------------------------------------------------------------------------------------------
 
@@ -369,6 +370,9 @@ class Canvas(Display):
         layers = self._sprite.current_animation().current_frame().surfaces()
 
         for layer in layers:
+
+            painter.setOpacity(layer.opacity())
+
             painter.drawImage(0, 0, layer.image())
 
             # if self._drawGrid and self._zoom >= 16.0:

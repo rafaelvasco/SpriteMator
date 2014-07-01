@@ -10,10 +10,13 @@
 import pickle
 import os
 
-
+from PyQt5.QtCore import QPoint
 from PyQt5.QtGui import QPainter
 
 import src.utils as utils
+import src.cropper as cropper
+import src.appdata as appdata
+from src.packer import RectanglePacker
 
 
 class Sprite(object):
@@ -89,9 +92,6 @@ class Sprite(object):
 
         new_sprite = Sprite(width, height)
         new_sprite.add_animation()
-
-        new_sprite.current_animation().add_empty_frame()
-
         return new_sprite
 
     @staticmethod
@@ -177,6 +177,8 @@ class Sprite(object):
 
                     flattened_frame_image = frame.flatten()
 
+                    flattened_frame_image = cropper.crop(flattened_frame_image)
+
                     file_path = os.path.join(animationDirectory, ('frame{0}.png'.format(index)))
 
                     try:
@@ -190,7 +192,72 @@ class Sprite(object):
     @staticmethod
     def export_to_spritesheet(sprite, directory):
 
-        pass
+        packer = RectanglePacker(appdata.max_texture_size,appdata.max_texture_size)
+
+        animation = sprite.animations()[0]
+
+        frames = animation.frames()
+
+        croppedImages = []
+
+        spriteSheetRegions = []
+
+
+        for frame in frames:
+
+            flattenedFrameImage = frame.flatten()
+
+            croppedFrameImage = cropper.crop(flattenedFrameImage)
+
+            croppedImages.append(croppedFrameImage)
+
+        imagesRemaining = len(croppedImages)
+
+        while imagesRemaining > 0:
+
+            for image in croppedImages:
+
+                imageWidth = image.width()
+                imageHeight = image.height()
+
+                point = packer.pack(imageWidth, imageHeight)
+
+                if point is None:
+
+                    raise Exception("Can't fit all sprite frames. Max image size is 4096x4096.")
+
+                imagesRemaining -= 1
+
+                spriteSheetRegions.append((image, point))
+
+
+        spriteSheet = utils.create_image(packer.actual_packing_area_width(),
+                                        packer.actual_packing_area_height())
+
+        painter = QPainter()
+
+        painter.begin(spriteSheet)
+
+        for sprRegion in spriteSheetRegions:
+
+            sprImage = sprRegion[0]
+            targetPoint = QPoint(sprRegion[1].x, sprRegion[1].y)
+
+            painter.drawImage(targetPoint, sprImage)
+
+        painter.end()
+
+        file_path = os.path.join(directory, ('{0}Sheet.png'.format(animation.name())))
+
+        try:
+
+            spriteSheet.save(file_path, "PNG")
+
+        except Exception as e:
+
+            raise e
+
+
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
@@ -216,20 +283,28 @@ class Sprite(object):
 
         name = 'Animation ' + str(len(self._animations) + 1)
         new_animation = Animation(name, self)
+        new_animation.add_empty_frame()
 
         self._animations.append(new_animation)
 
         self._current_animation = new_animation
-        self._current_animation_index += 1
+        self._current_animation_index = len(self._animations) - 1
 
     def remove_current_animation(self):
 
+        previous_length = len(self._animations)
+
         del self._animations[self._current_animation_index]
 
-        if self._current_animation_index == len(self._animations) - 1:
-            self._current_animation_index -= 1
 
-        self._current_animation = self._animations[self._current_animation_index]
+        if len(self._animations) > 0 and self._current_animation_index == previous_length - 1:
+                self._current_animation_index -= 1
+                self._current_animation = self._animations[self._current_animation_index]
+
+        elif len(self._animations) == 0:
+
+            self.add_animation()
+
 
 
 class Animation(object):
@@ -248,6 +323,14 @@ class Animation(object):
 
     def name(self):
         return self._name
+
+    def frameWidth(self):
+
+        return self._frameWidth
+
+    def frameHeight(self):
+
+        return self._frameHeight
 
     def set_name(self, text):
 
@@ -440,20 +523,21 @@ class Frame(object):
             self._surfaces.append(new_surface)
 
         self._currentSurface = new_surface
-        self._currentSurfaceIndex += 1
+        self._currentSurfaceIndex = len(self._surfaces) - 1
 
-    def remove_surface(self, index):
+    def remove_current_surface(self):
 
-        index = utils.clamp(index, 0, len(self._surfaces) - 1)
+        previous_length = len(self._surfaces)
 
-        del self._surfaces[index]
+        del self._surfaces[self._currentSurfaceIndex]
 
-        if self._currentSurfaceIndex == index:
-
-            if self._currentSurfaceIndex > 0:
+        if len(self._surfaces) > 0 and self._currentSurfaceIndex == previous_length - 1:
                 self._currentSurfaceIndex -= 1
+                self._currentSurface = self._surfaces[self._currentSurfaceIndex]
 
-            self._currentSurface = self._surfaces[self._currentSurfaceIndex]
+        elif len(self._surfaces) == 0:
+
+            self.add_empty_surface()
 
     def move_surface(self, from_index, to_index):
 
@@ -520,6 +604,7 @@ class Surface(object):
         self._name = name
         self._bytes = None
         self._id = 0
+        self._opacity = 1.0
 
     def width(self):
         return self._image.width() if self._image is not None else 0
@@ -535,6 +620,12 @@ class Surface(object):
 
     def id(self):
         return self._id
+
+    def opacity(self):
+        return self._opacity
+
+    def set_opacity(self, value):
+        self._opacity = utils.clamp(value, 0.0, 1.0)
 
     def resize(self, width, height):
 

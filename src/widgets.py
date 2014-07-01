@@ -204,14 +204,17 @@ class Button(QAbstractButton):
 class Slider(QWidget):
     valueChanged = pyqtSignal(int)
 
-    def __init__(self, min_value, max_value):
+    def __init__(self, min_value, max_value, step=None):
 
         super(Slider, self).__init__()
+
+        if step is None:
+            step = 1
 
         self._value = 0
         self._minValue = min_value
         self._maxValue = max_value
-        self._step = 1
+        self._step = step
         self._thumbWidth = 20
         self._thumbRect = QRect()
         self._slidingAreaRect = QRect()
@@ -223,6 +226,8 @@ class Slider(QWidget):
         self._sliding = False
 
         self._fontMetrics = QFontMetrics(self.font())
+
+        self._update_thumb()
 
     def value(self):
 
@@ -276,11 +281,17 @@ class Slider(QWidget):
 
         self._step = v
 
+    def set_thumb_size(self, size):
+
+        self._thumbWidth = size
+
     def _get_value_from_position(self, pos):
 
         pos -= self._thumbWidth / 2
 
-        size = self.width() - self._thumbWidth
+        width = self.width()
+
+        size = width - self._thumbWidth
 
         if pos > size:
             return self._maxValue
@@ -296,10 +307,12 @@ class Slider(QWidget):
 
         size = self.width() - self._thumbWidth
 
+        height = self.height()
+
         pos = round(max(0, min(size * ((self._value - self._minValue) /
                                        (self._maxValue - self._minValue)), size)))
 
-        self._thumbRect.setRect(pos, 0, self._thumbWidth, self.height())
+        self._thumbRect.setRect(pos, 0, self._thumbWidth, height)
 
         self.update()
 
@@ -311,13 +324,13 @@ class Slider(QWidget):
 
         self._update_thumb()
 
+
     def mousePressEvent(self, e):
 
         self._sliding = True
 
-        mouse_pos = e.pos().x()
+        self.set_value(self._get_value_from_position(e.pos()))
 
-        self.set_value(self._get_value_from_position(mouse_pos))
 
     def mouseReleaseEvent(self, e):
 
@@ -332,35 +345,35 @@ class Slider(QWidget):
 
             self.set_value(self._get_value_from_position(mouse_pos))
 
+
     def wheelEvent(self, e):
 
         self.set_value(self._value + utils.sign(e.angleDelta().y() > 0) * self._step)
 
+
     def paintEvent(self, e):
 
-        draw_rect = e.rect()
+        painter = QPainter(self)
 
-        p = QPainter(self)
+        draw_rect = e.rect()
 
         # SLIDER---------------------------------------------------------------------
 
         # BAR --------
 
-        #bar_rect = draw_rect.adjusted(0, draw_rect.height() / 2, 0, draw_rect.height() * 2)
+        painter.setPen(self._bgColor.lighter(200))
 
-        p.setPen(self._bgColor.lighter(200))
+        painter.drawRect(draw_rect.adjusted(0, 0, -1, -1))
 
-        p.drawRect(draw_rect.adjusted(0, 0, -1, -1))
-
-        p.fillRect(draw_rect.adjusted(1, 1, -1, -1), self._bgColor)
+        painter.fillRect(draw_rect.adjusted(1, 1, -1, -1), self._bgColor)
 
         # THUMB --------
 
-        p.setPen(self._thumbColor.lighter())
+        painter.setPen(self._thumbColor.lighter())
 
-        p.drawRect(self._thumbRect.adjusted(0, 0, -1, -1))
+        painter.drawRect(self._thumbRect.adjusted(0, 0, -1, -1))
 
-        p.fillRect(self._thumbRect.adjusted(1, 1, -1, -1), self._thumbColor)
+        painter.fillRect(self._thumbRect.adjusted(1, 1, -1, -1), self._thumbColor)
 
         # VALUE LABEL --------
 
@@ -376,15 +389,15 @@ class Slider(QWidget):
                                          value_indicator_rect.top(), value_indicator_rect.width(),
                                          value_indicator_rect.height())
 
-        p.setPen(self._indicatorColor.lighter())
+        painter.setPen(self._indicatorColor.lighter())
 
-        p.drawRect(value_indicator_rect.adjusted(0, 0, -1, -1))
+        painter.drawRect(value_indicator_rect.adjusted(0, 0, -1, -1))
 
-        p.fillRect(value_indicator_rect.adjusted(1, 1, -1, -1), self._indicatorColor)
+        painter.fillRect(value_indicator_rect.adjusted(1, 1, -1, -1), self._indicatorColor)
 
-        p.setPen(Qt.white)
+        painter.setPen(Qt.white)
 
-        p.drawText(value_indicator_rect.left() + value_indicator_rect.width() / 2 - value_label_size.width() / 2,
+        painter.drawText(value_indicator_rect.left() + value_indicator_rect.width() / 2 - value_label_size.width() / 2,
                    value_indicator_rect.top() + value_indicator_rect.height() / 2 + value_label_size.height() / 3,
                    value_text)
 

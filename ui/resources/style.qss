@@ -94,10 +94,10 @@ QPushButton
 {
 	
 	background: #3D3D3D;
-	border-top: 1px solid #4D4D4D;
-	border-left: 1px solid #434343;
-	border-right: 1px solid #434343;
-	border-bottom: 1px solid #444;
+	border-top: 1px solid #4f4f4f;
+	border-left: 1px solid #444;
+	border-right: 1px solid #444;
+	border-bottom: 1px solid #333;
 	padding-left: 10px;
     padding-right: 10px;
     padding-top: 7px;
@@ -817,8 +817,8 @@ QSlider::handle:horizontal, QSlider::handle:vertical {
 
 QSlider::handle:horizontal:pressed, QSlider::handle:vertical:pressed
 {
-	background: #286A85;
-	border: 1px solid #19556E;
+	background: #19BCFF;
+	border: 1px solid #19F4FF;
 }
 
 QSlider::add-page:horizontal, QSlider::add-page:vertical

@@ -31,7 +31,9 @@ class Application(QApplication):
     #TODO Decide on resizing logistic
     #TODO Add tolerance to Filler
     #TODO Layers: Add Change Opacity, Visibility
-    #TODO Add Import and Export from Spritesheets
+    #TODO Add Import from Spritesheets
+    #TODO Finish Basic Ink Functionality
+    #TODO Finish Color Palette
 
     #TODO [Post 1.0] Add Effects Support
     #TODO [Post 1.0] Add More Tools : Move, Square, Circle, Line, Color Replacer, Text

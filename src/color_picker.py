@@ -19,6 +19,7 @@ import src.utils as utils
 # ======================================================================================================================
 ColorIndex = utils.enum('Primary', 'Secondary')
 
+# ======================================================================================================================
 
 class ColorBox(QWidget):
     mouseClicked = pyqtSignal(int)
@@ -124,9 +125,7 @@ class ColorBox(QWidget):
 
         return QSize(223, 17)
 
-
 # ======================================================================================================================
-
 
 class ColorRamp:
     @staticmethod
@@ -226,7 +225,6 @@ class ColorRamp:
 
 # ======================================================================================================================
 
-
 class PaletteCell(object):
 
     def __init__(self, index):
@@ -245,6 +243,7 @@ class PaletteCell(object):
 
         self._index += v
 
+# ======================================================================================================================
 
 class ColorPalette(QWidget):
     colorHovered = pyqtSignal(QColor)
@@ -501,7 +500,6 @@ class ColorPalette(QWidget):
     def sizeHint(self):
 
         return QSize(223, 223)
-
 
 # ======================================================================================================================
 
@@ -774,9 +772,7 @@ class ColorSlider(QWidget):
             label_rect.adjust(-200, 0, 0, 0)
             p.drawText(label_rect, Qt.AlignLeft, self._label)
 
-
 # ======================================================================================================================
-
 
 class ColorPicker(QWidget):
     Instance = None
@@ -1184,3 +1180,5 @@ class ColorPicker(QWidget):
                 self._activeColorIndex = ColorIndex.Secondary
 
             self._palette.switch_slot()
+
+# ======================================================================================================================

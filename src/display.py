@@ -1,307 +1,294 @@
-#-----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Name:        Display
-# Purpose:     Represents a generic transformable display
+# Purpose:     Represents the base transformable display that is inherited by the Canvas and the AnimationDisplay
 #
 # Author:      Rafael Vasco
 #
 # Created:     31/03/2013
-# Copyright:   (c) Rafael 2013
+# Copyright:   (c) Rafael Vasco 2014
 # Licence:     <your licence>
 #-----------------------------------------------------------------------------------------------------------------------
 
+from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtGui import QPainter
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene
 
-from PyQt5.QtCore import QPointF, QPoint, Qt, QSize, QRect
-from PyQt5.QtGui import QPainter, QTransform, QColor
-from PyQt5.QtWidgets import QWidget
-
+from src.display_sprite_object import DisplaySpriteObject
 from src.resources_cache import ResourcesCache
+import src.utils as utils
 
+class Display(QGraphicsView):
 
-class Display(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self):
 
-        QWidget.__init__(self, parent)
+        super(Display, self).__init__()
 
-        self._viewportTransform = QTransform()
-        self._translationTransform = QTransform()
-        self._scaleTransform = QTransform()
-        self._combinedTransform = QTransform()
-        self._invertedCombinedTransform = QTransform()
-        self._backgroundColor = QColor(15, 15, 15)
-        self._fitInView = False
-        self._maintainAspectRatio = True
-        self._panning = False
+        self._scene = QGraphicsScene(self)
+
+        self._spriteObject = DisplaySpriteObject()
+
+        self._scene.addItem(self._spriteObject)
+
+        self._backgroundColor = None
+
+        self._backLightOn = True
+
+        self._lightBackgroundPixmap = ResourcesCache.get("CheckerTileLight")
+
+        self._darkBackgroundPixmap = ResourcesCache.get("CheckerTileDark")
+
+        self._lastFocusPoint = QPoint()
+
         self._zoom = 1.0
-        self._globalMousePos = QPointF()
-        self._lastPanPoint = QPointF()
-        self._currentFocusPoint = QPointF()
-        self._keyTranslationVector = QPoint()
-        self._currentObjectSize = QSize()
 
-        self._checkerTileLight = ResourcesCache.get("CheckerTileLight")
-        self._checkerTileDark = ResourcesCache.get("CheckerTileDark")
+        self._fitInView = False
 
-        self._lights_on = True
+        self._panning = False
+
+        self._leftMousePressed = False
+
+        self._spacePressed = False
+
+        self._dragPos = QPoint()
+
+        self.setScene(self._scene)
+
+        self._storedTransform = None
+
+        self.setTransformationAnchor(QGraphicsView.AnchorViewCenter)
+
+        self.setResizeAnchor(QGraphicsView.AnchorViewCenter)
+
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        self.setRenderHint(QPainter.Antialiasing, False)
 
         self.setMouseTracking(True)
-        self.reset_origin()
 
-    def is_panning(self):
 
+    @property
+    def scene(self):
+        return self._scene
+
+    @property
+    def isPanning(self):
         return self._panning
 
-    def zoom_value(self):
+    @property
+    def backgroundColor(self):
+        return self._backgroundColor
 
-        return self._zoom
+    @backgroundColor.setter
+    def backgroundColor(self, value):
 
-    def global_mouse_pos(self):
-        return self._globalMousePos
+        self._backgroundColor = value
+        self._spriteObject.backgroundColor = value
 
-    def object_mouse_pos(self):
-        return self._invertedCombinedTransform.map(self._globalMousePos)
+    def turnBacklightOn(self):
 
-    def view_mouse_pos(self):
+        self._backLightOn = True
+        self._spriteObject.backgroundPixmap = self._lightBackgroundPixmap
 
-        object_mouse_pos = self.object_mouse_pos()
-        obj_size = self._currentObjectSize
-        return QPointF(object_mouse_pos.x() - obj_size.width() // 2,
-                       object_mouse_pos.y() - obj_size.height() // 2)
+    def turnBackLightOff(self):
+
+        self._backLightOn = False
+        self._spriteObject.backgroundPixmap = self._darkBackgroundPixmap
+
+    def toggleBacklight(self):
+
+        self._backLightOn = not self._backLightOn
+
+        if self._backLightOn:
+            self.turnBacklightOn()
+        else:
+            self.turnBackLightOff()
+
+
+    def addObject(self, item):
+
+        self._scene.addItem(item)
 
     def is_fit_in_view(self):
         return self._fitInView
 
-    def set_fit_in_view(self, fit):
+    def resetView(self):
+
+        self.resetTransform()
+
+    def toggleView(self):
+
+        if not self.transform().isIdentity():
+
+            self._storedTransform = self.transform()
+            self.resetTransform()
+
+        else:
+
+            self.setTransform(self._storedTransform)
+
+    def setFitInView(self, fit):
+
         if self._fitInView != fit:
             self._fitInView = fit
-            self._translationTransform.reset()
-            self._scaleTransform.reset()
-            self.update()
 
-    def current_object_size(self):
-
-        return self._currentObjectSize
-
-    def current_object_bounding_box(self):
-
-        return QRect(0, 0, self._currentObjectSize.width(), self._currentObjectSize.height())
-
-    def set_object_size(self, width, height):
-
-        self._currentObjectSize.setWidth(width)
-        self._currentObjectSize.setHeight(height)
-
-    def reset_view(self):
-
-        self._fitInView = False
-        self._zoom = 1.0
-        self.reset_origin()
-        self._translationTransform.reset()
-        self._scaleTransform.reset()
-        self.update()
-
-    def toggle_fit_in_view(self):
-
-        self.set_fit_in_view(not self._fitInView)
-
-    def reset_origin(self):
-        self._currentFocusPoint.setX(self.rect().center().x())
-        self._currentFocusPoint.setY(self.rect().center().y())
-
-    def maintain_aspect_ratio_enabled(self):
-        return self._maintainAspectRatio
-
-    def set_maintain_aspect_ratio(self, maintain):
-        if self._maintainAspectRatio != maintain:
-            self._maintainAspectRatio = maintain
-            self.update()
-
-    def zoom(self, factor, origin):
-
-        self._zoom *= factor
+        self.resetTransform()
 
         if self._fitInView:
-            self._fitInView = False
-            self.update()
 
-        if self._zoom < 1.0:
-            self._zoom = 1.0
-            return
+            # Calculate scale factor to cover view increasing the scale by multiples of 2.0
+            # to keep pixel perfectness
 
-        if self._zoom > 32.0:
-            self._zoom = 32.0
-            return
+            scaleFactorX = self.width() / self._scene.sceneRect().width()
+            scaleFactorY = self.height() / self._scene.sceneRect().height()
 
-        x, y = origin.x(), origin.y()
+            scaleFactor = max(scaleFactorX, scaleFactorY)
 
-        scale_transform = QTransform()
+            scaleFactor = utils.snap_ceil(scaleFactor , 2.0)
 
-        scale_transform.translate(x, y)
-        scale_transform.scale(factor, factor)
+            self.scale(scaleFactor, scaleFactor)
 
-        scale_transform.translate(-x, -y)
 
-        self._scaleTransform *= scale_transform
+    def toggleFitInView(self):
 
-        self.update()
+        self.setFitInView(not self._fitInView)
 
     def zoom_to(self, target_zoom):
 
-        self.reset_view()
+        self._fitInView = False
 
-        self._zoom = target_zoom
+        self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
+        self.scale(target_zoom, target_zoom)
+        self.setTransformationAnchor(QGraphicsView.AnchorViewCenter)
 
-        if self._zoom < 0.0:
-            self._zoom = 0.0
 
-        ox, oy = self._currentFocusPoint.x(), self._currentFocusPoint.y()
+    def resizeEvent(self, e):
 
-        self._scaleTransform.translate(ox, oy)
-        self._scaleTransform.scale(self._zoom, self._zoom)
-        self._scaleTransform.translate(-ox, -oy)
+        clientW = self.width() - 4
+        clientH = self.height() - 4
 
-        self.update()
+        print(clientW, clientH)
 
-    def pan(self, dx, dy):
-
-        if self._fitInView:
-            self._fitInView = False
-
-        self._translationTransform.translate(dx, dy)
-        self.update()
-
-    def pan_to(self, x, y):
-
-        if self._fitInView:
-            self._fitInView = False
-
-        self._translationTransform.reset()
-        self._translationTransform.translate(x, y)
-        self.update()
-
-    def toggle_back_luminosity(self):
-
-        self._lights_on = not self._lights_on
-        self.update()
-
-    def lights_on(self):
-
-        self._lights_on = True
-        self.update()
-
-    def lights_off(self):
-
-        self._lights_on = False
-        self.update()
-
-    def on_draw_object(self, event, painter):
-        return
-
-    def paintEvent(self, event):
-
-        painter = QPainter(self)
-
-        painter.fillRect(self.rect(), self._backgroundColor)
-
-        if not self._currentObjectSize.isValid():
-            return
-
-        view_width = self.width()
-        view_height = self.height()
-
-        object_width = self._currentObjectSize.width()
-        object_height = self._currentObjectSize.height()
-
-        self._viewportTransform.reset()
+        self.setSceneRect(-clientW/2, -clientH/2, clientW, clientH)
 
         if not self._fitInView:
 
-            center_translate_x = round(view_width / 2 - object_width / 2)
-            center_translate_y = round(view_height / 2 - object_height / 2)
-
-            self._viewportTransform.translate(center_translate_x, center_translate_y)
+            self.centerOn(self._lastFocusPoint)
 
         else:
-            final_scale_x = view_width / object_width
-            final_scale_y = view_height / object_height
+            self.centerOn(0,0)
 
-            if self._maintainAspectRatio:
+    def enterEvent(self, e):
 
-                final_scale = (min(final_scale_x, final_scale_y))
+        self.setFocus()
 
-                if final_scale_x > final_scale_y:
-                    center_translate_x = round(view_width / 2 - (object_width * final_scale) / 2)
-                    self._viewportTransform.translate(center_translate_x, 0)
+    def leaveEvent(self, e):
 
-                elif final_scale_x < final_scale_y:
-                    center_translate_y = round(view_height / 2 - (object_height * final_scale) / 2)
-                    self._viewportTransform.translate(0, center_translate_y)
-
-                final_scale_x = final_scale_y = final_scale
-
-            self._viewportTransform.scale(final_scale_x, final_scale_y)
-
-        self._combinedTransform = self._viewportTransform * self._translationTransform * self._scaleTransform
-        self._invertedCombinedTransform = self._combinedTransform.inverted()[0]
-
-        painter.setTransform(self._combinedTransform)
-
-        if self._lights_on:
-
-            painter.drawTiledPixmap(0, 0, object_width, object_height, self._checkerTileLight)
-
-        else:
-
-            painter.drawTiledPixmap(0, 0, object_width, object_height, self._checkerTileDark)
-
-        self.on_draw_object(event, painter)
+        self.clearFocus()
 
     def mousePressEvent(self, e):
 
-        if self.current_object_size().isEmpty():
+        if e.button() == Qt.MiddleButton:
+
+            self.setCursor(Qt.ClosedHandCursor)
+            self._panning = True
+            self._dragPos = e.pos()
+            e.accept()
             return
 
-        if e.button() == Qt.MiddleButton:
-            self._panning = True
-            self._lastPanPoint = e.pos()
-            self.setCursor(Qt.ClosedHandCursor)
+        elif e.button() == Qt.LeftButton:
+
+            self._leftMousePressed = True
+
+            if self._spacePressed:
+                self._panning = True
+                self.setCursor(Qt.ClosedHandCursor)
+                self._dragPos = e.pos()
+                e.accept()
+                return
+
+        super(Display, self).mousePressEvent(e)
+
 
     def mouseReleaseEvent(self, e):
 
-        if self.current_object_size().isEmpty():
-            return
+        if self._panning and e.button() == Qt.MiddleButton:
 
-        if e.button() == Qt.MiddleButton:
-            self._panning = False
             self.setCursor(Qt.ArrowCursor)
+            self._panning = False
+
+        elif e.button() == Qt.LeftButton:
+
+            self._leftMousePressed = False
+
+            if self._panning:
+
+                self._panning = False
+
+                if self._spacePressed:
+
+                    self.setCursor(Qt.OpenHandCursor)
+
+                else:
+
+                    self.setCursor(Qt.ArrowCursor)
+
+        super(Display, self).mouseReleaseEvent(e)
+
+
+    def mouseDoubleClickEvent(self, e): pass
+
 
     def mouseMoveEvent(self, e):
 
-        if self.current_object_size().isEmpty():
-            return
+        if self._panning:
 
-        self._globalMousePos.setX(e.pos().x())
-        self._globalMousePos.setY(e.pos().y())
+            newPos = e.pos()
+            diff = newPos - self._dragPos
+            self._dragPos = newPos
 
-        if not self._panning:
-            return
+            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - diff.x())
+            self.verticalScrollBar().setValue(self.verticalScrollBar().value() - diff.y())
 
-        delta = (e.pos() - self._lastPanPoint)
+        super(Display, self).mouseMoveEvent(e)
 
-        if self._zoom != 1.0:
-            self.pan((delta.x() / self._zoom), (delta.y() / self._zoom))
-        else:
-            self.pan(delta.x(), delta.y())
+    def keyPressEvent(self, e):
 
-        self._lastPanPoint = e.pos()
+        if e.key() == Qt.Key_Space and not self._leftMousePressed:
+
+            self._spacePressed = True
+            self.setCursor(Qt.OpenHandCursor)
+
+        super(Display, self).keyPressEvent(e)
+
+
+    def keyReleaseEvent(self, e):
+
+        if e.key() == Qt.Key_Space:
+            self._spacePressed = False
+
+        if not self._spacePressed and not self._panning:
+
+            self.setCursor(Qt.ArrowCursor)
+
+        super(Display, self).keyReleaseEvent(e)
 
     def wheelEvent(self, e):
 
-        if self.current_object_size().isEmpty():
+        focusPoint = self.mapToScene(e.pos())
+
+        self._lastFocusPoint.setX(round(focusPoint.x()))
+        self._lastFocusPoint.setY(round(focusPoint.y()))
+
+        steps = e.angleDelta().y() / 120
+
+        if steps == 0:
+            e.ignore()
             return
 
-        if e.modifiers() & (Qt.ControlModifier | Qt.AltModifier):
-            return
-        if e.angleDelta().y() > 0:
-            self.zoom(2.0, self._globalMousePos)
-        else:
-            self.zoom(0.5, self._globalMousePos)
+        scale = pow(2.0, steps)
+
+        print(self._zoom)
+
+        self.zoom_to(scale)

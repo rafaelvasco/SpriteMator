@@ -16,6 +16,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSizePolicy
 import src.utils as utils
 
 
+
 # ======================================================================================================================
 ColorIndex = utils.enum('Primary', 'Secondary')
 
@@ -27,11 +28,11 @@ class ColorBox(QWidget):
     def __init__(self, color_a=None, color_b=None):
         super(ColorBox, self).__init__()
 
-        self._previewColor = QColor()
+        self._previewColor = None
         self._primaryColor = QColor(color_a)
         self._secondaryColor = QColor(color_b)
         self._activeColorIndex = ColorIndex.Primary
-        self._background = utils.generate_checker_tile(8, QColor(150, 150, 150), QColor(175, 175, 175))
+        self._background = utils.generateCheckerboardTile(8, QColor(150, 150, 150), QColor(175, 175, 175))
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
     def set_active_color_index(self, index):
@@ -85,7 +86,6 @@ class ColorBox(QWidget):
             self.mouseClicked.emit(1)
 
     def paintEvent(self, e):
-
         p = QPainter(self)
 
         paint_rect = e.rect()
@@ -540,7 +540,7 @@ class ColorSlider(QWidget):
         self._generate_picker()
 
         if alpha is not None:
-            self._background = utils.generate_checker_tile(8, QColor(150, 150, 150), QColor(175, 175, 175))
+            self._background = utils.generateCheckerboardTile(8, QColor(150, 150, 150), QColor(175, 175, 175))
 
     def label(self):
 
@@ -913,6 +913,8 @@ class ColorPicker(QWidget):
             self._on_primary_color_changed(update_alpha_value=False)
 
         elif color_index == ColorIndex.Secondary:
+
+            print('2')
 
             self._secondarySelectedColor.setHsv(h, self._secondarySelectedColor.saturation(),
                                                 self._secondarySelectedColor.value())

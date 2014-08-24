@@ -9,7 +9,7 @@
 from quickpixler import floodFill
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPen, QColor, QIcon, QPixmap
+from PyQt5.QtGui import QPen, QColor, QIcon, QPixmap, QPainter
 
 import src.drawing as drawing
 from src.resources_cache import ResourcesCache
@@ -28,7 +28,7 @@ class Tool(PropertyHolder):
         self._drawPen.setWidth(0)
         self._drawPen.setCapStyle(Qt.SquareCap)
 
-        self._uses_painter = False
+        self._usesPainter = False
 
         self._refreshWaitTime = 0
 
@@ -36,35 +36,40 @@ class Tool(PropertyHolder):
 
         self._icon = None
 
+    @property
     def name(self):
         return self._name
 
-    def set_name(self, name):
+    @name.setter
+    def name(self, value):
+        self._name = value
 
-        self._name = name
-
-    def refresh_wait_time(self):
-
+    @property
+    def refreshWaitTime(self):
         return self._refreshWaitTime
 
-    def icon(self):
+    @refreshWaitTime.setter
+    def refreshWaitTime(self, value):
+        self._refreshWaitTime = value
 
+    @property
+    def icon(self):
         return self._icon
 
-    def uses_painter(self):
+    @property
+    def usesPainter(self):
+        return self._usesPainter
 
-        return self._uses_painter
-
-    def on_mouse_press(self, canvas, painter, event):
+    def onMousePress(self, canvas):
         pass
 
-    def on_mouse_move(self, canvas, painter, event):
+    def onMouseMove(self, canvas):
         pass
 
-    def on_mouse_release(self, canvas, painter, event):
+    def onMouseRelease(self, canvas):
         pass
 
-    def draw(self, canvas, painter):
+    def draw(self, canvas, event):
         pass
 
 # ======================================================================================================================
@@ -78,37 +83,35 @@ class Picker(Tool):
         self._icon = QIcon()
         self._icon.addPixmap(QPixmap(":/icons/ico_picker"), QIcon.Normal, QIcon.Off)
         self._icon.addPixmap(QPixmap(":/icons/ico_picker_hover"), QIcon.Normal, QIcon.On)
-        self.add_property('returnlasttool', True, 'After Picking: Go back to last Tool')
+        self.addProperty('returnlasttool', True, 'After Picking: Go back to last Tool')
 
     def draw(self, canvas, painter):
+        return
+        # x = canvas.mouse_state().canvas_mouse_position().x()
+        # y = canvas.mouse_state().canvas_mouse_position().y()
+        #
+        # size = 16 * canvas.zoom_value()
+        #
+        # if size > 32:
+        #     size = 32
+        #
+        # painter.setPen(Qt.white)
+        #
+        # half_size = size // 2
+        # size_by_8 = size // 8
+        #
+        # painter.drawRect(x - half_size, y - half_size, size, size)
+        #
+        # painter.drawLine(x, y - size_by_8, x, y + size_by_8)
+        # painter.drawLine(x - size_by_8, y, x + size_by_8, y)
 
-        x = canvas.mouse_state().canvas_mouse_position().x()
-        y = canvas.mouse_state().canvas_mouse_position().y()
+    def onMousePress(self, canvas):
 
-        size = 16 * canvas.zoom_value()
+        picked_color = QColor(canvas.spriteObject.activeSurface.pixel(canvas.mouseState.spritePos))
+        canvas.colorPicked.emit(picked_color, canvas.mouseState.pressedButton)
 
-        if size > 32:
-            size = 32
-
-        painter.setPen(Qt.white)
-
-        half_size = size // 2
-        size_by_8 = size // 8
-
-        painter.drawRect(x - half_size, y - half_size, size, size)
-
-        painter.drawLine(x, y - size_by_8, x, y + size_by_8)
-        painter.drawLine(x - size_by_8, y, x + size_by_8, y)
-
-    def on_mouse_press(self, canvas, painter, event):
-
-        mouse_state = canvas.mouse_state()
-
-        picked_color = QColor(canvas.current_drawing_surface().pixel(mouse_state.sprite_mouse_position()))
-        canvas.colorPicked.emit(picked_color, mouse_state.last_button_pressed())
-
-        if self.property_value('returnlasttool'):
-            canvas.tool_box().go_back_to_last_tool()
+        #if self.propertyValue('returnlasttool'):
+        #    canvas.tool_box().go_back_to_last_tool()
 
 
 # ======================================================================================================================
@@ -121,94 +124,95 @@ class Pen(Tool):
         self._deltaX = 0
         self._deltaY = 0
 
-        self.set_name('Pen')
+        self.name = 'Pen'
 
-        self._lock_horizontal = False
-        self._lock_vertical = False
+        self._lockHorizontal = False
+        self._lockVertical = False
 
-        self._was_locking_mouse = False
+        self._wasLockingMouse = False
 
         self._icon = QIcon()
         self._icon.addPixmap(QPixmap(":/icons/ico_pen"), QIcon.Normal, QIcon.Off)
         self._icon.addPixmap(QPixmap(":/icons/ico_pen_hover"), QIcon.Normal, QIcon.On)
 
-        self._uses_painter = True
+        self._usesPainter = True
 
-    def draw(self, canvas, painter):
+    def draw(self, canvas, event):
+        return
+        # x = canvas.mouse_state().canvas_mouse_position().x()
+        # y = canvas.mouse_state().canvas_mouse_position().y()
+        #
+        # size = canvas.pixel_size() * canvas.zoom_value()
+        #
+        # if size <= 0.0:
+        #     return
+        #
+        # if size == 1.0:
+        #
+        #     painter.fillRect(x, y, 1, 1, Qt.white)
+        #
+        #     painter.setPen(Qt.white)
+        #
+        #     painter.drawLine(x, y - 4, x, y - 8)
+        #     painter.drawLine(x, y + 4, x, y + 8)
+        #
+        #     painter.drawLine(x - 4, y, x - 8, y)
+        #     painter.drawLine(x + 4, y, x + 8, y)
+        #
+        # elif size == 2.0:
+        #
+        #     painter.fillRect(x - 1, y - 1, 2, 2, Qt.white)
+        #
+        #     painter.setPen(Qt.white)
+        #
+        #     painter.drawLine(x - 2, y - 8, x + 1, y - 8)
+        #     painter.drawLine(x - 2, y + 7, x + 1, y + 7)
+        #
+        #     painter.drawLine(x - 8, y - 2, x - 8, y + 1)
+        #     painter.drawLine(x + 7, y - 2, x + 7, y + 1)
+        #
+        # elif size == 4.0:
+        #
+        #     painter.setPen(Qt.white)
+        #
+        #     painter.drawRect(x - 2, y - 2, 4, 4)
+        #
+        #     painter.drawLine(x - 2, y - 8, x + 2, y - 8)
+        #     painter.drawLine(x - 2, y + 8, x + 2, y + 8)
+        #
+        #     painter.drawLine(x - 8, y - 2, x - 8, y + 2)
+        #     painter.drawLine(x + 8, y - 2, x + 8, y + 2)
+        #
+        # else:
+        #
+        #     painter.setPen(Qt.white)
+        #
+        #     half_size = size // 2
+        #     size_by_8 = size // 8
+        #
+        #     painter.drawRect(x - half_size, y - half_size, size, size)
+        #
+        #     painter.drawLine(x, y - size_by_8, x, y + size_by_8)
+        #     painter.drawLine(x - size_by_8, y, x + size_by_8, y)
 
-        x = canvas.mouse_state().canvas_mouse_position().x()
-        y = canvas.mouse_state().canvas_mouse_position().y()
+    def _blit(self, canvas, just_pressed):
 
-        size = canvas.pixel_size() * canvas.zoom_value()
+        size = canvas.pixelSize
+        mouseState = canvas.mouseState
+        last_button_pressed = mouseState.pressedButton
+        mouse_pos = mouseState.spritePos
+        last_mouse_pos = mouseState.lastSpritePos
 
-        if size <= 0.0:
-            return
-
-        if size == 1.0:
-
-            painter.fillRect(x, y, 1, 1, Qt.white)
-
-            painter.setPen(Qt.white)
-
-            painter.drawLine(x, y - 4, x, y - 8)
-            painter.drawLine(x, y + 4, x, y + 8)
-
-            painter.drawLine(x - 4, y, x - 8, y)
-            painter.drawLine(x + 4, y, x + 8, y)
-
-        elif size == 2.0:
-
-            painter.fillRect(x - 1, y - 1, 2, 2, Qt.white)
-
-            painter.setPen(Qt.white)
-
-            painter.drawLine(x - 2, y - 8, x + 1, y - 8)
-            painter.drawLine(x - 2, y + 7, x + 1, y + 7)
-
-            painter.drawLine(x - 8, y - 2, x - 8, y + 1)
-            painter.drawLine(x + 7, y - 2, x + 7, y + 1)
-
-        elif size == 4.0:
-
-            painter.setPen(Qt.white)
-
-            painter.drawRect(x - 2, y - 2, 4, 4)
-
-            painter.drawLine(x - 2, y - 8, x + 2, y - 8)
-            painter.drawLine(x - 2, y + 8, x + 2, y + 8)
-
-            painter.drawLine(x - 8, y - 2, x - 8, y + 2)
-            painter.drawLine(x + 8, y - 2, x + 8, y + 2)
-
-        else:
-
-            painter.setPen(Qt.white)
-
-            half_size = size // 2
-            size_by_8 = size // 8
-
-            painter.drawRect(x - half_size, y - half_size, size, size)
-
-            painter.drawLine(x, y - size_by_8, x, y + size_by_8)
-            painter.drawLine(x - size_by_8, y, x + size_by_8, y)
-
-    def _blit(self, canvas, painter, just_pressed):
-
-        size = canvas.pixel_size()
-        last_button_pressed = canvas.mouse_state().last_button_pressed()
-        mouse_pos = canvas.mouse_state().sprite_mouse_position()
-        last_mouse_pos = canvas.mouse_state().last_sprite_mouse_position()
-
-        if self._lock_horizontal and not self._lock_vertical:
+        if self._lockHorizontal and not self._lockVertical:
             mouse_pos.setY(last_mouse_pos.y())
 
-        elif self._lock_vertical and not self._lock_horizontal:
+        elif self._lockVertical and not self._lockHorizontal:
             mouse_pos.setX(last_mouse_pos.x())
 
-        elif self._was_locking_mouse and not self._lock_horizontal and not self._lock_vertical:
+        elif self._wasLockingMouse and not self._lockHorizontal and not self._lockVertical:
             last_mouse_pos.setX(mouse_pos.x())
             last_mouse_pos.setY(mouse_pos.y())
-            self._was_locking_mouse = False
+            self._wasLockingMouse = False
 
         delta_x = abs(mouse_pos.x() - last_mouse_pos.x())
         delta_y = abs(mouse_pos.y() - last_mouse_pos.y())
@@ -220,49 +224,57 @@ class Pen(Tool):
         color = None
 
         if last_button_pressed == Qt.LeftButton:
-            ink = canvas.primary_ink()
-            color = canvas.primary_color()
+            ink = canvas.primaryInk
+            color = canvas.primaryColor
 
         elif last_button_pressed == Qt.RightButton:
-            ink = canvas.secondary_ink()
-            color = canvas.secondary_color()
+            ink = canvas.secondaryInk
+            color = canvas.secondaryColor
 
         if ink is not None and color is not None:
 
+            painter = QPainter()
+
+            painter.begin(canvas.spriteObject.activeSurface)
+
             if delta_x > 1 or delta_y > 1:
-                drawing.draw_line(last_mouse_pos, mouse_pos, size, ink, color, painter)
+                drawing.drawLine(last_mouse_pos, mouse_pos, size, ink, color, painter)
             elif delta_x == 1 or delta_y == 1 or just_pressed:
+
                 ink.blit(mouse_pos.x(), mouse_pos.y(), size, size, color, painter)
 
-    def on_mouse_press(self, canvas, painter, event):
+            painter.end()
 
-        self._blit(canvas, painter, just_pressed=True)
+    def onMousePress(self, canvas):
 
-    def on_mouse_move(self, canvas, painter, event):
+        self._blit(canvas, just_pressed=True)
 
-        if event.modifiers() & Qt.ControlModifier:
+    def onMouseMove(self, canvas):
 
-            self._was_locking_mouse = True
-            self._lock_horizontal = True
-            self._lock_vertical = False
+        mouseState = canvas.mouseState
 
-        elif event.modifiers() & Qt.AltModifier:
+        #if mouseState.isControlPressed:
 
-            self._was_locking_mouse = True
-            self._lock_horizontal = False
-            self._lock_vertical = True
+        #    self._wasLockingMouse = True
+        #    self._lockHorizontal = True
+        #    self._lockVertical = False
 
-        else:
+        #elif mouseState.isAltPressed:
 
-            self._lock_vertical = self._lock_horizontal = False
+        #    self._wasLockingMouse = True
+        #    self._lockHorizontal = False
+        #    self._lockVertical = True
 
-        if canvas.mouse_state().is_mouse_pressing():
+        #else:
 
-            self._blit(canvas, painter, just_pressed=False)
+        #    self._lockVertical = self._lockHorizontal = False
 
-    def on_mouse_release(self, canvas, painter, event):
+        if mouseState.pressedButton is not None:
+            self._blit(canvas, just_pressed=False)
 
-        self._lock_horizontal = self._lock_vertical = False
+    def onMouseRelease(self, canvas):
+
+        self._lockHorizontal = self._lockVertical = False
 
 # ======================================================================================================================
 
@@ -272,7 +284,7 @@ class Filler(Tool):
 
         super(Filler, self).__init__()
 
-        self.set_name('Filler')
+        self.name = 'Filler'
 
         self._refreshWaitTime = 500
         self._icon = QIcon()
@@ -283,19 +295,13 @@ class Filler(Tool):
 
     def draw(self, canvas, painter):
 
-        x = canvas.mouse_state().canvas_mouse_position().x()
-        y = canvas.mouse_state().canvas_mouse_position().y()
+        return
 
-        cursor_w = self._cursorPixmap.width()
-        cursor_h = self._cursorPixmap.height()
+    def onMousePress(self, canvas):
 
-        painter.drawPixmap(x - cursor_w // 2, y - cursor_h // 2, self._cursorPixmap)
-
-    def on_mouse_press(self, canvas, painter, event):
-
-        image = canvas.current_drawing_surface()
-        button = canvas.mouse_state().last_button_pressed()
-        mouse_pos = canvas.mouse_state().sprite_mouse_position()
+        image = canvas.spriteObject.activeSurface
+        button = canvas.mouseState.pressedButton
+        mouse_pos = canvas.mouseState.spritePos
 
         sprite_bounding_box = canvas.current_object_bounding_box()
 
@@ -304,13 +310,13 @@ class Filler(Tool):
 
         if image is not None:
 
-            image_data = canvas.drawing_surface_pixel_data()
+            image_data = canvas.spriteObject.activeSurfacePixelData
 
             color = None
 
             if button == Qt.LeftButton:
 
-                color = canvas.primary_color()
+                color = canvas.primaryColor()
 
             elif button == Qt.RightButton:
 

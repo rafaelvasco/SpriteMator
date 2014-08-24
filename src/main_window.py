@@ -24,6 +24,7 @@ from src.resources_cache import ResourcesCache
 import src.appdata as app_data
 
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -42,21 +43,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._canvas = Canvas()
 
+        self._canvas.primaryColor = self._colorPicker.primary_color()
+        self._canvas.secondaryColor = self._colorPicker.secondary_color()
+
         self._animationDisplay = AnimationDisplay()
 
-        self._canvas.set_primary_color(self._colorPicker.primary_color())
-        self._canvas.set_secondary_color(self._colorPicker.secondary_color())
-
         self._animationDisplayDock = QDockWidget(self.previewFrame)
-
         self._animationDisplayDock.setFeatures(QDockWidget.DockWidgetFloatable)
-
         self._animationDisplayDock.setWindowTitle("Animation Display")
-
         self._animationDisplayDock.setWidget(self._animationDisplay)
 
         self._animationDisplayLastWidth = 0
-
         self._animationDisplayLastHeight = 0
 
         self._animationManager = AnimationManager()
@@ -67,50 +64,56 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # --------------------------------------------------------------------------------------------------------------
 
-        self._initialize_components()
-        self._initialize_layout()
-        self._initialize_events()
+        self._initializeComponents()
+        self._initializeLayout()
+        self._initializeEvents()
 
         # --------------------------------------------------------------------------------------------------------------
 
-        self.hide_workspace()
+        self.hideWorkspace()
 
+
+    @property
     def canvas(self):
         return self._canvas
 
-    def color_picker(self):
+    @property
+    def colorPicker(self):
         return self._colorPicker
 
-    def layer_manager(self):
+    @property
+    def layerManager(self):
         return self._layerManager
 
-    def animation_manager(self):
-
+    @property
+    def animationManager(self):
         return self._animationManager
 
-    def top_menu(self):
-
+    @property
+    def toolBarWidget(self):
         return self.toolBar
 
-    def new_sprite_dialog(self):
+    @property
+    def newSpriteDialog(self):
         return self._newSpriteDialog
 
-    def animation_display(self):
+    @property
+    def animationDisplay(self):
         return self._animationDisplay
 
-    def show_workspace(self):
+    def showWorkspace(self):
 
         self.centralWidget().setVisible(True)
         self._workspaceVisible = True
 
-    def hide_workspace(self):
+    def hideWorkspace(self):
 
         self.centralWidget().setVisible(False)
         self._workspaceVisible = False
 
     def closeEvent(self, e):
 
-        self._canvas.unload_sprite()
+        self._canvas.unloadSprite()
         self._animationManager.clear()
         self._layerManager.clear()
 
@@ -135,18 +138,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if event.modifiers() & Qt.ControlModifier:
 
                 if event.angleDelta().y() > 0:
-                    self.color_picker().select_next_color_on_palette()
+                    self.colorPicker.select_next_color_on_palette()
                 elif event.angleDelta().y() < 0:
-                    self.color_picker().select_previous_color_on_palette()
+                    self.colorPicker.select_previous_color_on_palette()
 
                 return True
 
             elif event.modifiers() & Qt.AltModifier:
 
                 if event.angleDelta().y() > 0:
-                    self.color_picker().select_next_ramp_on_palette()
+                    self.colorPicker.select_next_ramp_on_palette()
                 elif event.angleDelta().y() < 0:
-                    self.color_picker().select_previous_ramp_on_palette()
+                    self.colorPicker.select_previous_ramp_on_palette()
 
                 return True
 
@@ -155,9 +158,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def resizeEvent(self, e):
 
         self.rightPanel.setMaximumWidth(round(0.37 * e.size().width()))
-        self._animationManager.on_window_resize(e.size())
+        self._animationManager._onWindowResize(e.size())
 
-    def _initialize_components(self):
+    def _initializeComponents(self):
 
         menufont = ResourcesCache.get('BigFont')
 
@@ -170,7 +173,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSave.setFont(menufont)
         self.actionSaveAs.setFont(menufont)
 
-    def _initialize_layout(self):
+    def _initializeLayout(self):
 
         # --------------------------------------------------------------------------------------------------------------
 
@@ -196,6 +199,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         animation_preview_layout.addWidget(self._animationDisplayDock)
 
         self.previewFrame.setLayout(animation_preview_layout)
+
         # --------------------------------------------------------------------------------------------------------------
 
         layer_manager_layout = QVBoxLayout()
@@ -213,45 +217,44 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.animationBarFrame.setLayout(animation_bar_layout)
 
-    def _initialize_events(self):
+    def _initializeEvents(self):
 
-        self._colorPicker.primaryColorChanged.connect(self._on_colorpicker_primary_color_changed)
-        self._colorPicker.secondaryColorChanged.connect(self._on_colorpicker_secondary_color_changed)
+        self._colorPicker.primaryColorChanged.connect(self._onColorPickerPrimaryColorChanged)
+        self._colorPicker.secondaryColorChanged.connect(self._onColorPickerSecondaryColorChanged)
 
-        self._canvas.surfaceChanged.connect(self._on_canvas_surface_changed)
-        self._canvas.colorPicked.connect(self._on_canvas_color_picked)
-        self._canvas.toolStarted.connect(self._on_canvas_tool_started)
-        self._canvas.toolEnded.connect(self._on_canvas_tool_ended)
+        self._canvas.surfaceChanged.connect(self._onCanvasSurfaceChanged)
+        self._canvas.colorPicked.connect(self._onCanvasColorPicked)
+        self._canvas.toolStarted.connect(self._onCanvasToolStarted)
+        self._canvas.toolEnded.connect(self._onCanvasToolEnded)
 
-        self._animationManager.animationSelectedChanged.connect(self._on_animation_manager_animation_selected_changed)
-        self._animationManager.frameSelectedChanged.connect(self._on_animation_manager_frame_selected_changed)
+        self._animationManager.currentFrameChanged.connect(self._onCurrentFrameChanged)
 
-        self._layerManager.layerSelectedChanged.connect(self._on_layer_manager_layer_selected_changed)
-        self._layerManager.layerOrderChanged.connect(self._on_layer_manager_layer_order_changed)
-        self._layerManager.layerListChanged.connect(self._on_layer_manager_layer_list_changed)
+        self._layerManager.currentLayerChanged.connect(self._onCurrentLayerChanged)
+        self._layerManager.layerOrderChanged.connect(self._onLayerOrderChanged)
 
     # =================== Event Handlers ==============================
 
     # ------- Color Picker -----------------------------------------
 
-    def _on_colorpicker_primary_color_changed(self, color):
+    def _onColorPickerPrimaryColorChanged(self, color):
 
-        self._canvas.set_primary_color(color)
+        self._canvas.primaryColor = color
 
-    def _on_colorpicker_secondary_color_changed(self, color):
+    def _onColorPickerSecondaryColorChanged(self, color):
 
-        self._canvas.set_secondary_color(color)
+        self._canvas.secondaryColor = color
 
     # ------- Canvas ------------------------------------------------
 
-    def _on_canvas_surface_changed(self):
+    def _onCanvasSurfaceChanged(self):
+
         self._animationDisplay.update()
 
         self._layerManager.update()
 
         self._animationManager.update()
 
-    def _on_canvas_color_picked(self, color, button_pressed):
+    def _onCanvasColorPicked(self, color, button_pressed):
 
         if button_pressed == Qt.LeftButton:
 
@@ -261,56 +264,38 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self._colorPicker.set_secondary_color(color)
 
-    def _on_canvas_tool_started(self, tool):
+    def _onCanvasToolStarted(self, tool):
 
-        self._animationDisplay.start_refreshing()
-        self._layerManager.start_refreshing()
-        self._animationManager.start_refreshing()
+        self._animationDisplay.startRefreshing()
 
-    def _on_canvas_tool_ended(self, tool):
+    def _onCanvasToolEnded(self, tool):
 
-        if tool.refresh_wait_time() > 0:
+        if tool.refreshWaitTime > 0:
 
-            QTimer.singleShot(tool.refresh_wait_time(), lambda: self._animationDisplay.stop_refreshing())
+            QTimer.singleShot(tool.refreshWaitTime, lambda: self._animationDisplay.stopRefreshing())
+            print('Stop Refreshing')
 
         else:
+            self._animationDisplay.stopRefreshing()
 
-            self._animationDisplay.stop_refreshing()
-
-        self._layerManager.stop_refreshing()
-        self._animationManager.stop_refreshing()
-
-    # ------ Animation Manager ------------------------------------------
-
-    def _on_animation_manager_animation_selected_changed(self, animation):
-
-        self._canvas.refresh()
-        self._layerManager.refresh()
-
-        self._animationDisplay.update()
-        self._animationDisplay.set_animation(animation)
-
-    def _on_animation_manager_frame_selected_changed(self, index):
-
-        self._canvas.refresh()
-        self._layerManager.refresh()
-
-        self._animationDisplay.update()
-        self._animationDisplay.go_to_frame(index)
-
-    # ------- Layer Manager ----------------------------------------------
-
-    def _on_layer_manager_layer_selected_changed(self):
-
-        self._canvas.refresh()
-
-    def _on_layer_manager_layer_order_changed(self):
-
-        self._canvas.refresh()
-        self._animationDisplay.update()
+        self._layerManager.update()
         self._animationManager.update()
 
-    def _on_layer_manager_layer_list_changed(self):
+    # ------ Frame Events----- ------------------------------------------
+
+    def _onCurrentFrameChanged(self, index):
+
+        self._canvas.refresh()
+        self._layerManager.refresh()
+        self._animationDisplay.goToFrame(index)
+
+    # ------- Layer Events ----------------------------------------------
+
+    def _onCurrentLayerChanged(self):
+
+        self._canvas.refresh()
+
+    def _onLayerOrderChanged(self):
 
         self._canvas.refresh()
         self._animationDisplay.update()

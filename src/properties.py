@@ -9,19 +9,26 @@ class Property(object):
         self._description = description
         self._value = value
 
+    def _setValue(self, value):
+
+        self.value = value
+
     def name(self):
         return self._name
 
+    @property
     def description(self):
         return self._description
 
+    @property
     def value(self):
         return self._value
 
-    def set_value(self, v):
-        self._value = v
+    @value.setter
+    def value(self, value):
+        self._value = value
 
-    def build_property_widget(self):
+    def buildPropertyWidget(self):
         pass
 
 
@@ -29,10 +36,12 @@ class NumberProperty(Property):
     def __init__(self, name, description=None, value=None, ):
         super(NumberProperty, self).__init__(name, value, description)
 
-    def build_property_widget(self):
+
+
+    def buildPropertyWidget(self):
         number_input = QSpinBox()
         number_input.setValue(self.value())
-        number_input.valueChanged.connect(lambda v: self.set_value(v))
+        number_input.valueChanged.connect(lambda v: self._setValue(v))
 
         return number_input
 
@@ -50,22 +59,22 @@ class BooleanProperty(Property):
 
             self._value = False
 
-    def set_on(self, on):
+    @property
+    def isOn(self):
+        return self._value is True
 
-        self._value = on
+    @isOn.setter
+    def isOn(self, value):
+        self._value = value
 
     def toggle(self):
 
         self._value = not self._value
 
-    def is_on(self):
-
-        return self._value is True
-
-    def build_property_widget(self):
+    def buildPropertyWidget(self):
 
         bool_input = OnOffButton()
-        bool_input.setChecked(self.is_on())
+        bool_input.setChecked(self.isOn)
         bool_input.toggled.connect(lambda: self.toggle())
 
         return bool_input
@@ -84,36 +93,41 @@ class RangedProperty(Property):
         else:
             self._value = self._minValue
 
-    def set_value(self, v):
+    @property
+    def value(self):
+        return self._value
 
-        self._value = v
+    @value.setter
+    def value(self, value):
+
+        self._value = value
 
         if self._value < self._minValue:
             self._value = self._minValue
         elif self._value > self._maxValue:
             self._value = self._maxValue
 
+    @property
     def min(self):
-
         return self._minValue
 
-    def max(self):
+    @min.setter
+    def min(self, value):
+        self._minValue = value
 
+    @property
+    def max(self):
         return self._maxValue
 
-    def set_min(self, v):
+    @max.setter
+    def max(self, value):
+        self._maxValue = value
 
-        self._minValue = v
-
-    def set_max(self, v):
-
-        self._maxValue = v
-
-    def build_property_widget(self):
+    def buildPropertyWidget(self):
 
         ranged_input = Slider(self.min(), self.max())
         ranged_input.set_value(self.value())
-        ranged_input.valueChanged.connect(lambda v: self.set_value(v))
+        ranged_input.valueChanged.connect(lambda v: self._setValue(v))
 
         return ranged_input
 
@@ -122,25 +136,27 @@ class PropertyHolder(object):
     def __init__(self):
         self._properties = {}
 
+
+    @property
     def properties(self):
         return self._properties
 
     def property(self, name):
         return self._properties[name]
 
-    def has_property(self, name):
+    def hasProperty(self, name):
         return name in self._properties.keys()
 
-    def property_value(self, name):
+    def propertyValue(self, name):
         return self._properties[name].value()
 
-    def add_property(self, prop_name, prop_value, prop_description=None):
+    def addProperty(self, prop_name, prop_value, prop_description=None):
 
         if type(prop_value) is int:
             self._properties[prop_name] = NumberProperty(prop_name, prop_description, prop_value)
         elif type(prop_value) is bool:
             self._properties[prop_name] = BooleanProperty(prop_name, prop_description, prop_value)
 
-    def add_ranged_property(self, prop_name, prop_min, prop_max, prop_value=None, prop_description=None):
+    def addRangedProperty(self, prop_name, prop_min, prop_max, prop_value=None, prop_description=None):
         self._properties[prop_name] = RangedProperty(prop_name, prop_min, prop_max, prop_description, prop_value,)
 

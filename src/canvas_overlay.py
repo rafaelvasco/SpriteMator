@@ -36,10 +36,10 @@ class CanvasOverlay(QWidget):
         
     def paintEvent(self, e):
         
-        if not self._drawEnabled or self._canvas.current_tool() is None:
+        if not self._drawEnabled or self._canvas.currentTool() is None:
             return
         
         painter = QPainter(self)
         painter.setCompositionMode(QPainter.CompositionMode_Difference)
         
-        self._canvas.current_tool().draw(self._canvas, painter)
+        self._canvas.currentTool().draw(self._canvas, painter)

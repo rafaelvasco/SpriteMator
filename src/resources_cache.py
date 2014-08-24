@@ -20,7 +20,7 @@ class ResourcesCache(object):
         return ResourcesCache._resources[name]
 
     @staticmethod
-    def register_resource(name,  resource):
+    def registerResource(name,  resource):
         
         ResourcesCache._resources[name] = resource
         

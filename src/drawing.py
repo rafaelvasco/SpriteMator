@@ -10,7 +10,7 @@
 #-----------------------------------------------------------------------------------------------------------------------
 
 
-def draw_line(start, end, size, ink, color, painter):
+def drawLine(start, end, size, ink, color, painter):
 
     x1 = start.x()
     y1 = start.y()

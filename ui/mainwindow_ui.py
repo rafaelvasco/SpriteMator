@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'mainwindow.ui'
-#
-# Created: Sat Feb 15 12:48:17 2014
+# Created: Sat Jul  5 15:17:19 2014
 #      by: PyQt5 UI code generator 5.2
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -82,7 +80,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.rightPanel.sizePolicy().hasHeightForWidth())
         self.rightPanel.setSizePolicy(sizePolicy)
-        self.rightPanel.setMinimumSize(QtCore.QSize(200, 550))
+        self.rightPanel.setMinimumSize(QtCore.QSize(245, 550))
         self.rightPanel.setMaximumSize(QtCore.QSize(380, 16777215))
         self.rightPanel.setStyleSheet("")
         self.rightPanel.setFrameShape(QtWidgets.QFrame.StyledPanel)
@@ -184,4 +182,3 @@ class Ui_MainWindow(object):
         self.actionImport.setToolTip(_translate("MainWindow", "Create a Sprite from one or more images"))
         self.actionImport.setShortcut(_translate("MainWindow", "Ctrl+I"))
 
-import ui.resources_rc

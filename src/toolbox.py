@@ -209,7 +209,7 @@ class ToolBox(QWidget):
         if icon is not None:
             tool_button = self._tool_slots[slot]['button']
             tool_button.setIcon(tool.icon())
-            tool_button.set_tooltip(tool.name())
+            tool_button.setTooltip(tool.name())
 
     def _assign_ink_to_slot(self, ink, slot):
 
@@ -291,7 +291,7 @@ class ToolBox(QWidget):
 
             field_layout.addWidget(QLabel(prop.description()))
 
-            prop_widget = prop.build_property_widget()
+            prop_widget = prop.buildPropertyWidget()
 
             field_layout.addWidget(prop_widget)
 

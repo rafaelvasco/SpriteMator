@@ -19,31 +19,36 @@ from src.display import Display
 
 # ----------------------------------------------------------------------------------------------------------------------
 
-
 class AnimationDisplay(Display):
-    def __init__(self, parent=None):
+    def __init__(self):
 
-        super(AnimationDisplay, self).__init__(parent)
-        self._animation = None
+        super(AnimationDisplay, self).__init__()
+
+        self.backgroundColor = QColor(220,220,220)
+
         self._playing = False
+
         self._refreshing = False
+
         self._refreshSpeed = 16
+
         self._animationFrameInterval = 60
+
         self._loopEnabled = True
+
         self._pen = QPen()
         self._pen.setColor(QColor(10, 10, 10))
         self._pen.setWidth(2)
         self._pen.setJoinStyle(Qt.MiterJoin)
-        self._currentFrame = 0
 
         self._refreshTimer = QTimer()
-        self._refreshTimer.timeout.connect(self._refresh_event)
+        self._refreshTimer.timeout.connect(self._refreshEvent)
         self._refreshTimer.stop()
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self._animationTimer = QTimer()
-        self._animationTimer.timeout.connect(self._animate_event)
+        self._animationTimer.timeout.connect(self._animateEvent)
         self._animationTimer.stop()
 
         self._layout = QVBoxLayout(self)
@@ -52,7 +57,7 @@ class AnimationDisplay(Display):
         self._buttonsLayout = QHBoxLayout()
 
         self._goNextFrameBtn = QPushButton()
-        self._goNextFrameBtn.clicked.connect(self.go_to_next_frame)
+        self._goNextFrameBtn.clicked.connect(self.goToNextFrame)
 
         go_next_frame_icon = QIcon()
         go_next_frame_icon.addPixmap(QPixmap(":/icons/ico_next"))
@@ -61,7 +66,7 @@ class AnimationDisplay(Display):
         self._goNextFrameBtn.setIconSize(QSize(14, 14))
 
         self._goPrevFrameBtn = QPushButton()
-        self._goPrevFrameBtn.clicked.connect(self.go_to_previous_frame)
+        self._goPrevFrameBtn.clicked.connect(self.goToPreviousFrame)
 
         go_prev_frame_icon = QIcon()
         go_prev_frame_icon.addPixmap(QPixmap(":/icons/ico_prev"))
@@ -71,7 +76,7 @@ class AnimationDisplay(Display):
 
         self._playPauseBtn = QPushButton()
         self._playPauseBtn.setCheckable(True)
-        self._playPauseBtn.clicked.connect(self.toggle_playing)
+        self._playPauseBtn.clicked.connect(self.togglePlaying)
 
         play_frame_icon = QIcon()
         play_frame_icon.addPixmap(QPixmap(":/icons/ico_play"), QIcon.Normal, QIcon.Off)
@@ -86,139 +91,136 @@ class AnimationDisplay(Display):
 
         # ----------------------------------------------------
 
-        self._frame_rate_panel = QFrame()
-        self._frame_rate_panel.setStyleSheet("background: #333; border: 1px solid #4d4d4d;")
+        self._frameRatePanel = QFrame()
+        self._frameRatePanel.setStyleSheet("background: #333; border: 1px solid #4d4d4d;")
 
-        self._frame_rate_layout = QHBoxLayout()
-        self._frame_rate_layout.setContentsMargins(8,4,8,4)
+        self._frameRateLayout = QHBoxLayout()
+        self._frameRateLayout.setContentsMargins(8,4,8,4)
 
 
-        self._frame_rate_panel.setLayout(self._frame_rate_layout)
+        self._frameRatePanel.setLayout(self._frameRateLayout)
 
-        self._frame_rate_label = QLabel('Frame Rate (FPS): ')
-        self._frame_rate_label.setStyleSheet("border: none;")
+        self._frameRateLabel = QLabel('Frame Rate (FPS): ')
+        self._frameRateLabel.setStyleSheet("border: none;")
 
-        self._frame_rate_value_label = QLabel('')
-        self._frame_rate_value_label.setStyleSheet("border: none;")
-        self._frame_rate_value_label.setMinimumWidth(14)
+        self._frameRateValueLabel = QLabel('')
+        self._frameRateValueLabel.setStyleSheet("border: none;")
+        self._frameRateValueLabel.setMinimumWidth(14)
 
         self._frameRateSlider = QSlider(Qt.Horizontal)
         self._frameRateSlider.setMinimum(1)
         self._frameRateSlider.setMaximum(60)
 
-        self._frameRateSlider.valueChanged.connect(self._on_animation_rate_value_changed)
+        self._frameRateSlider.valueChanged.connect(self._onAnimationRateValueChanged)
 
         self._frameRateSlider.setValue(16)
 
-        self._frame_rate_layout.addWidget(self._frame_rate_label)
-        self._frame_rate_layout.addWidget(self._frameRateSlider)
-        self._frame_rate_layout.addWidget(self._frame_rate_value_label)
+        self._frameRateLayout.addWidget(self._frameRateLabel)
+        self._frameRateLayout.addWidget(self._frameRateSlider)
+        self._frameRateLayout.addWidget(self._frameRateValueLabel)
 
         self._layout.addLayout(self._buttonsLayout)
-        self._layout.addWidget(self._frame_rate_panel)
+        self._layout.addWidget(self._frameRatePanel)
 
-    def is_playing(self):
+
+
+    @property
+    def isPlaying(self):
         return self._playing
 
-    def is_looping(self):
-        return self._loopEnabled if self._animation is not None else False
+    @property
+    def loopingEnabled(self):
+        return self._loopEnabled if self._spriteObject is not None else False
 
-    def set_looping(self, value):
-        if self._animation is None:
-            return
-
+    @loopingEnabled.setter
+    def loopingEnabled(self, value):
         self._loopEnabled = value
 
-    def animation_speed(self):
+    @property
+    def animationSpeed(self):
         return self._animationFrameInterval
 
-    def set_animation_speed(self, value):
+    @animationSpeed.setter
+    def animationSpeed(self, value):
         self._animationFrameInterval = value
 
-    def start_refreshing(self):
+
+    def startRefreshing(self):
         self._refreshTimer.start(self._refreshSpeed)
         self._refreshing = True
 
-    def stop_refreshing(self):
+    def stopRefreshing(self):
         self._refreshTimer.stop()
         self._refreshing = False
 
-    def start_animating(self):
+    def startAnimating(self):
         self._animationTimer.start(self._animationFrameInterval)
         self._playing = True
 
-    def stop_animating(self):
+    def stopAnimating(self):
         self._animationTimer.stop()
         self._playing = False
 
-    def _refresh_event(self):
-        self.update()
+    def _refreshEvent(self):
+        self._scene.update()
 
-    def _animate_event(self):
-        if self._animation is not None and self._playing:
+    def _animateEvent(self):
+        if self._spriteObject is not None and self._playing:
             self._animate()
 
-    def _on_animation_rate_value_changed(self, v):
+    def _onAnimationRateValueChanged(self, v):
 
-        self._frame_rate_value_label.setText(str(v))
+        self._frameRateValueLabel.setText(str(v))
         self._animationFrameInterval = int(math.floor((1/v)*1000))
 
-        if self.is_playing():
+        if self.isPlaying:
 
             self._animationTimer.stop()
             self._animationTimer.start(self._animationFrameInterval)
 
     def _animate(self):
-        if self._animation is None:
+        if self._spriteObject is None:
             return
 
-        self._currentFrame += 1
-        frame_count = self._animation.frame_count()
+        self._spriteObject.displayFrameIndex += 1
 
-        if self._currentFrame > frame_count - 1:
+        frame_count = self._spriteObject.sprite.currentAnimation.frameCount
+
+        if self._spriteObject.displayFrameIndex > frame_count - 1:
 
             if self._loopEnabled:
-                self._currentFrame = 0
+                self._spriteObject.displayFrameIndex = 0
             else:
-                self._currentFrame = frame_count - 1
+                self._spriteObject.displayFrameIndex = frame_count - 1
                 self.pause()
 
-        self.update()
+        self._scene.update()
 
-    def on_draw_object(self, event, painter):
-        if self._animation is not None and self._animation.frame_count() > 0:
 
-            layers = self._animation.frame_at(self._currentFrame).surfaces()
+    def setSprite(self, sprite):
 
-            for layer in layers:
-                painter.drawImage(0, 0, layer.image())
+        if self._spriteObject is not None:
+            self.unloadSprite()
 
-    def set_animation(self, animation):
-        if self._animation is not None:
-            self.unload_animation()
+        self._spriteObject.setSprite(sprite)
+        self._spriteObject.displayFrameIndex = 0
 
-        self._animation = animation
+        self._scene.update()
 
-        self.set_object_size(self._animation.sprite().width(), self._animation.sprite().height())
 
-        self._currentFrame = 0
+    def unloadSprite(self):
 
-        self.update()
-
-    def unload_animation(self):
-        self._animation = None
-        self.set_object_size(0, 0)
+        self._spriteObject.unloadSprite()
         self._playing = False
         self._refreshing = False
         self._refreshTimer.stop()
         self._animationTimer.stop()
         self._playPauseBtn.setChecked(False)
-        self._currentFrame = 0
 
-        self.update()
+        self._scene.update()
 
-    def toggle_playing(self):
-        if self._animation is None:
+    def togglePlaying(self):
+        if self._spriteObject is None:
             return
 
         if not self._playing:
@@ -229,49 +231,50 @@ class AnimationDisplay(Display):
             self._playPauseBtn.setChecked(False)
 
     def play(self):
-        if self._animation is None:
+        if self._spriteObject is None:
             return
 
-        self.start_animating()
+        self.startAnimating()
 
-        self.update()
+        self._scene.update()
 
     def pause(self):
-        if self._animation is None:
+        if self._spriteObject is None:
             return
 
-        self.stop_animating()
+        self.stopAnimating()
 
-        self.update()
+        self._scene.update()
 
-    def go_to_frame(self, index):
-        if self._animation is None or self._playing:
+    def goToFrame(self, index):
+        if self._spriteObject is None or self._playing:
             return
 
-        self._currentFrame = index
+        self._spriteObject.displayFrameIndex = index
 
-        self.update()
+        self._scene.update()
 
-    def go_to_next_frame(self):
-        if self._animation is None or self._playing:
+    def goToNextFrame(self):
+        if self._spriteObject is None or self._playing:
             return
 
-        frame_count = self._animation.frame_count()
+        frame_count = self._spriteObject.sprite.currentAnimation.frameCount
 
-        self._currentFrame += 1
+        self._spriteObject.displayFrameIndex += 1
 
-        if self._currentFrame > frame_count - 1:
-            self._currentFrame = frame_count - 1
+        if self._spriteObject.displayFrameIndex > frame_count - 1:
+            self._spriteObject.displayFrameIndex = frame_count - 1
 
-        self.update()
+        self._scene.update()
 
-    def go_to_previous_frame(self):
-        if self._animation is None or self._playing:
+    def goToPreviousFrame(self):
+
+        if self._spriteObject is None or self._playing:
             return
 
-        self._currentFrame -= 1
+        self._spriteObject.displayFrameIndex -= 1
 
-        if self._currentFrame < 0:
-            self._currentFrame = 0
+        if self._spriteObject.displayFrameIndex < 0:
+            self._spriteObject.displayFrameIndex = 0
 
-        self.update()
+        self._scene.update()

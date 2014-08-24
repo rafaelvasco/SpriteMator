@@ -62,7 +62,7 @@ class Button(QAbstractButton):
 
         self.update()
 
-    def set_tooltip(self, text):
+    def setTooltip(self, text):
 
         self._tooltip = text
 

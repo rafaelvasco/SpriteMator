@@ -30,8 +30,8 @@ class NewSpriteDialog(QDialog, Ui_newSpriteDialog):
         
         self.setupUi(self)
         
-        self.buttonCancel.clicked.connect(self._on_button_cancel_clicked)
-        self.buttonCreate.clicked.connect(self._on_button_create_clicked)
+        self.buttonCancel.clicked.connect(self._onButtonCancelClicked)
+        self.buttonCreate.clicked.connect(self._onButtonCreateClicked)
 
         self._result = NewSpriteDialogResult()
         
@@ -42,7 +42,7 @@ class NewSpriteDialog(QDialog, Ui_newSpriteDialog):
         
         return self._result 
     
-    def _on_button_create_clicked(self):
+    def _onButtonCreateClicked(self):
         
         if self.radioCustom.isChecked():
             
@@ -102,6 +102,6 @@ class NewSpriteDialog(QDialog, Ui_newSpriteDialog):
 
         self.accept()
 
-    def _on_button_cancel_clicked(self):
+    def _onButtonCancelClicked(self):
         
         self.reject()

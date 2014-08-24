@@ -23,7 +23,8 @@ shortcuts = {
     'CANVAS': {
 
         'CLEAR': 'C',
-        'RESET': 'R',
+        'TOGGLE_VIEW': 'V',
+        'TOGGLE_FIT_IN_VIEW' : 'F'
     },
 
     'COLORPICKER': {

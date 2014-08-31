@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'newSpriteDialog.ui'
+# Form implementation generated from reading ui file 'D:\Dev\Meus Projetos\spritemator\ui\newSpriteDialog.ui'
 #
-# Created: Sat Feb 15 14:28:58 2014
+# Created: Fri Aug 29 20:35:42 2014
 #      by: PyQt5 UI code generator 5.2
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 class Ui_newSpriteDialog(object):
     def setupUi(self, newSpriteDialog):

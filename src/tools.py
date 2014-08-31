@@ -32,6 +32,8 @@ class Tool(PropertyHolder):
 
         self._refreshWaitTime = 0
 
+        self._default = False
+
         self._drawBrush = None
 
         self._icon = None
@@ -39,6 +41,10 @@ class Tool(PropertyHolder):
     @property
     def name(self):
         return self._name
+
+    @property
+    def isDefault(self):
+        return self._default
 
     @name.setter
     def name(self, value):
@@ -137,6 +143,8 @@ class Pen(Tool):
 
         self._usesPainter = True
 
+        self._default = True
+
     def draw(self, canvas, event):
         return
         # x = canvas.mouse_state().canvas_mouse_position().x()
@@ -224,10 +232,12 @@ class Pen(Tool):
         color = None
 
         if last_button_pressed == Qt.LeftButton:
+
             ink = canvas.primaryInk
             color = canvas.primaryColor
 
         elif last_button_pressed == Qt.RightButton:
+
             ink = canvas.secondaryInk
             color = canvas.secondaryColor
 
@@ -303,7 +313,8 @@ class Filler(Tool):
         button = canvas.mouseState.pressedButton
         mouse_pos = canvas.mouseState.spritePos
 
-        sprite_bounding_box = canvas.current_object_bounding_box()
+
+        sprite_bounding_box = canvas.spriteObject.areaRect
 
         if not sprite_bounding_box.contains(mouse_pos):
             return
@@ -312,15 +323,18 @@ class Filler(Tool):
 
             image_data = canvas.spriteObject.activeSurfacePixelData
 
+            if image_data is None:
+                return
+
             color = None
 
             if button == Qt.LeftButton:
 
-                color = canvas.primaryColor()
+                color = canvas.primaryColor
 
             elif button == Qt.RightButton:
 
-                color = canvas.secondary_color()
+                color = canvas.secondaryColor
 
             if color is not None:
 

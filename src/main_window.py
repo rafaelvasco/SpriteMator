@@ -13,6 +13,7 @@ from PyQt5.QtCore import Qt, QTimer, QEvent
 from PyQt5.QtGui import QPixmap, QPainter
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QDockWidget, QHBoxLayout
 
+from src.toolbox import ToolBox
 from ui.mainwindow_ui import Ui_MainWindow
 from src.animation_display import AnimationDisplay
 from src.canvas import Canvas
@@ -22,6 +23,7 @@ from src.new_sprite_dialog import NewSpriteDialog
 from src.animation_manager import AnimationManager
 from src.resources_cache import ResourcesCache
 import src.appdata as app_data
+
 
 
 
@@ -46,21 +48,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._canvas.primaryColor = self._colorPicker.primary_color()
         self._canvas.secondaryColor = self._colorPicker.secondary_color()
 
+        self._toolbox = ToolBox()
+
         self._animationDisplay = AnimationDisplay()
 
-        self._animationDisplayDock = QDockWidget(self.previewFrame)
+        self._animationDisplayDock = QDockWidget()
         self._animationDisplayDock.setFeatures(QDockWidget.DockWidgetFloatable)
         self._animationDisplayDock.setWindowTitle("Animation Display")
         self._animationDisplayDock.setWidget(self._animationDisplay)
-
-        self._animationDisplayLastWidth = 0
-        self._animationDisplayLastHeight = 0
 
         self._animationManager = AnimationManager()
 
         self._layerManager = LayerManager()
 
         self._newSpriteDialog = NewSpriteDialog()
+        self._newSpriteDialog.setWindowFlags(Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
 
         # --------------------------------------------------------------------------------------------------------------
 
@@ -155,10 +157,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         return super(QMainWindow, self).eventFilter(target, event)
 
-    def resizeEvent(self, e):
-
-        self.rightPanel.setMaximumWidth(round(0.37 * e.size().width()))
-        self._animationManager._onWindowResize(e.size())
 
     def _initializeComponents(self):
 
@@ -173,6 +171,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSave.setFont(menufont)
         self.actionSaveAs.setFont(menufont)
 
+        self._initializeToolbox()
+
+
     def _initializeLayout(self):
 
         # --------------------------------------------------------------------------------------------------------------
@@ -180,6 +181,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         canvaslayout = QVBoxLayout()
         canvaslayout.setContentsMargins(0, 0, 0, 0)
 
+        canvaslayout.addWidget(self._toolbox)
         canvaslayout.addWidget(self._canvas)
 
         self.canvasFrame.setLayout(canvaslayout)
@@ -227,10 +229,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._canvas.toolStarted.connect(self._onCanvasToolStarted)
         self._canvas.toolEnded.connect(self._onCanvasToolEnded)
 
+        self._toolbox.toolChanged.connect(self._onToolboxToolChanged)
+        self._toolbox.primaryInkChanged.connect(self._onToolboxPrimaryInkChanged)
+        self._toolbox.secondaryInkChanged.connect(self._onToolboxSecondaryInkChanged)
+
         self._animationManager.currentFrameChanged.connect(self._onCurrentFrameChanged)
 
         self._layerManager.currentLayerChanged.connect(self._onCurrentLayerChanged)
         self._layerManager.layerOrderChanged.connect(self._onLayerOrderChanged)
+
+    def _initializeToolbox(self):
+
+        self._toolbox.registerTool(self._canvas.findToolByName('Pen'), is_default=True)
+        self._toolbox.registerTool(self._canvas.findToolByName('Picker'))
+        self._toolbox.registerTool(self._canvas.findToolByName('Filler'))
+
+        self._toolbox.registerInk(self._canvas.findInkByName('Solid'), slot=0)
+        self._toolbox.registerInk(self._canvas.findInkByName('Eraser'), slot=1)
+
 
     # =================== Event Handlers ==============================
 
@@ -244,7 +260,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._canvas.secondaryColor = color
 
-    # ------- Canvas ------------------------------------------------
+    # ------- Canvas ----------------------------------------------------------
 
     def _onCanvasSurfaceChanged(self):
 
@@ -273,7 +289,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if tool.refreshWaitTime > 0:
 
             QTimer.singleShot(tool.refreshWaitTime, lambda: self._animationDisplay.stopRefreshing())
-            print('Stop Refreshing')
 
         else:
             self._animationDisplay.stopRefreshing()
@@ -281,7 +296,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._layerManager.update()
         self._animationManager.update()
 
-    # ------ Frame Events----- ------------------------------------------
+    # ------ ToolBox ----------------------------------------------------------
+
+    def _onToolboxToolChanged(self, tool_name):
+
+        self._canvas.currentTool = tool_name
+
+    def _onToolboxPrimaryInkChanged(self, ink_name):
+
+        self._canvas.primaryInk = ink_name
+
+    def _onToolboxSecondaryInkChanged(self, ink_name):
+
+        self._canvas.secondaryInk = ink_name
+
+    # ------ Frame Events------------------------------------------------------
 
     def _onCurrentFrameChanged(self, index):
 
@@ -289,7 +318,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._layerManager.refresh()
         self._animationDisplay.goToFrame(index)
 
-    # ------- Layer Events ----------------------------------------------
+    # ------- Layer Events ----------------------------------------------------
 
     def _onCurrentLayerChanged(self):
 

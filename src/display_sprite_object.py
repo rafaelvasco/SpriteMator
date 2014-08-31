@@ -11,7 +11,7 @@
 # Licence:     <your licence>
 #-----------------------------------------------------------------------------------------------------------------------
 
-from PyQt5.QtCore import QRectF
+from PyQt5.QtCore import QRectF, QRect
 from PyQt5.QtWidgets import QGraphicsItem
 
 
@@ -24,6 +24,8 @@ class DisplaySpriteObject(QGraphicsItem):
         self._sprite = None
 
         self._displayFrameIndex = -1
+
+        self.prepareGeometryChange()
 
         self._boundingRect = QRectF()
 
@@ -71,6 +73,10 @@ class DisplaySpriteObject(QGraphicsItem):
     def boundingRect(self):
         return self._boundingRect
 
+    @property
+    def areaRect(self):
+        return QRect(0, 0, self._boundingRect.width(), self._boundingRect.height())
+
     def setSprite(self, sprite):
 
         self._sprite = sprite
@@ -80,7 +86,6 @@ class DisplaySpriteObject(QGraphicsItem):
     def updateBoundingRect(self):
 
         if self._boundingRect.size != self._sprite.size:
-
             self.prepareGeometryChange()
             self._boundingRect = QRectF(-self._sprite.width/2, -self._sprite.height/2, self._sprite.width, self._sprite.height)
 
@@ -88,6 +93,7 @@ class DisplaySpriteObject(QGraphicsItem):
 
         self._sprite = None
         self._displayFrameIndex = -1
+        self.prepareGeometryChange()
         self._boundingRect = QRectF()
         self._frameIndex = 0
 

@@ -26,25 +26,25 @@ class ToolBox(QWidget):
     primaryInkChanged = pyqtSignal(str)
     secondaryInkChanged = pyqtSignal(str)
 
-    def __init__(self, canvas):
+    def __init__(self):
 
-        super(ToolBox, self).__init__(canvas)
+        super(ToolBox, self).__init__()
 
         self.setAttribute(Qt.WA_StaticContents)
         self.setAttribute(Qt.WA_NoSystemBackground)
 
         self.setFont(ResourcesCache.get("BigFont"))
 
-        self._registered_tools = {}
-        self._registered_inks = {}
+        self._registeredTools = {}
+        self._registeredInks = {}
 
-        self._tool_slots = []
-        self._ink_slots = []
+        self._toolSlots = []
+        self._inkSlots = []
 
-        self._current_active_toolslot = None
-        self._last_active_toolslot = None
+        self._currentActiveToolSlot = None
+        self._previousActiveToolSlot = None
 
-        self._subpanel_expanded = False
+        self._subPanelExpanded = False
 
         self._backgroundColor = QColor(40, 40, 40)
         self._toolLabelColor = QColor(112, 231, 255)
@@ -73,70 +73,70 @@ class ToolBox(QWidget):
 
         self.setLayout(self._layout)
 
-        self._toolbar_sub_panel = None
-        self._tools_list_widget = None
-        self._tools_options_panel = None
+        self._toolbarSubPanel = None
+        self._toolsListWidget = None
+        self._toolsOptionsPanel = None
 
-        self._initialize_subpanel()
+        self._initSubPanel()
 
-        self._add_ink_slot(0)
-        self._add_ink_slot(1)
+        self._addInkSlot(0)
+        self._addInkSlot(1)
 
         self.resize(0, 50)
 
-    def get_tool_by_name(self, name):
+    def getToolByName(self, name):
 
-        return self._registered_tools[name]
+        return self._registeredTools[name]
 
-    def go_back_to_last_tool(self):
-        self.switch_tool_slot(self._last_active_toolslot)
+    def _goBackToLastTool(self):
+        self.switchToolSlot(self._previousActiveToolSlot)
 
-    def register_tool(self, tool, is_default=None):
+    def registerTool(self, tool, is_default=None):
 
-        if tool.name() not in self._registered_tools:
+        if tool.name not in self._registeredTools:
 
-            slot_index = self._add_tool_slot(is_default)
+            slot_index = self._addToolSlot(is_default)
 
-            self._registered_tools[tool.name()] = tool
-            self._tools_list_widget.addItem(tool.name())
+            self._registeredTools[tool.name] = tool
+            self._toolsListWidget.addItem(tool.name)
 
             if is_default is True:
-                self._tools_list_widget.setCurrentRow(0)
+                self._toolsListWidget.setCurrentRow(0)
 
-            self._build_tool_options_pane(tool)
+            self._buildToolsOptionsPane(tool)
 
-            if len(self._tool_slots) < 5:
-                self._assign_tool_to_slot(tool, slot_index)
+            if len(self._toolSlots) < 5:
+                self._assignToolToSlot(tool, slot_index)
 
-    def register_ink(self, ink, slot):
+    def registerInk(self, ink, slot):
 
-        if not ink.name() in self._registered_inks:
-            self._registered_inks[ink.name()] = ink
-            self._assign_ink_to_slot(ink, slot)
+        if not ink.name in self._registeredInks:
+            self._registeredInks[ink.name] = ink
+            self._assignInkToSlot(ink, slot)
 
-    def switch_tool_slot(self, slot):
+    def switchToolSlot(self, slot):
 
-        self._last_active_toolslot = self._current_active_toolslot
+        self._previousActiveToolSlot = self._currentActiveToolSlot
 
-        self._current_active_toolslot = slot
+        self._currentActiveToolSlot = slot
 
-        tool_name = self._tool_slots[slot]['id']
+        tool_name = self._toolSlots[slot]['id']
 
-        self._tool_slots[slot]['button'].setChecked(True)
+        self._toolSlots[slot]['button'].setChecked(True)
 
         self.toolChanged.emit(tool_name)
 
-        correspondend_tool_list_item = self._tools_list_widget.findItems(tool_name, Qt.MatchExactly)[0]
+        correspondent_tool_list_item = self._toolsListWidget.findItems(tool_name, Qt.MatchExactly)[0]
 
-        if correspondend_tool_list_item is not None:
-            self._tools_list_widget.setCurrentItem(correspondend_tool_list_item)
+        if correspondent_tool_list_item is not None:
+            self._toolsListWidget.setCurrentItem(correspondent_tool_list_item)
 
-    def _add_tool_slot(self, selected=None):
+    def _addToolSlot(self, selected=None):
 
         slot_button = Button()
         slot_button.setCheckable(True)
 
-        index = len(self._tool_slots)
+        index = len(self._toolSlots)
 
         if selected is not None and selected is True:
             slot_button.setChecked(True)
@@ -150,9 +150,9 @@ class ToolBox(QWidget):
         }
 
         if selected:
-            self._current_active_toolslot = index
+            self._currentActiveToolSlot = index
 
-        self._tool_slots.append(slot)
+        self._toolSlots.append(slot)
 
         self._toolsButtonGroup.addButton(slot_button, index)
 
@@ -160,14 +160,14 @@ class ToolBox(QWidget):
 
         return index
 
-    def _add_ink_slot(self, slot_number):
+    def _addInkSlot(self, slot_number):
 
         slot_button = Button()
         slot_button.setFont(self.font())
         slot_button.setStyleSheet("border-color: rgb(56,56,56); background-color: rgb(17,17,17); font-size: 12pt;")
         slot_button.clicked.connect(self._ink_slot_clicked)
 
-        index = len(self._ink_slots)
+        index = len(self._inkSlots)
 
         if slot_number == 0:
 
@@ -191,48 +191,48 @@ class ToolBox(QWidget):
             'button': slot_button
         }
 
-        self._ink_slots.append(slot)
+        self._inkSlots.append(slot)
 
         self._inksLayout.addWidget(slot_button)
 
         return index
 
-    def _assign_tool_to_slot(self, tool, slot):
+    def _assignToolToSlot(self, tool, slot):
 
-        if slot < 0 or slot > len(self._tool_slots) - 1:
+        if slot < 0 or slot > len(self._toolSlots) - 1:
             raise Exception('[ToolBox] > _assignToolToSlot : invalid slot parameter')
 
-        self._tool_slots[slot]['id'] = tool.name()
+        self._toolSlots[slot]['id'] = tool.name
 
-        icon = tool.icon()
+        icon = tool.icon
 
         if icon is not None:
-            tool_button = self._tool_slots[slot]['button']
-            tool_button.setIcon(tool.icon())
-            tool_button.setTooltip(tool.name())
+            tool_button = self._toolSlots[slot]['button']
+            tool_button.setIcon(tool.icon)
+            tool_button.setTooltip(tool.name)
 
-    def _assign_ink_to_slot(self, ink, slot):
+    def _assignInkToSlot(self, ink, slot):
 
         if slot != 0 and slot != 1:
             raise Exception('[ToolBox] > _assignInkToSlot : invalid slot parameter')
 
-        ink_name = ink.name()
-        self._ink_slots[slot]['id'] = ink_name
-        self._ink_slots[slot]['button'].setText(ink_name)
+        ink_name = ink.name
+        self._inkSlots[slot]['id'] = ink_name
+        self._inkSlots[slot]['button'].setText(ink_name)
 
-    def _initialize_subpanel(self):
+    def _initSubPanel(self):
 
-        self._toolbar_sub_panel = QStackedWidget()
+        self._toolbarSubPanel = QStackedWidget()
 
         # 1. Initialize Tools Control Panel
 
-        self._tools_list_widget = QListWidget()
+        self._toolsListWidget = QListWidget()
 
-        self._tools_list_widget.currentRowChanged.connect(lambda v: self._tools_options_panel.setCurrentIndex(v))
+        self._toolsListWidget.currentRowChanged.connect(lambda v: self._toolsOptionsPanel.setCurrentIndex(v))
 
-        self._tools_list_widget.setMaximumSize(QSize(150, 200))
+        self._toolsListWidget.setMaximumSize(QSize(150, 200))
 
-        self._tools_list_widget.itemClicked.connect(self._tool_list_item_clicked)
+        self._toolsListWidget.itemClicked.connect(self._tool_list_item_clicked)
 
         # Tools Subpanel
 
@@ -254,7 +254,7 @@ class ToolBox(QWidget):
 
         tools_list_sublayout.addWidget(QLabel("Tools"))
 
-        tools_list_sublayout.addWidget(self._tools_list_widget)
+        tools_list_sublayout.addWidget(self._toolsListWidget)
 
         tools_control_panel_layout.addLayout(tools_list_sublayout)
 
@@ -266,19 +266,19 @@ class ToolBox(QWidget):
 
         tools_control_panel_layout.addLayout(tools_options_sublayout)
 
-        self._tools_options_panel = QStackedWidget()
+        self._toolsOptionsPanel = QStackedWidget()
 
         tools_options_sublayout.addWidget(QLabel("Tools Options"))
 
-        tools_options_sublayout.addWidget(self._tools_options_panel)
+        tools_options_sublayout.addWidget(self._toolsOptionsPanel)
 
-        self._toolbar_sub_panel.addWidget(tools_control_panel)
+        self._toolbarSubPanel.addWidget(tools_control_panel)
 
-        self._layout.addWidget(self._toolbar_sub_panel)
+        self._layout.addWidget(self._toolbarSubPanel)
 
-        self._toolbar_sub_panel.setVisible(False)
+        self._toolbarSubPanel.setVisible(False)
 
-    def _build_tool_options_pane(self, tool):
+    def _buildToolsOptionsPane(self, tool):
 
         pane = QWidget()
 
@@ -286,10 +286,10 @@ class ToolBox(QWidget):
         pane_layout.setAlignment(Qt.AlignTop)
         pane.setLayout(pane_layout)
 
-        for prop in tool.properties().values():
+        for prop in tool.properties.values():
             field_layout = QHBoxLayout()
 
-            field_layout.addWidget(QLabel(prop.description()))
+            field_layout.addWidget(QLabel(prop.description))
 
             prop_widget = prop.buildPropertyWidget()
 
@@ -297,18 +297,18 @@ class ToolBox(QWidget):
 
             pane_layout.addLayout(field_layout)
 
-        self._tools_options_panel.addWidget(pane)
+        self._toolsOptionsPanel.addWidget(pane)
 
     def mousePressEvent(self, e):
-        if not self._subpanel_expanded:
-            self._subpanel_expanded = True
+        if not self._subPanelExpanded:
+            self._subPanelExpanded = True
             self.resize(self.width(), 300)
-            self._toolbar_sub_panel.setVisible(True)
+            self._toolbarSubPanel.setVisible(True)
 
         else:
-            self._subpanel_expanded = False
+            self._subPanelExpanded = False
             self.resize(self.width(), 50)
-            self._toolbar_sub_panel.setVisible(False)
+            self._toolbarSubPanel.setVisible(False)
 
         self.update()
 
@@ -342,17 +342,17 @@ class ToolBox(QWidget):
 
         triggered_slot = self._toolsButtonGroup.checkedId()
 
-        if self._current_active_toolslot == self._last_active_toolslot:
+        if self._currentActiveToolSlot == self._previousActiveToolSlot:
             return
 
-        self.switch_tool_slot(triggered_slot)
+        self.switchToolSlot(triggered_slot)
 
         self.update()
 
     def _tool_list_item_clicked(self, new_item):
 
         new_item_name = new_item.text()
-        self._assign_tool_to_slot(self.get_tool_by_name(new_item_name), self._current_active_toolslot)
+        self._assignToolToSlot(self.getToolByName(new_item_name), self._currentActiveToolSlot)
         self.toolChanged.emit(new_item_name)
 
     def _ink_slot_clicked(self):

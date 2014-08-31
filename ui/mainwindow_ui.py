@@ -1,145 +1,181 @@
-# -*- coding: utf-8 -*-
 
-# Created: Sat Jul  5 15:17:19 2014
-#      by: PyQt5 UI code generator 5.2
-#
-# WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import QSize, Qt, QMetaObject, QCoreApplication
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QFrame, QSizePolicy, QToolBar, QAction
 
 class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1024, 768)
-        MainWindow.setMinimumSize(QtCore.QSize(1024, 768))
-        MainWindow.setStyleSheet("")
-        MainWindow.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
-        self.centralwidget.setObjectName("centralwidget")
-        self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
+
+    def setupUi(self, main_window):
+
+        main_window.setObjectName("mainWindow")
+        main_window.resize(1024, 768)
+        main_window.setMinimumSize(QSize(1024, 768))
+        main_window.setToolButtonStyle(Qt.ToolButtonIconOnly)
+
+        self.central_widget = QWidget(main_window)
+        self.central_widget.setObjectName("central_widget")
+
+        self.horizontalLayout = QHBoxLayout(self.central_widget)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.topDownSplitter = QtWidgets.QSplitter(self.centralwidget)
-        self.topDownSplitter.setOrientation(QtCore.Qt.Vertical)
+
+        self.topDownSplitter = QSplitter(self.central_widget)
+        self.topDownSplitter.setOrientation(Qt.Vertical)
         self.topDownSplitter.setOpaqueResize(True)
         self.topDownSplitter.setHandleWidth(5)
         self.topDownSplitter.setObjectName("topDownSplitter")
-        self.leftRightSplitter = QtWidgets.QSplitter(self.topDownSplitter)
-        self.leftRightSplitter.setOrientation(QtCore.Qt.Horizontal)
+
+        self.leftRightSplitter = QSplitter(self.topDownSplitter)
+        self.leftRightSplitter.setOrientation(Qt.Horizontal)
         self.leftRightSplitter.setObjectName("leftRightSplitter")
-        self.leftPanel = QtWidgets.QFrame(self.leftRightSplitter)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+
+        self.leftPanel = QFrame(self.leftRightSplitter)
+
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.leftPanel.sizePolicy().hasHeightForWidth())
+
         self.leftPanel.setSizePolicy(sizePolicy)
-        self.leftPanel.setMinimumSize(QtCore.QSize(245, 550))
-        self.leftPanel.setMaximumSize(QtCore.QSize(245, 16777215))
-        self.leftPanel.setStyleSheet("")
-        self.leftPanel.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.leftPanel.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.leftPanel.setMinimumSize(QSize(245, 550))
+        self.leftPanel.setMaximumSize(QSize(245, 16777215))
+        self.leftPanel.setFrameShape(QFrame.StyledPanel)
+        self.leftPanel.setFrameShadow(QFrame.Raised)
         self.leftPanel.setObjectName("leftPanel")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.leftPanel)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.colorPickerFrame = QtWidgets.QFrame(self.leftPanel)
-        self.colorPickerFrame.setMinimumSize(QtCore.QSize(0, 0))
-        self.colorPickerFrame.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.colorPickerFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.colorPickerFrame.setFrameShadow(QtWidgets.QFrame.Raised)
+
+        self.leftPanelVLayout = QVBoxLayout(self.leftPanel)
+        self.leftPanelVLayout.setObjectName("leftPanelVLayout")
+
+        self.colorPickerFrame = QFrame(self.leftPanel)
+        self.colorPickerFrame.setMinimumSize(QSize(0, 0))
+        self.colorPickerFrame.setMaximumSize(QSize(16777215, 16777215))
+        self.colorPickerFrame.setFrameShape(QFrame.StyledPanel)
+        self.colorPickerFrame.setFrameShadow(QFrame.Raised)
         self.colorPickerFrame.setObjectName("colorPickerFrame")
-        self.verticalLayout_2.addWidget(self.colorPickerFrame)
-        self.verticalLayout_2.setStretch(0, 5)
-        self.mainPanel = QtWidgets.QFrame(self.leftRightSplitter)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+
+        self.leftPanelVLayout.addWidget(self.colorPickerFrame)
+        self.leftPanelVLayout.setStretch(0, 5)
+
+        self.mainPanel = QFrame(self.leftRightSplitter)
+
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.mainPanel.sizePolicy().hasHeightForWidth())
+
         self.mainPanel.setSizePolicy(sizePolicy)
-        self.mainPanel.setMinimumSize(QtCore.QSize(32, 32))
+        self.mainPanel.setMinimumSize(QSize(320, 240))
         self.mainPanel.setAutoFillBackground(False)
-        self.mainPanel.setStyleSheet("")
-        self.mainPanel.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.mainPanel.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.mainPanel.setFrameShape(QFrame.StyledPanel)
+        self.mainPanel.setFrameShadow(QFrame.Raised)
         self.mainPanel.setObjectName("mainPanel")
-        self.verticalLayout = QtWidgets.QVBoxLayout(self.mainPanel)
+
+        self.verticalLayout = QVBoxLayout(self.mainPanel)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.canvasFrame = QtWidgets.QFrame(self.mainPanel)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+
+        self.canvasFrame = QFrame(self.mainPanel)
+
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.canvasFrame.sizePolicy().hasHeightForWidth())
+
         self.canvasFrame.setSizePolicy(sizePolicy)
-        self.canvasFrame.setStyleSheet("")
-        self.canvasFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.canvasFrame.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.canvasFrame.setMinimumSize(310, 230)
+        self.canvasFrame.setFrameShape(QFrame.StyledPanel)
+        self.canvasFrame.setFrameShadow(QFrame.Raised)
         self.canvasFrame.setObjectName("canvasFrame")
+
         self.verticalLayout.addWidget(self.canvasFrame)
         self.verticalLayout.setStretch(0, 12)
-        self.rightPanel = QtWidgets.QFrame(self.leftRightSplitter)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+
+        self.rightPanel = QFrame(self.leftRightSplitter)
+
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.rightPanel.sizePolicy().hasHeightForWidth())
+
         self.rightPanel.setSizePolicy(sizePolicy)
-        self.rightPanel.setMinimumSize(QtCore.QSize(245, 550))
-        self.rightPanel.setMaximumSize(QtCore.QSize(380, 16777215))
-        self.rightPanel.setStyleSheet("")
-        self.rightPanel.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.rightPanel.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.rightPanel.setMinimumSize(QSize(245, 550))
+        self.rightPanel.setMaximumSize(QSize(340, 16777215))
+        self.rightPanel.setFrameShape(QFrame.StyledPanel)
+        self.rightPanel.setFrameShadow(QFrame.Raised)
         self.rightPanel.setObjectName("rightPanel")
-        self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.rightPanel)
-        self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.previewFrame = QtWidgets.QFrame(self.rightPanel)
-        self.previewFrame.setStyleSheet("")
-        self.previewFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.previewFrame.setFrameShadow(QtWidgets.QFrame.Raised)
+
+        self.rightPanelLayout = QVBoxLayout(self.rightPanel)
+        self.rightPanelLayout.setObjectName("rightPanelLayout")
+
+        self.previewFrame = QFrame(self.rightPanel)
+        self.previewFrame.setMaximumSize(320, 500)
+        self.previewFrame.setFrameShape(QFrame.StyledPanel)
+        self.previewFrame.setFrameShadow(QFrame.Raised)
         self.previewFrame.setObjectName("previewFrame")
-        self.verticalLayout_3.addWidget(self.previewFrame)
-        self.layerListFrame = QtWidgets.QFrame(self.rightPanel)
-        self.layerListFrame.setStyleSheet("")
-        self.layerListFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.layerListFrame.setFrameShadow(QtWidgets.QFrame.Raised)
+
+        self.rightPanelLayout.addWidget(self.previewFrame)
+
+        self.layerListFrame = QFrame(self.rightPanel)
+        self.layerListFrame.setFrameShape(QFrame.StyledPanel)
+        self.layerListFrame.setFrameShadow(QFrame.Raised)
         self.layerListFrame.setObjectName("layerListFrame")
-        self.verticalLayout_3.addWidget(self.layerListFrame)
-        self.animationBarFrame = QtWidgets.QFrame(self.topDownSplitter)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+
+        self.rightPanelLayout.addWidget(self.layerListFrame)
+
+        self.animationBarFrame = QFrame(self.topDownSplitter)
+
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.animationBarFrame.sizePolicy().hasHeightForWidth())
+
         self.animationBarFrame.setSizePolicy(sizePolicy)
-        self.animationBarFrame.setMinimumSize(QtCore.QSize(0, 100))
-        self.animationBarFrame.setMaximumSize(QtCore.QSize(16777215, 100))
-        self.animationBarFrame.setStyleSheet("")
-        self.animationBarFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.animationBarFrame.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.animationBarFrame.setMinimumSize(QSize(600, 100))
+        self.animationBarFrame.setMaximumSize(QSize(16777215, 100))
+        self.animationBarFrame.setFrameShape(QFrame.StyledPanel)
+        self.animationBarFrame.setFrameShadow(QFrame.Raised)
         self.animationBarFrame.setObjectName("animationBarFrame")
+
         self.horizontalLayout.addWidget(self.topDownSplitter)
-        MainWindow.setCentralWidget(self.centralwidget)
-        self.toolBar = QtWidgets.QToolBar(MainWindow)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+
+        main_window.setCentralWidget(self.central_widget)
+
+        self.toolBar = QToolBar(main_window)
+
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.toolBar.sizePolicy().hasHeightForWidth())
+
         self.toolBar.setSizePolicy(sizePolicy)
         self.toolBar.setMovable(False)
         self.toolBar.setFloatable(False)
         self.toolBar.setObjectName("toolBar")
-        MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
-        self.actionNew = QtWidgets.QAction(MainWindow)
+
+        main_window.addToolBar(Qt.TopToolBarArea, self.toolBar)
+
+        self.actionNew = QAction(main_window)
         self.actionNew.setObjectName("actionNew")
-        self.actionQuit = QtWidgets.QAction(MainWindow)
+
+        self.actionQuit = QAction(main_window)
         self.actionQuit.setObjectName("actionQuit")
-        self.actionOpen = QtWidgets.QAction(MainWindow)
+
+        self.actionOpen = QAction(main_window)
         self.actionOpen.setObjectName("actionOpen")
-        self.actionSave = QtWidgets.QAction(MainWindow)
+
+        self.actionSave = QAction(main_window)
         self.actionSave.setObjectName("actionSave")
-        self.actionSaveAs = QtWidgets.QAction(MainWindow)
+
+        self.actionSaveAs = QAction(main_window)
         self.actionSaveAs.setObjectName("actionSaveAs")
-        self.actionClose = QtWidgets.QAction(MainWindow)
+
+        self.actionClose = QAction(main_window)
         self.actionClose.setObjectName("actionClose")
-        self.actionExport = QtWidgets.QAction(MainWindow)
+
+        self.actionExport = QAction(main_window)
         self.actionExport.setObjectName("actionExport")
-        self.actionImport = QtWidgets.QAction(MainWindow)
+
+        self.actionImport = QAction(main_window)
         self.actionImport.setObjectName("actionImport")
+
         self.toolBar.addAction(self.actionNew)
         self.toolBar.addAction(self.actionOpen)
         self.toolBar.addAction(self.actionImport)
@@ -149,35 +185,45 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionClose)
         self.toolBar.addAction(self.actionQuit)
 
-        self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        self.retranslateUi(main_window)
+        QMetaObject.connectSlotsByName(main_window)
 
-    def retranslateUi(self, MainWindow):
-        _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "SpriteMator"))
+    def retranslateUi(self, main_window):
+
+        _translate = QCoreApplication.translate
+
+        main_window.setWindowTitle(_translate("MainWindow", "SpriteMator"))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar"))
+
         self.actionNew.setText(_translate("MainWindow", "New"))
         self.actionNew.setIconText(_translate("MainWindow", "New"))
         self.actionNew.setToolTip(_translate("MainWindow", "New Sprite"))
         self.actionNew.setShortcut(_translate("MainWindow", "Ctrl+N"))
+
         self.actionQuit.setText(_translate("MainWindow", "Quit"))
         self.actionQuit.setToolTip(_translate("MainWindow", "Close Application"))
         self.actionQuit.setShortcut(_translate("MainWindow", "Esc"))
+
         self.actionOpen.setText(_translate("MainWindow", "Open"))
         self.actionOpen.setToolTip(_translate("MainWindow", "Open Sprite"))
         self.actionOpen.setShortcut(_translate("MainWindow", "Ctrl+O"))
+
         self.actionSave.setText(_translate("MainWindow", "Save"))
         self.actionSave.setToolTip(_translate("MainWindow", "Save Sprite"))
         self.actionSave.setShortcut(_translate("MainWindow", "Ctrl+S"))
+
         self.actionSaveAs.setText(_translate("MainWindow", "SaveAs"))
         self.actionSaveAs.setToolTip(_translate("MainWindow", "Save Sprite with another name"))
         self.actionSaveAs.setShortcut(_translate("MainWindow", "Ctrl+Shift+S"))
+
         self.actionClose.setText(_translate("MainWindow", "Close"))
         self.actionClose.setToolTip(_translate("MainWindow", "Close Sprite"))
         self.actionClose.setShortcut(_translate("MainWindow", "Ctrl+Q"))
+
         self.actionExport.setText(_translate("MainWindow", "Export"))
         self.actionExport.setToolTip(_translate("MainWindow", "Export Sprite animations : Either as separate images or as a spritesheet"))
         self.actionExport.setShortcut(_translate("MainWindow", "Ctrl+E"))
+
         self.actionImport.setText(_translate("MainWindow", "Import"))
         self.actionImport.setToolTip(_translate("MainWindow", "Create a Sprite from one or more images"))
         self.actionImport.setShortcut(_translate("MainWindow", "Ctrl+I"))

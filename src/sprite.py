@@ -42,8 +42,10 @@ class Sprite(object):
     def activeSurface(self):
         return self.currentAnimation.currentFrame.currentSurface.image
 
+    @property
     def activeSurfacePixelData(self):
-        return self.currentAnimation.currentFrame.currentSurface.bytes
+
+        return self.currentAnimation.currentFrame.currentSurface.pixelData
 
     @property
     def currentAnimation(self):
@@ -631,8 +633,12 @@ class Frame(object):
 class Surface(object):
     def __init__(self, name, width, height):
         self._image = utils.createImage(width, height)
+        self._pixelData = self._image.bits()
+        self._pixelData.setsize(self._image.byteCount())
+
+        self._byteArray = None
+
         self._name = name
-        self._bytes = None
         self._id = 0
         self._opacity = 1.0
 
@@ -657,9 +663,8 @@ class Surface(object):
         return self._id
 
     @property
-    def bytes(self):
-        return self._bytes
-
+    def pixelData(self):
+        return self._pixelData
 
     def resize(self, width, height):
 
@@ -696,8 +701,8 @@ class Surface(object):
         painter.drawImage(x, y, image)
 
     def __getstate__(self):
-        if self._bytes is None or self._bytes.isEmpty():
-            self._bytes = utils.imageToByteArray(self._image)
+        if self._byteArray is None or self._byteArray.isEmpty():
+            self._byteArray = utils.imageToByteArray(self._image)
 
         state = self.__dict__.copy()
 
@@ -707,5 +712,5 @@ class Surface(object):
 
     def __setstate__(self, state):
         self.__dict__.update(state)
-        self._image = utils.byteArrayToImage(self._bytes)
-        self._bytes.clear()
+        self._image = utils.byteArrayToImage(self._byteArray)
+        self._byteArray.clear()

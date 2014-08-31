@@ -19,6 +19,7 @@ class Ink(object):
 
         self._name = ''
 
+    @property
     def name(self):
         return self._name
 

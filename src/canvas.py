@@ -19,6 +19,7 @@ from src.tools import Tool
 
 
 
+
 #-----------------------------------------------------------------------------------------------------------------------
 
 class CanvasMouseState(object):
@@ -142,6 +143,14 @@ class Canvas(Display):
         return self._lastTool
 
     @property
+    def tools(self):
+        return self._tools.items()
+
+    @property
+    def inks(self):
+        return self._inks.items()
+
+    @property
     def primaryColor(self):
         return self._primaryColor
 
@@ -240,8 +249,6 @@ class Canvas(Display):
 
     def refresh(self):
 
-        #self._update_drawing_surface()
-
         self.update()
 
 
@@ -285,32 +292,31 @@ class Canvas(Display):
         if self.isPanning:
             return
 
-        if e.button() == Qt.LeftButton:
 
-            canvasPos = self._mouseState.canvasPos = self.mapToScene(e.pos())
-            spritePos = self._mouseState.spritePos
-            lastCanvasPos = self._mouseState.lastCanvasPos
-            lastSpritePos = self._mouseState.lastSpritePos
+        canvasPos = self._mouseState.canvasPos = self.mapToScene(e.pos())
+        spritePos = self._mouseState.spritePos
+        lastCanvasPos = self._mouseState.lastCanvasPos
+        lastSpritePos = self._mouseState.lastSpritePos
 
-            spritePos.setX(canvasPos.x() - self._spriteObject.boundingRect().left())
-            spritePos.setY(canvasPos.y() - self._spriteObject.boundingRect().top())
+        spritePos.setX(canvasPos.x() - self._spriteObject.boundingRect().left())
+        spritePos.setY(canvasPos.y() - self._spriteObject.boundingRect().top())
 
-            self._mouseState.pressedButton = e.button()
+        self._mouseState.pressedButton = e.button()
 
-            self.toolStarted.emit(self._currentTool)
+        self.toolStarted.emit(self._currentTool)
 
-            if self._pixelSize > 1 and self._snapEnabled:
-                spritePos = utils.snapPoint(spritePos, self._pixelSize)
+        if self._pixelSize > 1 and self._snapEnabled:
+            spritePos = utils.snapPoint(spritePos, self._pixelSize)
 
-            lastCanvasPos.setX(canvasPos.x())
-            lastCanvasPos.setY(canvasPos.y())
+        lastCanvasPos.setX(canvasPos.x())
+        lastCanvasPos.setY(canvasPos.y())
 
-            lastSpritePos.setX(spritePos.x())
-            lastSpritePos.setY(spritePos.y())
+        lastSpritePos.setX(spritePos.x())
+        lastSpritePos.setY(spritePos.y())
 
-            self._currentTool.onMousePress(self)
+        self._currentTool.onMousePress(self)
 
-            self._scene.update()
+        self._scene.update()
 
 
     def mouseMoveEvent(self, e):
@@ -353,8 +359,6 @@ class Canvas(Display):
             return
 
         self._mouseState.pressedButton = None
-
-
 
         self._currentTool.onMouseRelease(self)
 
@@ -415,36 +419,6 @@ class Canvas(Display):
                 self._spriteObject.updateBoundingRect()
 
                 self.refresh()
-
-
-    def _onToolboxMouseEntered(self):
-
-        if not self.spriteIsSet():
-            return
-
-        #self._overlay_surface.disable()
-
-
-    def _onToolboxMouseLeft(self):
-
-        if not self.spriteIsSet():
-            return
-
-        #self._overlay_surface.enable()
-
-
-    def _onToolboxToolChanged(self, tool_name):
-
-        self.currentTool = tool_name
-
-    def _onToolboxPrimaryInkChanged(self, ink_name):
-
-        self.primaryInk = ink_name
-
-
-    def _onToolboxSecondaryInkChanged(self, ink_name):
-
-        self.secondaryInk = ink_name
 
     # ---- PRIVATE METHODS ---------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------

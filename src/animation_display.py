@@ -13,7 +13,7 @@ import math
 
 from PyQt5.QtCore import QTimer, Qt, QSize
 from PyQt5.QtGui import QColor, QPen, QIcon, QPixmap
-from PyQt5.QtWidgets import QSizePolicy, QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel, QFrame
+from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel, QFrame
 
 from src.display import Display
 
@@ -32,6 +32,26 @@ class AnimationDisplay(Display):
 
         self._refreshSpeed = 16
 
+        styleSheet = \
+        """
+            QPushButton
+            {
+                background: rgba(30,30,30,50);
+                border: 1px solid rgba(30,30,30,10);
+            }
+
+            QPushButton:hover
+            {
+                background: rgba(30,30,30,200);
+                border: 1px solid rgba(30,30,30,200);
+            }
+
+
+
+        """
+
+        self.setStyleSheet(styleSheet)
+
         self._animationFrameInterval = 60
 
         self._loopEnabled = True
@@ -45,8 +65,6 @@ class AnimationDisplay(Display):
         self._refreshTimer.timeout.connect(self._refreshEvent)
         self._refreshTimer.stop()
 
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
         self._animationTimer = QTimer()
         self._animationTimer.timeout.connect(self._animateEvent)
         self._animationTimer.stop()
@@ -57,6 +75,7 @@ class AnimationDisplay(Display):
         self._buttonsLayout = QHBoxLayout()
 
         self._goNextFrameBtn = QPushButton()
+        self._goNextFrameBtn.setFixedHeight(20)
         self._goNextFrameBtn.clicked.connect(self.goToNextFrame)
 
         go_next_frame_icon = QIcon()
@@ -66,6 +85,7 @@ class AnimationDisplay(Display):
         self._goNextFrameBtn.setIconSize(QSize(14, 14))
 
         self._goPrevFrameBtn = QPushButton()
+        self._goPrevFrameBtn.setFixedHeight(20)
         self._goPrevFrameBtn.clicked.connect(self.goToPreviousFrame)
 
         go_prev_frame_icon = QIcon()
@@ -75,6 +95,7 @@ class AnimationDisplay(Display):
         self._goPrevFrameBtn.setIconSize(QSize(14, 14))
 
         self._playPauseBtn = QPushButton()
+        self._playPauseBtn.setFixedHeight(20)
         self._playPauseBtn.setCheckable(True)
         self._playPauseBtn.clicked.connect(self.togglePlaying)
 
@@ -95,8 +116,7 @@ class AnimationDisplay(Display):
         self._frameRatePanel.setStyleSheet("background: #333; border: 1px solid #4d4d4d;")
 
         self._frameRateLayout = QHBoxLayout()
-        self._frameRateLayout.setContentsMargins(8,4,8,4)
-
+        self._frameRateLayout.setContentsMargins(2,2,2,2)
 
         self._frameRatePanel.setLayout(self._frameRateLayout)
 
@@ -110,7 +130,6 @@ class AnimationDisplay(Display):
         self._frameRateSlider = QSlider(Qt.Horizontal)
         self._frameRateSlider.setMinimum(1)
         self._frameRateSlider.setMaximum(60)
-
         self._frameRateSlider.valueChanged.connect(self._onAnimationRateValueChanged)
 
         self._frameRateSlider.setValue(16)

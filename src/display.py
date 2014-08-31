@@ -10,12 +10,13 @@
 #-----------------------------------------------------------------------------------------------------------------------
 
 from PyQt5.QtCore import Qt, QPoint
-from PyQt5.QtGui import QPainter
+from PyQt5.QtGui import QPainter, QTransform
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene
 
 from src.display_sprite_object import DisplaySpriteObject
 from src.resources_cache import ResourcesCache
 import src.utils as utils
+
 
 class Display(QGraphicsView):
 
@@ -53,7 +54,7 @@ class Display(QGraphicsView):
 
         self.setScene(self._scene)
 
-        self._storedTransform = None
+        self._storedTransform = QTransform()
 
         self.setTransformationAnchor(QGraphicsView.AnchorViewCenter)
 
@@ -165,12 +166,10 @@ class Display(QGraphicsView):
 
     def resizeEvent(self, e):
 
-        clientW = self.width() - 4
-        clientH = self.height() - 4
+        w = self._spriteObject.sprite.width
+        h = self._spriteObject.sprite.height
 
-        print(clientW, clientH)
-
-        self.setSceneRect(-clientW/2, -clientH/2, clientW, clientH)
+        self.setSceneRect(-w/2, -h/2, w, h)
 
         if not self._fitInView:
 

@@ -330,11 +330,11 @@ class Application(QApplication):
             target = self._mainWindow.canvas.tool_box()
 
             if shortcut_name == 'TOOL_SLOT_0':
-                target.switch_tool_slot(0)
+                target.switchToolSlot(0)
             elif shortcut_name == 'TOOL_SLOT_1':
-                target.switch_tool_slot(1)
+                target.switchToolSlot(1)
             elif shortcut_name == 'TOOL_SLOT_2':
-                target.switch_tool_slot(2)
+                target.switchToolSlot(2)
 
     def _raise_error(self, source, exception):
 

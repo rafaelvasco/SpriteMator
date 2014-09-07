@@ -321,13 +321,13 @@ class Application(QApplication):
             target = self._mainWindow.colorPicker
 
             if shortcut_name == 'SWITCH_COLOR':
-                target.switch_active_color()
+                target.switchActiveColor()
 
         # TOOLBOX
 
         elif holder == 'TOOLBOX':
 
-            target = self._mainWindow.canvas.tool_box()
+            target = self._mainWindow.toolBox
 
             if shortcut_name == 'TOOL_SLOT_0':
                 target.switchToolSlot(0)

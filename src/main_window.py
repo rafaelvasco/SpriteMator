@@ -12,6 +12,7 @@
 from PyQt5.QtCore import Qt, QTimer, QEvent
 from PyQt5.QtGui import QPixmap, QPainter
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QDockWidget, QHBoxLayout
+from src.pixel_size_widget import PixelSizeWidget
 
 from src.toolbox import ToolBox
 from ui.mainwindow_ui import Ui_MainWindow
@@ -41,12 +42,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._workspaceVisible = False
 
+        self._pixelSizeWidget = PixelSizeWidget()
+
         self._colorPicker = ColorPicker()
 
         self._canvas = Canvas()
 
-        self._canvas.primaryColor = self._colorPicker.primary_color()
-        self._canvas.secondaryColor = self._colorPicker.secondary_color()
+        self._canvas.primaryColor = self._colorPicker.primaryColor
+        self._canvas.secondaryColor = self._colorPicker.secondaryColor
 
         self._toolbox = ToolBox()
 
@@ -103,6 +106,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def animationDisplay(self):
         return self._animationDisplay
 
+    @property
+    def toolBox(self):
+        return self._toolbox
+
     def showWorkspace(self):
 
         self.centralWidget().setVisible(True)
@@ -112,14 +119,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.centralWidget().setVisible(False)
         self._workspaceVisible = False
-
-    def closeEvent(self, e):
-
-        self._canvas.unloadSprite()
-        self._animationManager.clear()
-        self._layerManager.clear()
-
-        QMainWindow.closeEvent(self, e)
 
     def paintEvent(self, e):
 
@@ -140,18 +139,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if event.modifiers() & Qt.ControlModifier:
 
                 if event.angleDelta().y() > 0:
-                    self.colorPicker.select_next_color_on_palette()
+                    self.colorPicker.selectNextColorOnPalette()
                 elif event.angleDelta().y() < 0:
-                    self.colorPicker.select_previous_color_on_palette()
+                    self.colorPicker.selectPrevColorOnPalette()
 
                 return True
 
             elif event.modifiers() & Qt.AltModifier:
 
                 if event.angleDelta().y() > 0:
-                    self.colorPicker.select_next_ramp_on_palette()
+                    self.colorPicker.selectNextRampOnPalette()
                 elif event.angleDelta().y() < 0:
-                    self.colorPicker.select_previous_ramp_on_palette()
+                    self.colorPicker.selectPrevRampOnPalette()
 
                 return True
 
@@ -190,6 +189,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         color_picker_layout = QVBoxLayout()
         color_picker_layout.setContentsMargins(0, 0, 0, 0)
+
+        color_picker_layout.addWidget(self._pixelSizeWidget)
         color_picker_layout.addWidget(self._colorPicker)
 
         self.colorPickerFrame.setLayout(color_picker_layout)
@@ -221,10 +222,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _initializeEvents(self):
 
+        self._pixelSizeWidget.pixelSizeChanged.connect(self._onPixelSizeWidgetSizeChanged)
+
         self._colorPicker.primaryColorChanged.connect(self._onColorPickerPrimaryColorChanged)
         self._colorPicker.secondaryColorChanged.connect(self._onColorPickerSecondaryColorChanged)
 
         self._canvas.surfaceChanged.connect(self._onCanvasSurfaceChanged)
+        self._canvas.viewportChanged.connect(self._onCanvasViewportChanged)
         self._canvas.colorPicked.connect(self._onCanvasColorPicked)
         self._canvas.toolStarted.connect(self._onCanvasToolStarted)
         self._canvas.toolEnded.connect(self._onCanvasToolEnded)
@@ -237,6 +241,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._layerManager.currentLayerChanged.connect(self._onCurrentLayerChanged)
         self._layerManager.layerOrderChanged.connect(self._onLayerOrderChanged)
+        self._layerManager.layerImported.connect(self._onLayerImported)
 
     def _initializeToolbox(self):
 
@@ -250,7 +255,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # =================== Event Handlers ==============================
 
-    # ------- Color Picker -----------------------------------------
+    # ------- Pixel Size Widget ---------------------------------------
+
+    def _onPixelSizeWidgetSizeChanged(self, size):
+        self._canvas.pixelSize = size
+
+    # ------- Color Picker --------------------------------------------
 
     def _onColorPickerPrimaryColorChanged(self, color):
 
@@ -264,7 +274,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _onCanvasSurfaceChanged(self):
 
-        self._animationDisplay.update()
+        self._animationDisplay.refresh()
+
+        self._layerManager.update()
+
+        self._animationManager.update()
+
+    def _onCanvasViewportChanged(self):
+
+        self._animationDisplay.updateViewport()
 
         self._layerManager.update()
 
@@ -274,11 +292,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if button_pressed == Qt.LeftButton:
 
-            self._colorPicker.set_primary_color(color)
+            self._colorPicker.primaryColor = color
 
         elif button_pressed == Qt.RightButton:
 
-            self._colorPicker.set_secondary_color(color)
+            self._colorPicker.secondaryColor = color
 
     def _onCanvasToolStarted(self, tool):
 
@@ -327,5 +345,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _onLayerOrderChanged(self):
 
         self._canvas.refresh()
-        self._animationDisplay.update()
+        self._animationDisplay.refresh()
         self._animationManager.update()
+
+    def _onLayerImported(self):
+
+        self._canvas.updateViewport()
+        self._animationDisplay.updateViewport()

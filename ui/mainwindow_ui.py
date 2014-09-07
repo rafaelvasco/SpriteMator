@@ -228,3 +228,5 @@ class Ui_MainWindow(object):
         self.actionImport.setToolTip(_translate("MainWindow", "Create a Sprite from one or more images"))
         self.actionImport.setShortcut(_translate("MainWindow", "Ctrl+I"))
 
+
+import ui.resources_rc

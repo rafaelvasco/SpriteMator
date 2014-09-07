@@ -148,7 +148,7 @@ class PropertyHolder(object):
         return name in self._properties.keys()
 
     def propertyValue(self, name):
-        return self._properties[name].value()
+        return self._properties[name].value
 
     def addProperty(self, prop_name, prop_value, prop_description=None):
 

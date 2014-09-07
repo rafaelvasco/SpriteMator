@@ -30,6 +30,8 @@ class Tool(PropertyHolder):
 
         self._usesPainter = False
 
+        self._isActive = False
+
         self._refreshWaitTime = 0
 
         self._default = False
@@ -45,6 +47,10 @@ class Tool(PropertyHolder):
     @property
     def isDefault(self):
         return self._default
+
+    @property
+    def isActive(self):
+        return self._isActive
 
     @name.setter
     def name(self, value):
@@ -67,13 +73,13 @@ class Tool(PropertyHolder):
         return self._usesPainter
 
     def onMousePress(self, canvas):
-        pass
+        self._isActive = True
 
     def onMouseMove(self, canvas):
         pass
 
     def onMouseRelease(self, canvas):
-        pass
+        self._isActive = False
 
     def draw(self, canvas, event):
         pass
@@ -112,6 +118,8 @@ class Picker(Tool):
         # painter.drawLine(x - size_by_8, y, x + size_by_8, y)
 
     def onMousePress(self, canvas):
+
+        super(Picker, self).onMousePress(canvas)
 
         picked_color = QColor(canvas.spriteObject.activeSurface.pixel(canvas.mouseState.spritePos))
         canvas.colorPicked.emit(picked_color, canvas.mouseState.pressedButton)
@@ -208,22 +216,20 @@ class Pen(Tool):
         size = canvas.pixelSize
         mouseState = canvas.mouseState
         last_button_pressed = mouseState.pressedButton
-        mouse_pos = mouseState.spritePos
-        last_mouse_pos = mouseState.lastSpritePos
 
         if self._lockHorizontal and not self._lockVertical:
-            mouse_pos.setY(last_mouse_pos.y())
+            mouseState.spritePos.setY(mouseState.lastSpritePos.y())
 
         elif self._lockVertical and not self._lockHorizontal:
-            mouse_pos.setX(last_mouse_pos.x())
+            mouseState.spritePos.setX(mouseState.lastSpritePos.x())
 
         elif self._wasLockingMouse and not self._lockHorizontal and not self._lockVertical:
-            last_mouse_pos.setX(mouse_pos.x())
-            last_mouse_pos.setY(mouse_pos.y())
+            mouseState.lastSpritePos.setX(mouseState.spritePos.x())
+            mouseState.lastSpritePos.setY(mouseState.spritePos.y())
             self._wasLockingMouse = False
 
-        delta_x = abs(mouse_pos.x() - last_mouse_pos.x())
-        delta_y = abs(mouse_pos.y() - last_mouse_pos.y())
+        delta_x = abs(mouseState.spritePos.x() - mouseState.lastSpritePos.x())
+        delta_y = abs(mouseState.spritePos.y() - mouseState.lastSpritePos.y())
 
         if delta_x == 0 and delta_y == 0 and not just_pressed:
             return
@@ -248,14 +254,16 @@ class Pen(Tool):
             painter.begin(canvas.spriteObject.activeSurface)
 
             if delta_x > 1 or delta_y > 1:
-                drawing.drawLine(last_mouse_pos, mouse_pos, size, ink, color, painter)
+                drawing.drawLine(mouseState.lastSpritePos, mouseState.spritePos, size, ink, color, painter)
             elif delta_x == 1 or delta_y == 1 or just_pressed:
 
-                ink.blit(mouse_pos.x(), mouse_pos.y(), size, size, color, painter)
+                ink.blit(mouseState.spritePos.x(), mouseState.spritePos.y(), size, size, color, painter)
 
             painter.end()
 
     def onMousePress(self, canvas):
+
+        super(Pen, self).onMousePress(canvas)
 
         self._blit(canvas, just_pressed=True)
 
@@ -284,6 +292,7 @@ class Pen(Tool):
 
     def onMouseRelease(self, canvas):
 
+        super(Pen, self).onMouseRelease(canvas)
         self._lockHorizontal = self._lockVertical = False
 
 # ======================================================================================================================
@@ -308,6 +317,8 @@ class Filler(Tool):
         return
 
     def onMousePress(self, canvas):
+
+        super(Filler, self).onMousePress(canvas)
 
         image = canvas.spriteObject.activeSurface
         button = canvas.mouseState.pressedButton

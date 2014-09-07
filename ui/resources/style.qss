@@ -93,11 +93,8 @@ QLabel
 QPushButton
 {
 	
-	background: #3D3D3D;
-	border-top: 1px solid #4f4f4f;
-	border-left: 1px solid #444;
-	border-right: 1px solid #444;
-	border-bottom: 1px solid #333;
+	background: rgba(40,40,40);
+    border: 1px solid rgba(55,55,55);
 	padding-left: 10px;
     padding-right: 10px;
     padding-top: 7px;
@@ -109,28 +106,17 @@ QPushButton:hover
 {
 	
 
-	background: #4D4D4D;
-	border-top: 1px solid #5D5D5D;
-	border-left: 1px solid #555;
-	border-right: 1px solid #555;
-	border-bottom: 1px solid #4F4F4F;
-	
+	background: rgba(50,50,50);
+    border: 1px solid rgba(65,65,65);
 	color: #6ED6FF;
 }
 
-QPushButton:pressed
+QPushButton:pressed, QPushButton:checked
 {
-	background: #2F2F2F;
-	border: 1px solid #1F1F1F;
+	background: rgba(25,25,25);
+    border: 1px solid rgba(20,20,20);
 	color: #4AA9CF;
-     padding-bottom: 5px;
-}
-
-QPushButton:checked
-{
-	background: #2F2F2F;
-	border: 1px solid #1F1F1F;
-	color: #4AA9CF;
+    padding-bottom: 5px;
 }
 
 /* ------------------------------------------------------------------------------------------------------ */

@@ -116,6 +116,7 @@ class Display(QGraphicsView):
 
     def resetView(self):
 
+        print('RESET VIEW')
         self.resetTransform()
 
     def toggleView(self):
@@ -155,7 +156,7 @@ class Display(QGraphicsView):
 
         self.setFitInView(not self._fitInView)
 
-    def zoom_to(self, target_zoom):
+    def zoomTo(self, target_zoom):
 
         self._fitInView = False
 
@@ -163,6 +164,31 @@ class Display(QGraphicsView):
         self.scale(target_zoom, target_zoom)
         self.setTransformationAnchor(QGraphicsView.AnchorViewCenter)
 
+
+    def unloadSprite(self):
+
+        self.resetView()
+
+        if not self._spriteObject.isEmpty:
+
+            self._spriteObject.unloadSprite()
+
+        self._scene.update()
+
+    def updateViewport(self):
+
+        self._spriteObject.updateBoundingRect()
+
+        w = self._spriteObject.sprite.width
+        h = self._spriteObject.sprite.height
+
+        self.setSceneRect(-w/2, -h/2, w, h)
+
+        self._scene.update()
+
+    def refresh(self):
+
+        self._scene.update()
 
     def resizeEvent(self, e):
 
@@ -290,4 +316,4 @@ class Display(QGraphicsView):
 
         print(self._zoom)
 
-        self.zoom_to(scale)
+        self.zoomTo(scale)

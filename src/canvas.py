@@ -82,6 +82,7 @@ class CanvasMouseState(object):
 class Canvas(Display):
 
     surfaceChanged = pyqtSignal()
+    viewportChanged = pyqtSignal()
     colorPicked = pyqtSignal(QColor, int)  # Color, Button Pressed
     toolStarted = pyqtSignal(Tool)
     toolEnded = pyqtSignal(Tool)
@@ -110,6 +111,8 @@ class Canvas(Display):
 
         self._pixelSize = 0
 
+        self._isOnDragDrop = False
+
         self._drawGrid = True
 
         self._snapEnabled = True
@@ -121,11 +124,6 @@ class Canvas(Display):
         self._loadInks()
 
         self._initializeCanvasState()
-
-
-        #self._toolbox = ToolBox(self)
-        #self._toolbox.setVisible(False)
-        #self._initialize_toolbox()
 
         self.setAcceptDrops(True)
 
@@ -191,7 +189,6 @@ class Canvas(Display):
 
         self._lastTool = self._currentTool
         self._currentTool = self.findToolByName(value)
-        self.refresh()
 
     @property
     def pixelSize(self):
@@ -227,30 +224,9 @@ class Canvas(Display):
         if self.spriteIsSet():
             self.unloadSprite()
 
-        #self._toolbox.setVisible(True)
-
         self._spriteObject.setSprite(sprite)
 
-        self.refresh()
-
-
-    def unloadSprite(self):
-
-        #self._toolbox.setVisible(False)
-
-        self.resetView()
-
-        self._spriteObject.unloadSprite()
-
-        self.update()
-
-        self.setCursor(Qt.ArrowCursor)
-
-
-    def refresh(self):
-
-        self.update()
-
+        self.updateViewport()
 
     def clear(self):
 
@@ -292,27 +268,23 @@ class Canvas(Display):
         if self.isPanning:
             return
 
+        self._mouseState.canvasPos = self.mapToScene(e.pos())
 
-        canvasPos = self._mouseState.canvasPos = self.mapToScene(e.pos())
-        spritePos = self._mouseState.spritePos
-        lastCanvasPos = self._mouseState.lastCanvasPos
-        lastSpritePos = self._mouseState.lastSpritePos
-
-        spritePos.setX(canvasPos.x() - self._spriteObject.boundingRect().left())
-        spritePos.setY(canvasPos.y() - self._spriteObject.boundingRect().top())
+        self._mouseState.spritePos.setX(self._mouseState.canvasPos.x() - self._spriteObject.boundingRect().left())
+        self._mouseState.spritePos.setY(self._mouseState.canvasPos.y() - self._spriteObject.boundingRect().top())
 
         self._mouseState.pressedButton = e.button()
 
         self.toolStarted.emit(self._currentTool)
 
         if self._pixelSize > 1 and self._snapEnabled:
-            spritePos = utils.snapPoint(spritePos, self._pixelSize)
+            self._mouseState.spritePos = utils.snapPoint(self._mouseState.spritePos, self._pixelSize)
 
-        lastCanvasPos.setX(canvasPos.x())
-        lastCanvasPos.setY(canvasPos.y())
+        self._mouseState.lastCanvasPos.setX(self._mouseState.canvasPos.x())
+        self._mouseState.lastCanvasPos.setY(self._mouseState.canvasPos.y())
 
-        lastSpritePos.setX(spritePos.x())
-        lastSpritePos.setY(spritePos.y())
+        self._mouseState.lastSpritePos.setX(self._mouseState.spritePos.x())
+        self._mouseState.lastSpritePos.setY(self._mouseState.spritePos.y())
 
         self._currentTool.onMousePress(self)
 
@@ -323,32 +295,26 @@ class Canvas(Display):
 
         super(Canvas, self).mouseMoveEvent(e)
 
-        if self.isPanning:
-            return
-
-        if not self.spriteIsSet():
+        if not self.spriteIsSet() or self.isPanning or not self._currentTool.isActive:
             return
 
         canvasPos = self._mouseState.canvasPos = self.mapToScene(e.pos())
-        spritePos = self._mouseState.spritePos
-        lastCanvasPos = self._mouseState.lastCanvasPos
-        lastSpritePos = self._mouseState.lastSpritePos
 
-        spritePos.setX(canvasPos.x() - self._spriteObject.boundingRect().left())
-        spritePos.setY(canvasPos.y() - self._spriteObject.boundingRect().top())
+        self._mouseState.spritePos.setX(canvasPos.x() - self._spriteObject.boundingRect().left())
+        self._mouseState.spritePos.setY(canvasPos.y() - self._spriteObject.boundingRect().top())
 
         if self._pixelSize > 1 and self._snapEnabled:
-            spritePos = utils.snapPoint(spritePos, self._pixelSize)
+            self._mouseState.spritePos = utils.snapPoint(self._mouseState.spritePos, self._pixelSize)
 
         self._currentTool.onMouseMove(self)
 
         self._scene.update()
 
-        lastCanvasPos.setX(canvasPos.x())
-        lastCanvasPos.setY(canvasPos.y())
+        self._mouseState.lastCanvasPos.setX(canvasPos.x())
+        self._mouseState.lastCanvasPos.setY(canvasPos.y())
 
-        lastSpritePos.setX(spritePos.x())
-        lastSpritePos.setY(spritePos.y())
+        self._mouseState.lastSpritePos.setX(self._mouseState.spritePos.x())
+        self._mouseState.lastSpritePos.setY(self._mouseState.spritePos.y())
 
 
     def mouseReleaseEvent(self, e):
@@ -390,35 +356,30 @@ class Canvas(Display):
     def dragEnterEvent(self, e):
 
         if e.mimeData().hasUrls():
-            e.accept()
-        else:
-            e.ignore()
-
+            self._isOnDragDrop = True
+            e.acceptProposedAction()
 
     def dragMoveEvent(self, e):
 
-        #self.global_mouse_pos().setX(e.pos().x())
-        #self.global_mouse_pos().setY(e.pos().y())
+        if self._isOnDragDrop:
 
-        super(Canvas, self).dragMoveEvent(e)
+            e.acceptProposedAction()
 
 
     def dropEvent(self, e):
         if e.mimeData().hasUrls():
-
+            print('DROP')
             file_path = e.mimeData().urls()[0].toLocalFile()
 
             if utils.getFileExtension(file_path) == '.png':
 
                 image = utils.loadImage(file_path)
 
-                self._update_mouse_state(e)
-
                 self._spriteObject.sprite.pasteImage(image)
 
-                self._spriteObject.updateBoundingRect()
+                self.viewportChanged.emit()
 
-                self.refresh()
+                self.updateViewport()
 
     # ---- PRIVATE METHODS ---------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------

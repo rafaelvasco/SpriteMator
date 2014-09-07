@@ -12,10 +12,9 @@
 from PyQt5.QtCore import pyqtSignal, Qt, QSize
 from PyQt5.QtGui import QPainter, QColor, QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QButtonGroup, QStackedWidget, QLabel, \
-    QListWidget
+    QListWidget, QPushButton
 
 from src.resources_cache import ResourcesCache
-from src.widgets import Button
 
 
 class ToolBox(QWidget):
@@ -70,6 +69,7 @@ class ToolBox(QWidget):
         top_layout.addLayout(self._inksLayout)
 
         self._toolsButtonGroup = QButtonGroup()
+        self._toolsButtonGroup.buttonClicked.connect(self._tool_slot_triggered)
 
         self.setLayout(self._layout)
 
@@ -133,15 +133,13 @@ class ToolBox(QWidget):
 
     def _addToolSlot(self, selected=None):
 
-        slot_button = Button()
+        slot_button = QPushButton()
         slot_button.setCheckable(True)
 
         index = len(self._toolSlots)
 
         if selected is not None and selected is True:
             slot_button.setChecked(True)
-
-        slot_button.activated.connect(self._tool_slot_triggered)
 
         slot = {
 
@@ -156,13 +154,15 @@ class ToolBox(QWidget):
 
         self._toolsButtonGroup.addButton(slot_button, index)
 
+
+
         self._toolsLayout.addWidget(slot_button)
 
         return index
 
     def _addInkSlot(self, slot_number):
 
-        slot_button = Button()
+        slot_button = QPushButton()
         slot_button.setFont(self.font())
         slot_button.setStyleSheet("border-color: rgb(56,56,56); background-color: rgb(17,17,17); font-size: 12pt;")
         slot_button.clicked.connect(self._ink_slot_clicked)
@@ -209,7 +209,7 @@ class ToolBox(QWidget):
         if icon is not None:
             tool_button = self._toolSlots[slot]['button']
             tool_button.setIcon(tool.icon)
-            tool_button.setTooltip(tool.name)
+            tool_button.setIconSize(QSize(24,24))
 
     def _assignInkToSlot(self, ink, slot):
 

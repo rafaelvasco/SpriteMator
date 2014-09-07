@@ -180,6 +180,14 @@ class AnimationDisplay(Display):
         self._animationTimer.stop()
         self._playing = False
 
+    def reset(self):
+
+        self._playing = False
+        self._refreshing = False
+        self._refreshTimer.stop()
+        self._animationTimer.stop()
+        self._playPauseBtn.setChecked(False)
+
     def _refreshEvent(self):
         self._scene.update()
 
@@ -218,10 +226,13 @@ class AnimationDisplay(Display):
 
     def setSprite(self, sprite):
 
-        if self._spriteObject is not None:
+        if not self._spriteObject.isEmpty:
             self.unloadSprite()
 
         self._spriteObject.setSprite(sprite)
+
+        self.updateViewport()
+
         self._spriteObject.displayFrameIndex = 0
 
         self._scene.update()
@@ -229,14 +240,10 @@ class AnimationDisplay(Display):
 
     def unloadSprite(self):
 
-        self._spriteObject.unloadSprite()
-        self._playing = False
-        self._refreshing = False
-        self._refreshTimer.stop()
-        self._animationTimer.stop()
-        self._playPauseBtn.setChecked(False)
+        super(AnimationDisplay, self).unloadSprite()
 
-        self._scene.update()
+        self.reset()
+
 
     def togglePlaying(self):
         if self._spriteObject is None:

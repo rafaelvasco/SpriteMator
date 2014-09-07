@@ -66,6 +66,10 @@ class DisplaySpriteObject(QGraphicsItem):
     def backgroundPixmap(self):
         return self._backgroundPixmap
 
+    @property
+    def isEmpty(self):
+        return self._sprite is None
+
     @backgroundPixmap.setter
     def backgroundPixmap(self, value):
         self._backgroundPixmap = value

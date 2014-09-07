@@ -69,6 +69,7 @@ class LayerManager(QWidget):
 
     currentLayerChanged = pyqtSignal(int)
     layerOrderChanged = pyqtSignal()
+    layerImported = pyqtSignal()
 
     def __init__(self, parent=None):
 
@@ -202,6 +203,8 @@ class LayerManager(QWidget):
                 image = utils.loadImage(url.toLocalFile())
 
                 self.addLayer(image)
+
+            self.layerImported.emit()
 
     def _onAddLayerBtnClicked(self):
 

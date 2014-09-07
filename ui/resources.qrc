@@ -31,5 +31,14 @@
     <file alias="ico_picker_hover">resources/ico_picker_hover.png</file>
     <file alias="ico_sel_move">resources/ico_sel_move.png</file>
     <file alias="ico_sel_move_hover">resources/ico_sel_move_hover.png</file>
+    <file alias="ico_1px">resources/ico_1px.png</file>
+    <file alias="ico_1px_crux">resources/ico_1px_crux.png</file>
+    <file alias="ico_2px">resources/ico_2px.png</file>
+    <file alias="ico_2px_crux">resources/ico_2px_crux.png</file>
+    <file alias="ico_3px">resources/ico_3px.png</file>
+    <file alias="ico_3px_crux">resources/ico_3px_crux.png</file>
+    <file alias="ico_4px">resources/ico_4px.png</file>
+    <file alias="ico_5px">resources/ico_5px.png</file>
+
   </qresource>
 </RCC>

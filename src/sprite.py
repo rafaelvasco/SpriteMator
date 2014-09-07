@@ -94,7 +94,7 @@ class Sprite(object):
 
         for animation in self._animations:
 
-            for frame in animation.frames():
+            for frame in animation.frames:
 
                 frame.resize(width, height)
 
@@ -550,7 +550,7 @@ class Frame(object):
             frame_width = image.width()
             frame_height = image.height()
 
-            self._animation.sprite.resize(frame_height, frame_height)
+            self._animation.sprite.resize(frame_width, frame_height)
 
         new_surface = Surface('Layer ' + str(sid), frame_width, frame_height)
 
@@ -676,6 +676,8 @@ class Surface(object):
 
         self._image = new_image
 
+        self._resizePixelbuffer()
+
     def scale(self, scale_width, scale_height):
 
         cur_width = self.width()
@@ -685,6 +687,8 @@ class Surface(object):
         new_height = cur_height * scale_height
 
         self._image = self._image.scaled(new_width, new_height)
+
+        self._resizePixelbuffer()
 
     def paste(self, image, x=None, y=None):
 
@@ -699,6 +703,11 @@ class Surface(object):
             y = self._image.height() // 2 - image.height() // 2
 
         painter.drawImage(x, y, image)
+
+    def _resizePixelbuffer(self):
+
+        self._pixelData = self._image.bits()
+        self._pixelData.setsize(self._image.byteCount())
 
     def __getstate__(self):
         if self._byteArray is None or self._byteArray.isEmpty():

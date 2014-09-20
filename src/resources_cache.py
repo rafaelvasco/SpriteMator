@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
 # Name:        Resources Cache
 # Purpose:     Manages application resources;
 #
@@ -7,7 +7,7 @@
 # Created:     12/10/13
 # Copyright:   (c) Rafael 2013
 # Licence:     <your licence>
-#-----------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
 
 
 class ResourcesCache(object):
@@ -20,7 +20,7 @@ class ResourcesCache(object):
         return ResourcesCache._resources[name]
 
     @staticmethod
-    def registerResource(name,  resource):
+    def register_resource(name,  resource):
         
         ResourcesCache._resources[name] = resource
         

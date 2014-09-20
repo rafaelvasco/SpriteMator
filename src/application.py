@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        Application
 # Purpose:
 #
@@ -7,7 +7,7 @@
 # Created:     10/08/2013
 # Copyright:   (c) Rafael 2013
 # Licence:     <your licence>
-#-----------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 import sys
 import logging
@@ -24,7 +24,6 @@ import src.utils as utils
 
 
 class Application(QApplication):
-
     resources = {}
 
     #TODO add indication if file is modified / saved
@@ -51,7 +50,7 @@ class Application(QApplication):
             level=logging.DEBUG
         )
 
-        self._loadAssets()
+        self._load_assets()
 
         self._mainWindow = MainWindow()
 
@@ -60,17 +59,18 @@ class Application(QApplication):
 
         # Open window on screen center
         self._mainWindow.setGeometry(
-            QStyle.alignedRect(Qt.LeftToRight, Qt.AlignCenter, self._mainWindow.size(), self.desktop().availableGeometry()))
+            QStyle.alignedRect(Qt.LeftToRight, Qt.AlignCenter, self._mainWindow.size(),
+                               self.desktop().availableGeometry()))
 
         self._shortCuts = {}
 
-        self._initializeShortcuts()
+        self._init_shortcuts()
 
         self.setQuitOnLastWindowClosed(True)
 
         self._currentSprite = None
 
-        self._connectWithWindowInterface()
+        self._connect_with_window_actions()
 
         # Load Stylesheet
         style_file = QFile(':/styles/style')
@@ -85,58 +85,58 @@ class Application(QApplication):
 
         self._mainWindow.show()
 
-        self._updateTopMenu()
+        self._update_top_menu()
 
         sys.exit(self.exec_())
 
-        # --------------------------------------------------------------------------------------------------------------
+        # ---------------------------------------------------------------------
 
-    def newSprite(self):
+    def new_sprite(self):
 
-        if self._mainWindow.newSpriteDialog.exec_() == QDialog.Accepted:
-            result = self._mainWindow.newSpriteDialog.result()
+        if self._mainWindow.new_sprite_dialog.exec_() == QDialog.Accepted:
+            result = self._mainWindow.new_sprite_dialog.result()
 
             if self._currentSprite is not None:
-                self.closeSprite()
+                self.close_sprite()
 
             sprite = Sprite.create(result.choosen_width, result.choosen_height)
 
-            self.setSprite(sprite)
-            self._updateTopMenu()
+            self.set_sprite(sprite)
+            self._update_top_menu()
 
-    def setSprite(self, sprite):
+    def set_sprite(self, sprite):
 
         self._currentSprite = sprite
-        self._mainWindow.canvas.setSprite(self._currentSprite)
-        self._mainWindow.animationDisplay.setSprite(self._currentSprite)
-        self._mainWindow.animationManager.setSprite(self._currentSprite)
-        self._mainWindow.layerManager.setSprite(self._currentSprite)
+        self._mainWindow.canvas.set_sprite(self._currentSprite)
+        self._mainWindow.animation_display.set_sprite(self._currentSprite)
+        self._mainWindow.animation_manager.set_sprite(self._currentSprite)
+        self._mainWindow.layer_manager.set_sprite(self._currentSprite)
 
-        self._mainWindow.showWorkspace()
+        self._mainWindow.show_workspace()
 
-    def loadSprite(self):
+    def load_sprite(self):
 
-        sprite_file = utils.showOpenFileDialog('Open Sprite:', 'Sprite (*.spr)')
+        sprite_file = utils.show_open_file_dialog('Open Sprite:', 'Sprite (*.spr)')
         if sprite_file:
-            sprite = Sprite.loadFromFile(sprite_file)
+            sprite = Sprite.load_from_file(sprite_file)
 
-            self.setSprite(sprite)
+            self.set_sprite(sprite)
 
-            self._updateTopMenu()
+            self._update_top_menu()
 
-    def importSprite(self):
+    def import_sprite(self):
 
-        image_files = utils.showOpenFilesDialog('Select one or more images:', 'PNG Image (*.png)')
+        image_files = utils.show_open_files_dialog('Select one or more images:', 'PNG Image (*.png)')
 
         if len(image_files) > 0:
 
-            sprite = Sprite.importFromImageFiles(image_files)
+            sprite = Sprite.import_from_image_files(image_files)
             if sprite:
-                self.setSprite(sprite)
+                self.set_sprite(sprite)
 
-                self._updateTopMenu()
+                self._update_top_menu()
 
-    def saveSprite(self):
+    def save_sprite(self):
 
         if self._currentSprite is None:
             return
@@ -147,88 +147,88 @@ class Application(QApplication):
 
         else:
 
-            save_path = utils.showSaveFileDialog('Save Sprite...', 'Sprite (*.spr)')
+            save_path = utils.show_save_file_dialog('Save Sprite...', 'Sprite (*.spr)')
 
         if save_path is not None and len(save_path) > 0:
             Sprite.save(self._currentSprite, save_path)
 
-    def saveSpriteAs(self):
+    def save_sprite_as(self):
 
         if self._currentSprite is None:
             return
 
-        new_save_path = utils.showSaveFileDialog('Save Sprite As...', 'Sprite (*.spr)')
+        new_save_path = utils.show_save_file_dialog('Save Sprite As...', 'Sprite (*.spr)')
 
         if new_save_path:
             Sprite.save(self._currentSprite, new_save_path)
 
-            self.closeSprite()
+            self.close_sprite()
 
-            new_sprite = Sprite.loadFromFile(new_save_path)
+            new_sprite = Sprite.load_from_file(new_save_path)
 
-            self.setSprite(new_sprite)
+            self.set_sprite(new_sprite)
 
-    def exportSprite(self):
+    def export_sprite(self):
 
         if self._currentSprite is None:
             return
 
-        target_folder = utils.showSaveToFolderDialog('Choose a folder to save Sprite animations:')
+        target_folder = utils.show_save_to_folder_dialog('Choose a folder to save Sprite animations:')
 
         if target_folder:
 
             try:
 
                 #Sprite.export(self._current_sprite, target_folder)
-                Sprite.exportToSpritesheet(self._currentSprite, target_folder)
+                Sprite.export_to_spritesheet(self._currentSprite, target_folder)
 
             except Exception as e:
 
                 self._raise_error('exportSprite', e)
                 return
 
-            utils.showInfoMessage(self._mainWindow, 'Info', 'Sprite Exported Successfuly.')
+            utils.show_info_message(self._mainWindow, 'Info', 'Sprite Exported Successfuly.')
 
-    def closeSprite(self):
+    def close_sprite(self):
 
         # TODO Save Sprite Before Close Test
-        self._mainWindow.canvas.unloadSprite()
-        self._mainWindow.animationDisplay.unloadSprite()
-        self._mainWindow.layerManager.clear()
-        self._mainWindow.animationManager.clear()
+        self._mainWindow.canvas.unload_sprite()
+        self._mainWindow.animation_display.unload_sprite()
+        self._mainWindow.layer_manager.clear()
+        self._mainWindow.animation_manager.clear()
         self._currentSprite = None
 
-        self._mainWindow.hideWorkspace()
+        self._mainWindow.hide_workspace()
 
-        self._updateTopMenu()
+        self._update_top_menu()
 
     def terminate(self):
 
         self.removeEventFilter(self._mainWindow)
-        self.closeSprite()
+        self.close_sprite()
         self._mainWindow.close()
 
-    def toggleLuminosity(self):
+    def toggle_back_light(self):
 
-        self._mainWindow.canvas.toggleBacklight()
+        self._mainWindow.canvas.toggle_backlight()
 
-    # ------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
-    def _connectWithWindowInterface(self):
+    def _connect_with_window_actions(self):
 
-        self._mainWindow.actionNew.triggered.connect(self.newSprite)
-        self._mainWindow.actionOpen.triggered.connect(self.loadSprite)
-        self._mainWindow.actionImport.triggered.connect(self.importSprite)
-        self._mainWindow.actionSave.triggered.connect(self.saveSprite)
-        self._mainWindow.actionSaveAs.triggered.connect(self.saveSpriteAs)
-        self._mainWindow.actionExport.triggered.connect(self.exportSprite)
-        self._mainWindow.actionClose.triggered.connect(self.closeSprite)
+        self._mainWindow.actionNew.triggered.connect(self.new_sprite)
+        self._mainWindow.actionOpen.triggered.connect(self.load_sprite)
+        self._mainWindow.actionImport.triggered.connect(self.import_sprite)
+        self._mainWindow.actionSave.triggered.connect(self.save_sprite)
+        self._mainWindow.actionSaveAs.triggered.connect(self.save_sprite_as)
+        self._mainWindow.actionExport.triggered.connect(self.export_sprite)
+        self._mainWindow.actionClose.triggered.connect(self.close_sprite)
         self._mainWindow.actionQuit.triggered.connect(self.terminate)
 
-    # ------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
     @staticmethod
-    def _loadAssets():
+    def _load_assets():
 
         # Fonts #
 
@@ -241,22 +241,24 @@ class Application(QApplication):
         small_font = QFont("flxpixl")
         small_font.setPointSize(12)
 
-        ResourcesCache.registerResource("BigFont", default_font)
-        ResourcesCache.registerResource("SmallFont", small_font)
+        ResourcesCache.register_resource("BigFont", default_font)
+        ResourcesCache.register_resource("SmallFont", small_font)
 
         # Pixmaps #
 
-        checker_tile_light = utils.generateCheckerboardTile(8, QColor(238, 238, 238), QColor(255, 255, 255))
-        checker_tile_dark = utils.generateCheckerboardTile(8, QColor(59, 59, 59), QColor(63, 63, 63))
+        checker_tile_light = utils.generate_checkerboard_tile(8, QColor(238, 238, 238),
+                                                              QColor(255, 255, 255))
+        checker_tile_dark = utils.generate_checkerboard_tile(8, QColor(59, 59, 59),
+                                                             QColor(63, 63, 63))
 
-        ResourcesCache.registerResource("CheckerTileLight", checker_tile_light)
-        ResourcesCache.registerResource("CheckerTileDark", checker_tile_dark)
+        ResourcesCache.register_resource("CheckerTileLight", checker_tile_light)
+        ResourcesCache.register_resource("CheckerTileDark", checker_tile_dark)
 
         tool_cursor_1 = QPixmap(':/images/tool_cursor_1')
 
-        ResourcesCache.registerResource('ToolCursor1', tool_cursor_1)
+        ResourcesCache.register_resource('ToolCursor1', tool_cursor_1)
 
-    def _initializeShortcuts(self):
+    def _init_shortcuts(self):
 
         shortcut_data = appdata.shortcuts
 
@@ -265,12 +267,13 @@ class Application(QApplication):
             self._shortCuts[holder] = {}
 
             for shortCutName, shortCutText in shortCutGroup.items():
-                shortCut = self._shortCuts[holder][shortCutName] = QShortcut(QKeySequence(shortCutText), self._mainWindow)
-                shortCut.setAutoRepeat(False)
-                shortCut.activated.connect(
-                    lambda h=holder, n=shortCutName: self._onShortcutActivated(h, n))
+                shortcut = self._shortCuts[holder][shortCutName] = QShortcut(
+                    QKeySequence(shortCutText), self._mainWindow)
+                shortcut.setAutoRepeat(False)
+                shortcut.activated.connect(
+                    lambda h=holder, n=shortCutName: self._on_shortcut_triggered(h, n))
 
-    def _onShortcutActivated(self, holder, shortcut_name):
+    def _on_shortcut_triggered(self, holder, shortcut_name):
 
         # APPLICATION
 
@@ -279,8 +282,7 @@ class Application(QApplication):
             target = self
 
             if shortcut_name == 'TOGGLE_LUMINOSITY':
-
-                target.toggleLuminosity()
+                target.toggle_back_light()
 
         # CANVAS
 
@@ -290,11 +292,11 @@ class Application(QApplication):
 
             if shortcut_name == 'TOGGLE_VIEW':
 
-                target.toggleView()
+                target.toggle_view()
 
             elif shortcut_name == 'TOGGLE_FIT_IN_VIEW':
 
-                target.toggleFitInView()
+                target.toggle_fit_in_view()
 
             elif shortcut_name == 'CLEAR':
 
@@ -304,46 +306,47 @@ class Application(QApplication):
 
         elif holder == 'ANIMATION_MANAGER':
 
-            target = self._mainWindow.animationManager
+            target = self._mainWindow.animation_manager
 
             if shortcut_name == 'GO_PREV_FRAME':
 
-                target.goToPreviousFrame()
+                target.go_to_previous_frame()
 
             elif shortcut_name == 'GO_NEXT_FRAME':
 
-                target.goToNextFrame()
+                target.go_to_next_frame()
 
         # COLOR PICKER
 
         elif holder == 'COLORPICKER':
 
-            target = self._mainWindow.colorPicker
+            target = self._mainWindow.color_picker
 
             if shortcut_name == 'SWITCH_COLOR':
-                target.switchActiveColor()
+                target.switch_active_color()
 
         # TOOLBOX
 
         elif holder == 'TOOLBOX':
 
-            target = self._mainWindow.toolBox
+            target = self._mainWindow.tool_box
 
             if shortcut_name == 'TOOL_SLOT_0':
-                target.switchToolSlot(0)
+                target.switch_tool_slot(0)
             elif shortcut_name == 'TOOL_SLOT_1':
-                target.switchToolSlot(1)
+                target.switch_tool_slot(1)
             elif shortcut_name == 'TOOL_SLOT_2':
-                target.switchToolSlot(2)
+                target.switch_tool_slot(2)
 
     def _raise_error(self, source, exception):
 
         message = str(exception)
         logging.error('[{0}] {1}'.format(source, message))
 
-        QMessageBox.warning(self._mainWindow, 'Warning', '[{0}] An error has ocurred: {1}'.format(source, message))
+        QMessageBox.warning(self._mainWindow, 'Warning',
+                            '[{0}] An error has ocurred: {1}'.format(source, message))
 
-    def _updateTopMenu(self):
+    def _update_top_menu(self):
 
         if self._currentSprite is not None:
 
@@ -365,9 +368,8 @@ class Application(QApplication):
             self._mainWindow.actionImport.setEnabled(True)
             self._mainWindow.actionExport.setEnabled(False)
 
-# ======================================================================================================================
+# =============================================================================
 
 if __name__ == '__main__':
-
     application = Application(sys.argv)
     ResourcesCache.dispose()

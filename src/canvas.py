@@ -1,13 +1,13 @@
-#-----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Name:        Canvas
-# Purpose:     The Canvas is a Display in which the DisplaySpriteItem's pixels can be edited
-#
+# Purpose:     The Canvas is a Display in which the DisplaySpriteItem's pixels
+#              can be edited
 # Author:      Rafael Vasco
 #
 # Created:     30/03/2013
 # Copyright:   (c) Rafael Vasco 2014
 # Licence:     <your licence>
-#-----------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 from PyQt5.QtCore import Qt, pyqtSignal, QPoint
 from PyQt5.QtGui import QColor, QPainter
@@ -17,16 +17,11 @@ import src.utils as utils
 from src import tools, inks
 from src.tools import Tool
 
+#------------------------------------------------------------------------------
 
-
-
-#-----------------------------------------------------------------------------------------------------------------------
 
 class CanvasMouseState(object):
-
     def __init__(self):
-
-
         self._spritePos = QPoint()
         self._lastSpritePos = QPoint()
         self._canvasPos = QPoint()
@@ -37,50 +32,47 @@ class CanvasMouseState(object):
         self._isShiftPressed = False
 
     @property
-    def spritePos(self):
+    def sprite_pos(self):
         return self._spritePos
 
-    @spritePos.setter
-    def spritePos(self, value):
+    @sprite_pos.setter
+    def sprite_pos(self, value):
         self._spritePos = value
 
     @property
-    def lastSpritePos(self):
+    def last_sprite_pos(self):
         return self._lastSpritePos
 
-    @lastSpritePos.setter
-    def lastSpritePos(self, value):
+    @last_sprite_pos.setter
+    def last_sprite_pos(self, value):
         self._lastSpritePos = value
 
     @property
-    def canvasPos(self):
+    def canvas_pos(self):
         return self._canvasPos
 
-    @canvasPos.setter
-    def canvasPos(self, value):
+    @canvas_pos.setter
+    def canvas_pos(self, value):
         self._canvasPos = value
 
     @property
-    def lastCanvasPos(self):
+    def last_canvas_pos(self):
         return self._lastCanvasPos
 
-    @lastCanvasPos.setter
-    def lastCanvasPos(self, value):
+    @last_canvas_pos.setter
+    def last_canvas_pos(self, value):
         self._lastCanvasPos = value
 
     @property
-    def pressedButton(self):
+    def pressed_button(self):
         return self._pressedButton
 
-    @pressedButton.setter
-    def pressedButton(self, value):
+    @pressed_button.setter
+    def pressed_button(self, value):
         self._pressedButton = value
 
 
-
-
 class Canvas(Display):
-
     surfaceChanged = pyqtSignal()
     viewportChanged = pyqtSignal()
     colorPicked = pyqtSignal(QColor, int)  # Color, Button Pressed
@@ -91,7 +83,7 @@ class Canvas(Display):
 
         super(Canvas, self).__init__()
 
-        self.turnBacklightOn()
+        self.turn_backlight_on()
 
         self._tools = {}
 
@@ -119,25 +111,29 @@ class Canvas(Display):
 
         self._mouseState = CanvasMouseState()
 
-        self._loadTools()
+        self._load_tools()
 
-        self._loadInks()
+        self._load_inks()
 
-        self._initializeCanvasState()
+        self._init_canvas_state()
 
         self.setAcceptDrops(True)
 
-
     @property
-    def spriteObject(self):
+    def sprite_object(self):
         return self._spriteObject
 
     @property
-    def currentTool(self):
+    def current_tool(self):
         return self._currentTool
 
+    @current_tool.setter
+    def current_tool(self, value):
+        self._lastTool = self._currentTool
+        self._currentTool = self.find_tool_by_name(value)
+
     @property
-    def lastTool(self):
+    def last_tool(self):
         return self._lastTool
 
     @property
@@ -149,91 +145,78 @@ class Canvas(Display):
         return self._inks.items()
 
     @property
-    def primaryColor(self):
+    def primary_color(self):
         return self._primaryColor
 
-    @primaryColor.setter
-    def primaryColor(self, value):
+    @primary_color.setter
+    def primary_color(self, value):
         self._primaryColor = value
 
     @property
-    def secondaryColor(self):
+    def secondary_color(self):
         return self._secondaryColor
 
-    @secondaryColor.setter
-    def secondaryColor(self, value):
+    @secondary_color.setter
+    def secondary_color(self, value):
         self._secondaryColor = value
 
     @property
-    def primaryInk(self):
+    def primary_ink(self):
         return self._primaryInk
 
-    @primaryInk.setter
-    def primaryInk(self, value):
+    @primary_ink.setter
+    def primary_ink(self, value):
         self._primaryInk = value
 
     @property
-    def secondaryInk(self):
+    def secondary_ink(self):
         return self._secondaryInk
 
-    @secondaryInk.setter
-    def secondaryInk(self, value):
+    @secondary_ink.setter
+    def secondary_ink(self, value):
         self._secondaryInk = value
 
     @property
-    def currentTool(self):
-        return self._currentTool
-
-    @currentTool.setter
-    def currentTool(self, value):
-
-        self._lastTool = self._currentTool
-        self._currentTool = self.findToolByName(value)
-
-    @property
-    def pixelSize(self):
+    def pixel_size(self):
         return self._pixelSize
 
-    @pixelSize.setter
-    def pixelSize(self, value):
+    @pixel_size.setter
+    def pixel_size(self, value):
         self._pixelSize = value
 
-
     @property
-    def mouseState(self):
+    def mouse_state(self):
         return self._mouseState
 
-    def findToolByName(self, name):
+    def find_tool_by_name(self, name):
 
         return self._tools[name]
 
-    def findInkByName(self, name):
+    def find_ink_by_name(self, name):
 
         return self._inks[name]
 
-    def spriteIsSet(self):
+    def sprite_is_set(self):
 
         return self._spriteObject.sprite is not None
 
+    # -------------------------------------------------------------------------
 
-    # ----- PUBLIC API -------------------------------------------------------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
+    def set_sprite(self, sprite):
 
-    def setSprite(self, sprite):
+        if self.sprite_is_set():
+            self.unload_sprite()
 
-        if self.spriteIsSet():
-            self.unloadSprite()
+        self._spriteObject.set_sprite(sprite)
 
-        self._spriteObject.setSprite(sprite)
-
-        self.updateViewport()
+        self.update_viewport()
 
     def clear(self):
 
         if self._spriteObject is None:
             return
 
-        surface = self._spriteObject.activeSurface
+        surface = self._spriteObject.active_surface
 
         painter = QPainter()
 
@@ -250,108 +233,102 @@ class Canvas(Display):
 
         self.update()
 
-
     def resize(self, width, height, index=None):
         pass
-
 
     def rescale(self, scale_width, scale_height):
         pass
 
-    # ----- EVENTS -----------------------------------------------------------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
     def mousePressEvent(self, e):
 
         super(Canvas, self).mousePressEvent(e)
 
-        if self.isPanning:
+        if self.is_panning:
             return
 
-        self._mouseState.canvasPos = self.mapToScene(e.pos())
+        self._mouseState.canvas_pos = self.mapToScene(e.pos())
 
-        self._mouseState.spritePos.setX(self._mouseState.canvasPos.x() - self._spriteObject.boundingRect().left())
-        self._mouseState.spritePos.setY(self._mouseState.canvasPos.y() - self._spriteObject.boundingRect().top())
+        self._mouseState.sprite_pos.setX(
+            self._mouseState.canvas_pos.x() - self._spriteObject.boundingRect().left())
+        self._mouseState.sprite_pos.setY(
+            self._mouseState.canvas_pos.y() - self._spriteObject.boundingRect().top())
 
-        self._mouseState.pressedButton = e.button()
+        self._mouseState.pressed_button = e.button()
 
         self.toolStarted.emit(self._currentTool)
 
         if self._pixelSize > 1 and self._snapEnabled:
-            self._mouseState.spritePos = utils.snapPoint(self._mouseState.spritePos, self._pixelSize)
+            self._mouseState.sprite_pos = utils.snap_point(self._mouseState.sprite_pos,
+                                                           self._pixelSize)
 
-        self._mouseState.lastCanvasPos.setX(self._mouseState.canvasPos.x())
-        self._mouseState.lastCanvasPos.setY(self._mouseState.canvasPos.y())
+        self._mouseState.last_canvas_pos.setX(self._mouseState.canvas_pos.x())
+        self._mouseState.last_canvas_pos.setY(self._mouseState.canvas_pos.y())
 
-        self._mouseState.lastSpritePos.setX(self._mouseState.spritePos.x())
-        self._mouseState.lastSpritePos.setY(self._mouseState.spritePos.y())
+        self._mouseState.last_sprite_pos.setX(self._mouseState.sprite_pos.x())
+        self._mouseState.last_sprite_pos.setY(self._mouseState.sprite_pos.y())
 
-        self._currentTool.onMousePress(self)
+        self._currentTool.on_mouse_press(self)
 
         self._scene.update()
-
 
     def mouseMoveEvent(self, e):
 
         super(Canvas, self).mouseMoveEvent(e)
 
-        if not self.spriteIsSet() or self.isPanning or not self._currentTool.isActive:
+        if not self.sprite_is_set() or self.is_panning or not self._currentTool.is_active:
             return
 
-        canvasPos = self._mouseState.canvasPos = self.mapToScene(e.pos())
+        canvas_pos = self._mouseState.canvas_pos = self.mapToScene(e.pos())
 
-        self._mouseState.spritePos.setX(canvasPos.x() - self._spriteObject.boundingRect().left())
-        self._mouseState.spritePos.setY(canvasPos.y() - self._spriteObject.boundingRect().top())
+        self._mouseState.sprite_pos.setX(canvas_pos.x() - self._spriteObject.boundingRect().left())
+        self._mouseState.sprite_pos.setY(canvas_pos.y() - self._spriteObject.boundingRect().top())
 
         if self._pixelSize > 1 and self._snapEnabled:
-            self._mouseState.spritePos = utils.snapPoint(self._mouseState.spritePos, self._pixelSize)
+            self._mouseState.sprite_pos = utils.snap_point(self._mouseState.sprite_pos,
+                                                           self._pixelSize)
 
-        self._currentTool.onMouseMove(self)
+        self._currentTool.on_mouse_move(self)
 
         self._scene.update()
 
-        self._mouseState.lastCanvasPos.setX(canvasPos.x())
-        self._mouseState.lastCanvasPos.setY(canvasPos.y())
+        self._mouseState.last_canvas_pos.setX(canvas_pos.x())
+        self._mouseState.last_canvas_pos.setY(canvas_pos.y())
 
-        self._mouseState.lastSpritePos.setX(self._mouseState.spritePos.x())
-        self._mouseState.lastSpritePos.setY(self._mouseState.spritePos.y())
-
+        self._mouseState.last_sprite_pos.setX(self._mouseState.sprite_pos.x())
+        self._mouseState.last_sprite_pos.setY(self._mouseState.sprite_pos.y())
 
     def mouseReleaseEvent(self, e):
 
         super(Canvas, self).mouseReleaseEvent(e)
 
-        if self.isPanning:
+        if self.is_panning:
             return
 
-        self._mouseState.pressedButton = None
+        self._mouseState.pressed_button = None
 
-        self._currentTool.onMouseRelease(self)
+        self._currentTool.on_mouse_release(self)
 
         self.toolEnded.emit(self._currentTool)
 
         self._scene.update()
 
-
     def enterEvent(self, e):
 
         super(Canvas, self).enterEvent(e)
-
 
     def leaveEvent(self, e):
 
         super(Canvas, self).leaveEvent(e)
 
-
     def keyPressEvent(self, e):
 
         super(Canvas, self).keyPressEvent(e)
 
-
     def keyReleaseEvent(self, e):
 
         super(Canvas, self).keyReleaseEvent(e)
-
 
     def dragEnterEvent(self, e):
 
@@ -362,30 +339,25 @@ class Canvas(Display):
     def dragMoveEvent(self, e):
 
         if self._isOnDragDrop:
-
             e.acceptProposedAction()
-
 
     def dropEvent(self, e):
         if e.mimeData().hasUrls():
             print('DROP')
             file_path = e.mimeData().urls()[0].toLocalFile()
 
-            if utils.getFileExtension(file_path) == '.png':
+            if utils.get_file_extension(file_path) == '.png':
+                image = utils.load_image(file_path)
 
-                image = utils.loadImage(file_path)
-
-                self._spriteObject.sprite.pasteImage(image)
+                self._spriteObject.sprite.paste_image(image)
 
                 self.viewportChanged.emit()
 
-                self.updateViewport()
+                self.update_viewport()
 
-    # ---- PRIVATE METHODS ---------------------------------------------------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
-
-    def _loadTools(self):
+    def _load_tools(self):
 
         # Default Tools
 
@@ -393,36 +365,18 @@ class Canvas(Display):
         self._tools['Picker'] = tools.Picker()
         self._tools['Filler'] = tools.Filler()
 
-
-    def _loadInks(self):
+    def _load_inks(self):
 
         # Default Inks
 
         self._inks['Solid'] = inks.Solid()
         self._inks['Eraser'] = inks.Eraser()
 
-
-    def _initializeCanvasState(self):
+    def _init_canvas_state(self):
 
         self._pixelSize = 1
         self._primaryColor = QColor('black')
         self._secondaryColor = QColor('white')
-        self._currentTool = self.findToolByName('Pen')
-        self._primaryInk = self.findInkByName('Solid')
-        self._secondaryInk = self.findInkByName('Eraser')
-
-    # def _initialize_toolbox(self):
-    #
-    #     self._toolbox.mouseEntered.connect(self._on_toolbox_mouse_entered)
-    #     self._toolbox.mouseLeft.connect(self._on_toolbox_mouse_left)
-    #
-    #     self._toolbox.register_tool(self.tool('Pen'), is_default=True)
-    #     self._toolbox.register_tool(self.tool('Picker'))
-    #     self._toolbox.register_tool(self.tool('Filler'))
-    #
-    #     self._toolbox.register_ink(self.ink('Solid'), slot=0)
-    #     self._toolbox.register_ink(self.ink('Eraser'), slot=1)
-    #
-    #     self._toolbox.toolChanged.connect(self._on_toolbox_tool_changed)
-    #     self._toolbox.primaryInkChanged.connect(self._on_toolbox_primary_ink_changed)
-    #     self._toolbox.secondaryInkChanged.connect(self._on_toolbox_secondary_ink_changed)
+        self._currentTool = self.find_tool_by_name('Pen')
+        self._primaryInk = self.find_ink_by_name('Solid')
+        self._secondaryInk = self.find_ink_by_name('Eraser')

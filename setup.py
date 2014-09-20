@@ -32,5 +32,5 @@ setup(
     version="0.6",
     description="A Sprite editor and animator",
     executables=[exe],
-    options=options, requires=['PyQt5']
+    options=options, requires=['PyQt5', 'PIL']
 )

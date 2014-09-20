@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Name:        DraggableList
 # Purpose:     Generic draggable scroll list;
 #
@@ -7,11 +7,11 @@
 # Created:     28/07/13
 # Copyright:   (c) Rafael 2013
 # Licence:     <your licence>
-#-----------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+
 from PyQt5.QtCore import Qt, pyqtSignal, QRect
 from PyQt5.QtGui import QPainter, QColor
-from PyQt5.QtWidgets import QWidget, \
-                            QSizePolicy
+from PyQt5.QtWidgets import QWidget, QSizePolicy
 
 from src import utils
 
@@ -22,7 +22,7 @@ class ListItem(object):
         self._top = 0
         self._index = 0
         self._list = parent
-        self._height = parent.itemHeight
+        self._height = parent.item_height
         self._hovered = False
         self._selected = False
         self._dragging = False
@@ -51,7 +51,7 @@ class ListItem(object):
     def index(self, value):
         self._index = value
 
-        items_length = self._list.itemsCount
+        items_length = self._list.items_count
         self._top = ((items_length - 1) * self._height - self._index * self._height)
 
     @property
@@ -63,11 +63,11 @@ class ListItem(object):
         return self._top + self._height
 
     @property
-    def isDragged(self):
+    def is_dragged(self):
         return self._dragging
 
-    @isDragged.setter
-    def isDragged(self, value):
+    @is_dragged.setter
+    def is_dragged(self, value):
         self._dragging = value
 
     @property
@@ -126,9 +126,9 @@ class ListItem(object):
         painter.drawRect(draw_rect.adjusted(0, 0, -2, -2))
         painter.fillRect(draw_rect.adjusted(1, 1, -2, -2), back_color)
 
-        self.drawContent(painter, draw_rect)
+        self.draw_content(painter, draw_rect)
 
-    def drawContent(self, painter, draw_area):
+    def draw_content(self, painter, draw_area):
         pass
 
 
@@ -169,11 +169,11 @@ class DraggableListWidget(QWidget):
     #-------------------------------------------------------------------------------
 
     @property
-    def selectedIndex(self):
+    def selected_index(self):
         return self._selectedItem.index if self._selectedItem is not None else None
 
-    @selectedIndex.setter
-    def selectedIndex(self, value):
+    @selected_index.setter
+    def selected_index(self, value):
 
         value = utils.clamp(value, 0, len(self._items) - 1)
 
@@ -186,20 +186,19 @@ class DraggableListWidget(QWidget):
 
         self.update()
 
-
     @property
-    def itemHeight(self):
+    def item_height(self):
         return self._itemHeight
 
-    @itemHeight.setter
-    def itemHeight(self, value):
+    @item_height.setter
+    def item_height(self, value):
         self._itemHeight = value
 
     @property
-    def itemsCount(self):
+    def items_count(self):
         return len(self._items)
 
-    def addItem(self, item):
+    def add_item(self, item):
 
         item.selected = True
 
@@ -210,7 +209,7 @@ class DraggableListWidget(QWidget):
 
         self._items.append(item)
 
-        self._updateItemIndexes()
+        self._update_item_indices()
 
         self.update()
 
@@ -238,7 +237,7 @@ class DraggableListWidget(QWidget):
 
     #-------------------------------------------------------------------------------
 
-    def _updateItemIndexes(self):
+    def _update_item_indices(self):
 
         index = 0
         for item in self._items:
@@ -246,14 +245,14 @@ class DraggableListWidget(QWidget):
             index += 1
 
     #-------------------------------------------------------------------------------
-    def _onAddItemButtonClicked(self):
+    def _on_add_item_btn_clicked(self):
 
         self.addClicked.emit()
         self.update()
 
     #-------------------------------------------------------------------------------
 
-    def _itemDragBegin(self, item, cursor_point):
+    def _item_drag_begin(self, item, cursor_point):
 
         item.dragging = True
 
@@ -269,7 +268,7 @@ class DraggableListWidget(QWidget):
 
     #-------------------------------------------------------------------------------
 
-    def _itemDragMove(self, item, cursor_point):
+    def _item_drag_move(self, item, cursor_point):
 
         item.move(cursor_point - self._currentDragOffset)
 
@@ -277,7 +276,7 @@ class DraggableListWidget(QWidget):
 
         for layerItem in self._items:
 
-            if layerItem.isDragged:
+            if layerItem.is_dragged:
                 continue
 
             layer_item_top = layerItem.top
@@ -303,9 +302,7 @@ class DraggableListWidget(QWidget):
 
     #-------------------------------------------------------------------------------
 
-    def _itemDragEnd(self, item, cursor_point):
-
-        print('Moved Layer from index: ', self._dragSourceIndex, ' to index: ', self._dragTargetIndex)
+    def _item_drag_end(self, item):
 
         item.index = self._dragTargetIndex
         item.dragging = False
@@ -321,12 +318,12 @@ class DraggableListWidget(QWidget):
 
     #-------------------------------------------------------------------------------
 
-    def _moveItem(self, item, point):
+    def _move_item(self, item, point):
 
         if point < 0:
             point = 0
 
-        max_top = (self.itemsCount - 1) * 60
+        max_top = (self.items_count - 1) * 60
 
         if point > max_top:
             point = max_top
@@ -353,7 +350,7 @@ class DraggableListWidget(QWidget):
 
         for layerItem in self._items:
 
-            if not layerItem.isDragged:
+            if not layerItem.is_dragged:
                 layerItem.draw(painter)
 
         if self._draggedItem is not None:
@@ -372,7 +369,7 @@ class DraggableListWidget(QWidget):
 
             if e.button() == Qt.RightButton:
 
-                self._itemDragBegin(self._hoveredItem, pointer_x)
+                self._item_drag_begin(self._hoveredItem, pointer_x)
 
             elif e.button() == Qt.LeftButton:
 
@@ -392,12 +389,10 @@ class DraggableListWidget(QWidget):
 
     def mouseReleaseEvent(self, e):
 
-        pointer_y = e.pos().y() - self._scrollOffset
-
         if e.button() == Qt.RightButton:
 
             if self._draggedItem is not None:
-                self._itemDragEnd(self._draggedItem, pointer_y)
+                self._item_drag_end(self._draggedItem)
 
             #-------------------------------------------------------------------------------
 
@@ -423,16 +418,17 @@ class DraggableListWidget(QWidget):
 
         else:
 
-            self._itemDragMove(self._draggedItem, pointer_y)
+            self._item_drag_move(self._draggedItem, pointer_y)
 
         #-------------------------------------------------------------------------------
 
     def wheelEvent(self, e):
 
-        if self.itemsCount * 60 < self.height():
+        if self.items_count * 60 < self.height():
             return
 
-        if self._draggedItem is not None: return
+        if self._draggedItem is not None:
+            return
 
         if e.delta() > 0:
 

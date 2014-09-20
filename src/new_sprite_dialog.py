@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
 # Name:        NewSpriteDialog
 # Purpose:     New Sprite dialog definition
 #
@@ -7,7 +7,7 @@
 # Created:     31/03/13
 # Copyright:   (c) Rafael 2013
 # Licence:     <your licence>
-#-----------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
 
 from PyQt5.QtWidgets import QDialog, QMessageBox
 
@@ -30,8 +30,8 @@ class NewSpriteDialog(QDialog, Ui_newSpriteDialog):
         
         self.setupUi(self)
         
-        self.buttonCancel.clicked.connect(self._onButtonCancelClicked)
-        self.buttonCreate.clicked.connect(self._onButtonCreateClicked)
+        self.buttonCancel.clicked.connect(self._on_cancel_btn_clicked)
+        self.buttonCreate.clicked.connect(self._on_create_btn_clicked)
 
         self._result = NewSpriteDialogResult()
         
@@ -42,7 +42,7 @@ class NewSpriteDialog(QDialog, Ui_newSpriteDialog):
         
         return self._result 
     
-    def _onButtonCreateClicked(self):
+    def _on_create_btn_clicked(self):
         
         if self.radioCustom.isChecked():
             
@@ -102,6 +102,6 @@ class NewSpriteDialog(QDialog, Ui_newSpriteDialog):
 
         self.accept()
 
-    def _onButtonCancelClicked(self):
+    def _on_cancel_btn_clicked(self):
         
         self.reject()

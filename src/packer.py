@@ -76,14 +76,14 @@ class Anchor(object):
 
 
 class RectanglePacker(object):
-    def __init__(self, maxWidth, maxHeight):
+    def __init__(self, max_width, max_height):
 
         """
-        maxWidth, maxHeight: maximum width,height of the packing area.
+        max_width, max_height: maximum width,height of the packing area.
         """
 
-        self._max_packing_area_width = maxWidth
-        self._max_packing_area_height = maxHeight
+        self._max_packing_area_width = max_width
+        self._max_packing_area_height = max_height
 
         # Rectangles contained in the packing area
         self._rectangles = []
@@ -96,15 +96,13 @@ class RectanglePacker(object):
         self._actual_packing_area_height = 1
 
         # matrix of bits, to store where it's covered by rectangles
-        self._bitmatrix = array("B", [0]) * (maxWidth * maxHeight)
-
+        self._bitmatrix = array("B", [0]) * (max_width * max_height)
 
     def actual_packing_area_width(self):
         return self._actual_packing_area_width
 
     def actual_packing_area_height(self):
         return self._actual_packing_area_height
-
 
     def pack(self, rect_width, rect_height):
 
@@ -118,7 +116,8 @@ class RectanglePacker(object):
         # Try to find an anchor where the rectangle fits in, enlarging the packing
         # area and repeating the search recursively until it fits or the
         # maximum allowed size is exceeded.
-        anchor_idx = self._select_anchor(rect_width, rect_height, self._actual_packing_area_width, self._actual_packing_area_height)
+        anchor_idx = self._select_anchor(rect_width, rect_height, self._actual_packing_area_width,
+                                         self._actual_packing_area_height)
 
         # No anchor could be found at which the rectangle did fit in
         if anchor_idx == -1:
@@ -157,7 +156,6 @@ class RectanglePacker(object):
 
         return placement
 
-
     def _optimize_placement(self, placement, rect_width, rect_height):
 
         """
@@ -191,8 +189,8 @@ class RectanglePacker(object):
         else:
             placement.y = top_most
 
-
-    def _select_anchor(self, rect_width, rect_height, total_packing_area_width, total_packing_area_height):
+    def _select_anchor(self, rect_width, rect_height, total_packing_area_width,
+                       total_packing_area_height):
         """
         Searches for a free anchor and recursively enlarges the packing area
         if none can be found.
@@ -221,7 +219,8 @@ class RectanglePacker(object):
         # any further in its width and in its height
         can_enlarge_width = total_packing_area_width < self._max_packing_area_width
         can_enlarge_height = total_packing_area_height < self._max_packing_area_height
-        should_enlarge_height = (not can_enlarge_width) or (total_packing_area_height < total_packing_area_width)
+        should_enlarge_height = (not can_enlarge_width) or (total_packing_area_height <
+                                                            total_packing_area_width)
 
         # Try to enlarge the smaller of the two dimensions first (unless the smaller
         # dimension is already at its maximum size). 'shouldEnlargeHeight' is True
@@ -229,19 +228,21 @@ class RectanglePacker(object):
         if can_enlarge_height and should_enlarge_height:
             # Try to double the height of the packing area
             return self._select_anchor(rect_width, rect_height, total_packing_area_width,
-                                       min(total_packing_area_height * 2, self._max_packing_area_height))
+                                       min(total_packing_area_height * 2,
+                                           self._max_packing_area_height))
         elif can_enlarge_width:
             # Try to double the width of the packing area
             return self._select_anchor(rect_width, rect_height,
-                                       min(total_packing_area_width * 2, self._max_packing_area_width),
+                                       min(total_packing_area_width * 2,
+                                           self._max_packing_area_width),
                                        total_packing_area_height)
         else:
             # Both dimensions are at their maximum sizes and the rectangle still
             # didn't fit. We give up!
             return -1
 
-
-    def _find_anchor(self, rect_width, rect_height, total_packing_area_width, total_packing_area_heigh):
+    def _find_anchor(self, rect_width, rect_height, total_packing_area_width,
+                     total_packing_area_heigh):
         """
         Locates the first free anchor at which the rectangle fits.
 
@@ -266,7 +267,6 @@ class RectanglePacker(object):
 
         # No anchor points were found where the rectangle would fit in
         return -1
-
 
     def _is_free(self, rect, total_packing_area_width, total_packing_area_height):
         """
@@ -293,7 +293,8 @@ class RectanglePacker(object):
         pos = rect[0] + rect[1] * self._max_packing_area_width
         if self_bitmatrix[pos] or self_bitmatrix[pos + rect[2] - 1] or \
                 self_bitmatrix[rect[0] + (rect[1] + rect[3] - 1) * self._max_packing_area_width] or \
-                self_bitmatrix[rect[0] + rect[2] - 1 + (rect[1] + rect[3] - 1) * self._max_packing_area_width]:
+                self_bitmatrix[rect[0] + rect[2] - 1 + (rect[1] + rect[3] - 1) *
+                        self._max_packing_area_width]:
             return False
 
         # full test

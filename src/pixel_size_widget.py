@@ -1,4 +1,3 @@
-from PyQt5 import Qt
 from PyQt5.QtCore import QSize, pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QPushButton, QButtonGroup
@@ -15,7 +14,7 @@ class PixelSizeWidget(QWidget):
         self._layout = QHBoxLayout()
 
         self._button_group = QButtonGroup()
-        self._button_group.buttonClicked.connect(self._onButtonChecked)
+        self._button_group.buttonClicked.connect(self._on_btn_checked)
 
         self._1pxButton = QPushButton()
         self._1pxButton.setCheckable(True)
@@ -26,7 +25,6 @@ class PixelSizeWidget(QWidget):
 
         self._1pxButton.setIcon(icon)
         self._1pxButton.setIconSize(QSize(21, 21))
-
 
         self._2pxButton = QPushButton()
         self._2pxButton.setCheckable(True)
@@ -60,8 +58,7 @@ class PixelSizeWidget(QWidget):
 
         self.setLayout(self._layout)
 
+    def _on_btn_checked(self):
 
-    def _onButtonChecked(self):
-
-        pixelSizeChosen = self._button_group.checkedButton().property("pixel_size")
-        self.pixelSizeChanged.emit(pixelSizeChosen)
+        pixel_size = self._button_group.checkedButton().property("pixel_size")
+        self.pixelSizeChanged.emit(pixel_size)

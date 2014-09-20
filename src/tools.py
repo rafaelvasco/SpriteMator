@@ -1,10 +1,10 @@
-#--------------------------------------------------
+#--------------------------------------------------------------------------------------------------
 # Purpose:          Defines default set of Canvas Tools
 #
 # Author:           Rafael Vasco
 # Date:             31/03/13
 # License:          
-#--------------------------------------------------
+#--------------------------------------------------------------------------------------------------
 
 from quickpixler import floodFill
 
@@ -44,47 +44,43 @@ class Tool(PropertyHolder):
     def name(self):
         return self._name
 
-    @property
-    def isDefault(self):
-        return self._default
-
-    @property
-    def isActive(self):
-        return self._isActive
-
     @name.setter
     def name(self, value):
         self._name = value
 
     @property
-    def refreshWaitTime(self):
+    def is_default(self):
+        return self._default
+
+    @property
+    def is_active(self):
+        return self._isActive
+
+    @property
+    def refresh_wait_time(self):
         return self._refreshWaitTime
 
-    @refreshWaitTime.setter
-    def refreshWaitTime(self, value):
+    @refresh_wait_time.setter
+    def refresh_wait_time(self, value):
         self._refreshWaitTime = value
 
     @property
     def icon(self):
         return self._icon
 
-    @property
-    def usesPainter(self):
-        return self._usesPainter
-
-    def onMousePress(self, canvas):
+    def on_mouse_press(self, canvas):
         self._isActive = True
 
-    def onMouseMove(self, canvas):
+    def on_mouse_move(self, canvas):
         pass
 
-    def onMouseRelease(self, canvas):
+    def on_mouse_release(self, canvas):
         self._isActive = False
 
     def draw(self, canvas, event):
         pass
 
-# ======================================================================================================================
+# =================================================================================================
 
 
 class Picker(Tool):
@@ -95,7 +91,7 @@ class Picker(Tool):
         self._icon = QIcon()
         self._icon.addPixmap(QPixmap(":/icons/ico_picker"), QIcon.Normal, QIcon.Off)
         self._icon.addPixmap(QPixmap(":/icons/ico_picker_hover"), QIcon.Normal, QIcon.On)
-        self.addProperty('returnlasttool', True, 'After Picking: Go back to last Tool')
+        self.add_property('returnlasttool', True, 'After Picking: Go back to last Tool')
 
     def draw(self, canvas, painter):
         return
@@ -117,18 +113,19 @@ class Picker(Tool):
         # painter.drawLine(x, y - size_by_8, x, y + size_by_8)
         # painter.drawLine(x - size_by_8, y, x + size_by_8, y)
 
-    def onMousePress(self, canvas):
+    def on_mouse_press(self, canvas):
 
-        super(Picker, self).onMousePress(canvas)
+        super(Picker, self).on_mouse_press(canvas)
 
-        picked_color = QColor(canvas.spriteObject.activeSurface.pixel(canvas.mouseState.spritePos))
-        canvas.colorPicked.emit(picked_color, canvas.mouseState.pressedButton)
+        picked_color = \
+            QColor(canvas.sprite_object.active_surface.pixel(canvas.mouse_state.sprite_pos))
+        canvas.colorPicked.emit(picked_color, canvas.mouse_state.pressed_button)
 
         #if self.propertyValue('returnlasttool'):
         #    canvas.tool_box().go_back_to_last_tool()
 
 
-# ======================================================================================================================
+# =================================================================================================
 
 class Pen(Tool):
     def __init__(self):
@@ -213,23 +210,23 @@ class Pen(Tool):
 
     def _blit(self, canvas, just_pressed):
 
-        size = canvas.pixelSize
-        mouseState = canvas.mouseState
-        last_button_pressed = mouseState.pressedButton
+        size = canvas.pixel_size
+        mouse_state = canvas.mouse_state
+        last_button_pressed = mouse_state.pressed_button
 
         if self._lockHorizontal and not self._lockVertical:
-            mouseState.spritePos.setY(mouseState.lastSpritePos.y())
+            mouse_state.sprite_pos.setY(mouse_state.last_sprite_pos.y())
 
         elif self._lockVertical and not self._lockHorizontal:
-            mouseState.spritePos.setX(mouseState.lastSpritePos.x())
+            mouse_state.sprite_pos.setX(mouse_state.last_sprite_pos.x())
 
         elif self._wasLockingMouse and not self._lockHorizontal and not self._lockVertical:
-            mouseState.lastSpritePos.setX(mouseState.spritePos.x())
-            mouseState.lastSpritePos.setY(mouseState.spritePos.y())
+            mouse_state.last_sprite_pos.setX(mouse_state.sprite_pos.x())
+            mouse_state.last_sprite_pos.setY(mouse_state.sprite_pos.y())
             self._wasLockingMouse = False
 
-        delta_x = abs(mouseState.spritePos.x() - mouseState.lastSpritePos.x())
-        delta_y = abs(mouseState.spritePos.y() - mouseState.lastSpritePos.y())
+        delta_x = abs(mouse_state.sprite_pos.x() - mouse_state.last_sprite_pos.x())
+        delta_y = abs(mouse_state.sprite_pos.y() - mouse_state.last_sprite_pos.y())
 
         if delta_x == 0 and delta_y == 0 and not just_pressed:
             return
@@ -239,37 +236,37 @@ class Pen(Tool):
 
         if last_button_pressed == Qt.LeftButton:
 
-            ink = canvas.primaryInk
-            color = canvas.primaryColor
+            ink = canvas.primary_ink
+            color = canvas.primary_color
 
         elif last_button_pressed == Qt.RightButton:
 
-            ink = canvas.secondaryInk
-            color = canvas.secondaryColor
+            ink = canvas.secondary_ink
+            color = canvas.secondary_color
 
         if ink is not None and color is not None:
 
             painter = QPainter()
 
-            painter.begin(canvas.spriteObject.activeSurface)
+            painter.begin(canvas.sprite_object.active_surface)
 
             if delta_x > 1 or delta_y > 1:
-                drawing.drawLine(mouseState.lastSpritePos, mouseState.spritePos, size, ink, color, painter)
+                drawing.draw_line(mouse_state.last_sprite_pos, mouse_state.sprite_pos, size, ink, color, painter)
             elif delta_x == 1 or delta_y == 1 or just_pressed:
 
-                ink.blit(mouseState.spritePos.x(), mouseState.spritePos.y(), size, size, color, painter)
+                ink.blit(mouse_state.sprite_pos.x(), mouse_state.sprite_pos.y(), size, size, color, painter)
 
             painter.end()
 
-    def onMousePress(self, canvas):
+    def on_mouse_press(self, canvas):
 
-        super(Pen, self).onMousePress(canvas)
+        super(Pen, self).on_mouse_press(canvas)
 
         self._blit(canvas, just_pressed=True)
 
-    def onMouseMove(self, canvas):
+    def on_mouse_move(self, canvas):
 
-        mouseState = canvas.mouseState
+        mouse_state = canvas.mouse_state
 
         #if mouseState.isControlPressed:
 
@@ -287,15 +284,15 @@ class Pen(Tool):
 
         #    self._lockVertical = self._lockHorizontal = False
 
-        if mouseState.pressedButton is not None:
+        if mouse_state.pressed_button is not None:
             self._blit(canvas, just_pressed=False)
 
-    def onMouseRelease(self, canvas):
+    def on_mouse_release(self, canvas):
 
-        super(Pen, self).onMouseRelease(canvas)
+        super(Pen, self).on_mouse_release(canvas)
         self._lockHorizontal = self._lockVertical = False
 
-# ======================================================================================================================
+# =================================================================================================
 
 
 class Filler(Tool):
@@ -316,23 +313,23 @@ class Filler(Tool):
 
         return
 
-    def onMousePress(self, canvas):
+    def on_mouse_press(self, canvas):
 
-        super(Filler, self).onMousePress(canvas)
+        super(Filler, self).on_mouse_press(canvas)
 
-        image = canvas.spriteObject.activeSurface
-        button = canvas.mouseState.pressedButton
-        mouse_pos = canvas.mouseState.spritePos
+        image = canvas.sprite_object.active_surface
+        button = canvas.mouse_state.pressed_button
+        mouse_pos = canvas.mouse_state.sprite_pos
 
 
-        sprite_bounding_box = canvas.spriteObject.areaRect
+        sprite_bounding_box = canvas.sprite_object.area_rect
 
         if not sprite_bounding_box.contains(mouse_pos):
             return
 
         if image is not None:
 
-            image_data = canvas.spriteObject.activeSurfacePixelData
+            image_data = canvas.sprite_object.active_surface_pixel_data
 
             if image_data is None:
                 return
@@ -341,15 +338,15 @@ class Filler(Tool):
 
             if button == Qt.LeftButton:
 
-                color = canvas.primaryColor
+                color = canvas.primary_color
 
             elif button == Qt.RightButton:
 
-                color = canvas.secondaryColor
+                color = canvas.secondary_color
 
             if color is not None:
 
                 floodFill(image_data, mouse_pos.x(), mouse_pos.y(), image.width(), image.height(),
                           color.red(), color.green(), color.blue())
 
-# ======================================================================================================================
+# =================================================================================================

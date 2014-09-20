@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
 # Name:        Layer Manager
 # Purpose:     Manages and displays current Sprite's layers;
 #
@@ -7,7 +7,7 @@
 # Created:     04/08/2013
 # Copyright:   (c) Rafael 2013
 # Licence:     <your licence>
-#-----------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
 
 from PyQt5.QtCore import pyqtSignal, Qt, QTimer, QRect
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QSizePolicy
@@ -15,9 +15,7 @@ from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QSizePolicy
 from src.draggable_list import DraggableListWidget, ListItem
 import src.utils as utils
 
-
-
-# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 class LayerListItem(ListItem):
@@ -29,8 +27,7 @@ class LayerListItem(ListItem):
 
         self._layer = layer
 
-
-    def drawContent(self, painter, draw_area):
+    def draw_content(self, painter, draw_area):
 
         painter.setPen(Qt.white)
 
@@ -40,7 +37,8 @@ class LayerListItem(ListItem):
 
         # Draw Icon
 
-        icon_draw_area = QRect(draw_area.right() - 55, draw_area.top() + draw_area.height() / 2 - 24, 48, 48)
+        icon_draw_area = QRect(draw_area.right() - 55,
+                               draw_area.top() + draw_area.height() / 2 - 24, 48, 48)
 
         border = self._borderColor if not self._selected else self._borderColorSelected
 
@@ -80,12 +78,12 @@ class LayerManager(QWidget):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self._listWidget = DraggableListWidget()
-        self._listWidget.selectedItemChanged.connect(self._onListSelectionChanged)
-        self._listWidget.orderChanged.connect(self._onListItemOrderChanged)
+        self._listWidget.selectedItemChanged.connect(self._on_layer_selected_changed)
+        self._listWidget.orderChanged.connect(self._on_layer_order_changed)
 
         self._addLayerBtn = QPushButton()
         self._addLayerBtn.setText('Add Layer')
-        self._addLayerBtn.clicked.connect(self._onAddLayerBtnClicked)
+        self._addLayerBtn.clicked.connect(self._on_add_layer_btn_clicked)
 
         self._layout = QVBoxLayout(self)
         self._layout.setAlignment(Qt.AlignBottom)
@@ -96,14 +94,14 @@ class LayerManager(QWidget):
         self._refreshSpeed = 16
 
         self._refreshTimer = QTimer()
-        self._refreshTimer.timeout.connect(self._refreshEvent)
+        self._refreshTimer.timeout.connect(self._refresh_event)
         self._refreshTimer.stop()
 
         self._sprite = None
 
         self.setAcceptDrops(True)
 
-    def setSprite(self, sprite):
+    def set_sprite(self, sprite):
 
         self._sprite = sprite
 
@@ -122,66 +120,66 @@ class LayerManager(QWidget):
         if self._sprite is None:
             return
 
-        frame = self._sprite.currentAnimation.currentFrame
+        frame = self._sprite.current_animation.current_frame
 
         self._listWidget.clear()
 
         for surface in frame.surfaces:
             layer_item = LayerListItem(self._listWidget, surface)
 
-            self._listWidget.addItem(layer_item)
+            self._listWidget.add_item(layer_item)
 
-        self._listWidget.selectedIndex = frame.currentSurfaceIndex
+        self._listWidget.selected_index = frame.current_surface_index
 
         self.update()
 
-    def setLayer(self, index):
+    def set_layer(self, index):
 
         if self._sprite is None:
             return
 
-        frame = self._sprite.currentAnimation.currentFrame
+        frame = self._sprite.current_animation.current_frame
 
-        frame.setSurface(index)
+        frame.set_surface(index)
 
-        self.currentLayerChanged.emit(self._sprite.currentAnimation.currentFrameIndex)
+        self.currentLayerChanged.emit(self._sprite.current_animation.current_frame_index)
 
-    def addLayer(self, source_image=None, at=None):
+    def add_layer(self, source_image=None, at=None):
 
         if self._sprite is None:
             return
 
-        frame = self._sprite.currentAnimation.currentFrame
+        frame = self._sprite.current_animation.current_frame
 
         if source_image is None:
 
-            frame.addEmptySurface()
+            frame.add_empty_surface()
 
         else:
 
-           frame.addSurface(source_image, at)
+            frame.add_surface(source_image, at)
 
         self.refresh()
 
-    def deleteLayer(self):
+    def remove_layer(self):
 
         if self._sprite is None:
             return
 
-        frame = self._sprite.currentAnimation.currentFrame
+        frame = self._sprite.current_animation.current_frame
 
-        frame.removeCurrentSurface()
+        frame.remove_current_surface()
 
         self.refresh()
 
-    def moveLayer(self, from_index, to_index):
+    def move_layer(self, from_index, to_index):
 
         if self._sprite is None:
             return
 
-        frame = self._sprite.currentAnimation.currentFrame
+        frame = self._sprite.current_animation.current_frame
 
-        frame.moveSurface(from_index, to_index)
+        frame.move_surface(from_index, to_index)
 
         self.layerOrderChanged.emit()
 
@@ -200,24 +198,24 @@ class LayerManager(QWidget):
 
             for url in e.mimeData().urls():
 
-                image = utils.loadImage(url.toLocalFile())
+                image = utils.load_image(url.toLocalFile())
 
-                self.addLayer(image)
+                self.add_layer(image)
 
             self.layerImported.emit()
 
-    def _onAddLayerBtnClicked(self):
+    def _on_add_layer_btn_clicked(self):
 
-        self.addLayer()
+        self.add_layer()
 
-    def _onListSelectionChanged(self, index):
+    def _on_layer_selected_changed(self, index):
 
-        self.setLayer(index)
+        self.set_layer(index)
 
-    def _onListItemOrderChanged(self, from_index, to_index):
+    def _on_layer_order_changed(self, from_index, to_index):
 
-        self.moveLayer(from_index, to_index)
+        self.move_layer(from_index, to_index)
 
-    def _refreshEvent(self):
+    def _refresh_event(self):
 
         self.update()

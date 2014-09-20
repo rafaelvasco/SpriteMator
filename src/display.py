@@ -1,13 +1,14 @@
-# ----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        Display
-# Purpose:     Represents the base transformable display that is inherited by the Canvas and the AnimationDisplay
+# Purpose:     Represents the base transformable display that is inherited by the Canvas
+#              and the AnimationDisplay
 #
 # Author:      Rafael Vasco
 #
 # Created:     31/03/2013
 # Copyright:   (c) Rafael Vasco 2014
 # Licence:     <your licence>
-#-----------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtGui import QPainter, QTransform
@@ -68,58 +69,55 @@ class Display(QGraphicsView):
 
         self.setMouseTracking(True)
 
-
     @property
     def scene(self):
         return self._scene
 
     @property
-    def isPanning(self):
+    def is_panning(self):
         return self._panning
 
     @property
-    def backgroundColor(self):
+    def background_color(self):
         return self._backgroundColor
 
-    @backgroundColor.setter
-    def backgroundColor(self, value):
+    @background_color.setter
+    def background_color(self, value):
 
         self._backgroundColor = value
-        self._spriteObject.backgroundColor = value
+        self._spriteObject.background_color = value
 
-    def turnBacklightOn(self):
+    def turn_backlight_on(self):
 
         self._backLightOn = True
-        self._spriteObject.backgroundPixmap = self._lightBackgroundPixmap
+        self._spriteObject.background_pixmap = self._lightBackgroundPixmap
 
-    def turnBackLightOff(self):
+    def turn_backlight_off(self):
 
         self._backLightOn = False
-        self._spriteObject.backgroundPixmap = self._darkBackgroundPixmap
+        self._spriteObject.background_pixmap = self._darkBackgroundPixmap
 
-    def toggleBacklight(self):
+    def toggle_backlight(self):
 
         self._backLightOn = not self._backLightOn
 
         if self._backLightOn:
-            self.turnBacklightOn()
+            self.turn_backlight_on()
         else:
-            self.turnBackLightOff()
+            self.turn_backlight_off()
 
-
-    def addObject(self, item):
+    def add_object(self, item):
 
         self._scene.addItem(item)
 
     def is_fit_in_view(self):
         return self._fitInView
 
-    def resetView(self):
+    def reset_view(self):
 
-        print('RESET VIEW')
         self.resetTransform()
 
-    def toggleView(self):
+    def toggle_view(self):
 
         if not self.transform().isIdentity():
 
@@ -130,7 +128,7 @@ class Display(QGraphicsView):
 
             self.setTransform(self._storedTransform)
 
-    def setFitInView(self, fit):
+    def set_fit_in_view(self, fit):
 
         if self._fitInView != fit:
             self._fitInView = fit
@@ -142,21 +140,20 @@ class Display(QGraphicsView):
             # Calculate scale factor to cover view increasing the scale by multiples of 2.0
             # to keep pixel perfectness
 
-            scaleFactorX = self.width() / self._scene.sceneRect().width()
-            scaleFactorY = self.height() / self._scene.sceneRect().height()
+            scale_factor_x = self.width() / self._scene.sceneRect().width()
+            scale_factor_y = self.height() / self._scene.sceneRect().height()
 
-            scaleFactor = max(scaleFactorX, scaleFactorY)
+            scale_factor = max(scale_factor_x, scale_factor_y)
 
-            scaleFactor = utils.snap_ceil(scaleFactor , 2.0)
+            scale_factor = utils.snap_ceil(scale_factor, 2.0)
 
-            self.scale(scaleFactor, scaleFactor)
+            self.scale(scale_factor, scale_factor)
 
+    def toggle_fit_in_view(self):
 
-    def toggleFitInView(self):
+        self.set_fit_in_view(not self._fitInView)
 
-        self.setFitInView(not self._fitInView)
-
-    def zoomTo(self, target_zoom):
+    def zoom_to(self, target_zoom):
 
         self._fitInView = False
 
@@ -164,20 +161,19 @@ class Display(QGraphicsView):
         self.scale(target_zoom, target_zoom)
         self.setTransformationAnchor(QGraphicsView.AnchorViewCenter)
 
+    def unload_sprite(self):
 
-    def unloadSprite(self):
+        self.reset_view()
 
-        self.resetView()
+        if not self._spriteObject.is_empty:
 
-        if not self._spriteObject.isEmpty:
-
-            self._spriteObject.unloadSprite()
+            self._spriteObject.unload_sprite()
 
         self._scene.update()
 
-    def updateViewport(self):
+    def update_viewport(self):
 
-        self._spriteObject.updateBoundingRect()
+        self._spriteObject.update_bounding_rect()
 
         w = self._spriteObject.sprite.width
         h = self._spriteObject.sprite.height
@@ -202,7 +198,7 @@ class Display(QGraphicsView):
             self.centerOn(self._lastFocusPoint)
 
         else:
-            self.centerOn(0,0)
+            self.centerOn(0, 0)
 
     def enterEvent(self, e):
 
@@ -235,7 +231,6 @@ class Display(QGraphicsView):
 
         super(Display, self).mousePressEvent(e)
 
-
     def mouseReleaseEvent(self, e):
 
         if self._panning and e.button() == Qt.MiddleButton:
@@ -261,17 +256,16 @@ class Display(QGraphicsView):
 
         super(Display, self).mouseReleaseEvent(e)
 
-
-    def mouseDoubleClickEvent(self, e): pass
-
+    def mouseDoubleClickEvent(self, e):
+        pass
 
     def mouseMoveEvent(self, e):
 
         if self._panning:
 
-            newPos = e.pos()
-            diff = newPos - self._dragPos
-            self._dragPos = newPos
+            new_pos = e.pos()
+            diff = new_pos - self._dragPos
+            self._dragPos = new_pos
 
             self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - diff.x())
             self.verticalScrollBar().setValue(self.verticalScrollBar().value() - diff.y())
@@ -287,7 +281,6 @@ class Display(QGraphicsView):
 
         super(Display, self).keyPressEvent(e)
 
-
     def keyReleaseEvent(self, e):
 
         if e.key() == Qt.Key_Space:
@@ -301,10 +294,10 @@ class Display(QGraphicsView):
 
     def wheelEvent(self, e):
 
-        focusPoint = self.mapToScene(e.pos())
+        focus_point = self.mapToScene(e.pos())
 
-        self._lastFocusPoint.setX(round(focusPoint.x()))
-        self._lastFocusPoint.setY(round(focusPoint.y()))
+        self._lastFocusPoint.setX(round(focus_point.x()))
+        self._lastFocusPoint.setY(round(focus_point.y()))
 
         steps = e.angleDelta().y() / 120
 
@@ -316,4 +309,4 @@ class Display(QGraphicsView):
 
         print(self._zoom)
 
-        self.zoomTo(scale)
+        self.zoom_to(scale)

@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Name:        CanvasOverlay
 # Purpose:     Represents canvas overlay where tools icon, selection, etc is drawn on;
 #
@@ -7,13 +7,13 @@
 # Created:     21/09/2013
 # Copyright:   (c) Rafael 2013
 # Licence:     <your licence>
-#-----------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QWidget
 
-#-----------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 
 class CanvasOverlay(QWidget):
@@ -36,10 +36,10 @@ class CanvasOverlay(QWidget):
         
     def paintEvent(self, e):
         
-        if not self._drawEnabled or self._canvas.currentTool() is None:
+        if not self._drawEnabled or self._canvas.current_tool() is None:
             return
         
         painter = QPainter(self)
         painter.setCompositionMode(QPainter.CompositionMode_Difference)
         
-        self._canvas.currentTool().draw(self._canvas, painter)
+        self._canvas.current_tool().draw(self._canvas, painter)

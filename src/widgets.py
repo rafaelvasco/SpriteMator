@@ -58,17 +58,17 @@ class Button(QAbstractButton):
 
         self._update_icon_pixmaps()
 
-        #self._updateSize()
+        # self._updateSize()
 
         self.update()
 
-    def setTooltip(self, text):
+    def set_tooltip(self, text):
 
         self._tooltip = text
 
     def resizeEvent(self, e):
         pass
-        #self._updateSize()
+        # self._updateSize()
 
     def mousePressEvent(self, e):
 
@@ -324,13 +324,11 @@ class Slider(QWidget):
 
         self._update_thumb()
 
-
     def mousePressEvent(self, e):
 
         self._sliding = True
 
         self.set_value(self._get_value_from_position(e.pos()))
-
 
     def mouseReleaseEvent(self, e):
 
@@ -345,11 +343,9 @@ class Slider(QWidget):
 
             self.set_value(self._get_value_from_position(mouse_pos))
 
-
     def wheelEvent(self, e):
 
         self.set_value(self._value + utils.sign(e.angleDelta().y() > 0) * self._step)
-
 
     def paintEvent(self, e):
 
@@ -381,7 +377,8 @@ class Slider(QWidget):
 
         value_label_size = QSize(self._fontMetrics.width(value_text), self._fontMetrics.height())
 
-        value_indicator_rect = QRect(self._thumbRect.right() + 2, self._thumbRect.top(), value_label_size.width() + 10,
+        value_indicator_rect = QRect(self._thumbRect.right() + 2, self._thumbRect.top(),
+                                     value_label_size.width() + 10,
                                      self._thumbRect.height())
 
         if value_indicator_rect.right() > draw_rect.right():
@@ -397,9 +394,13 @@ class Slider(QWidget):
 
         painter.setPen(Qt.white)
 
-        painter.drawText(value_indicator_rect.left() + value_indicator_rect.width() / 2 - value_label_size.width() / 2,
-                   value_indicator_rect.top() + value_indicator_rect.height() / 2 + value_label_size.height() / 3,
-                   value_text)
+        painter.drawText(
+            value_indicator_rect.left() + value_indicator_rect.width() / 2 -
+            value_label_size.width() / 2,
+
+            value_indicator_rect.top() + value_indicator_rect.height() / 2 +
+            value_label_size.height() / 3,
+            value_text)
 
 
 class OnOffButton(QPushButton):

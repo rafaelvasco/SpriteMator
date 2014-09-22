@@ -78,6 +78,10 @@ class Display(QGraphicsView):
         return self._panning
 
     @property
+    def zoom(self):
+        return self._zoom
+
+    @property
     def background_color(self):
         return self._backgroundColor
 
@@ -157,6 +161,8 @@ class Display(QGraphicsView):
 
         self._fitInView = False
 
+        self._zoom *= target_zoom
+
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
         self.scale(target_zoom, target_zoom)
         self.setTransformationAnchor(QGraphicsView.AnchorViewCenter)
@@ -235,7 +241,7 @@ class Display(QGraphicsView):
 
         if self._panning and e.button() == Qt.MiddleButton:
 
-            self.setCursor(Qt.ArrowCursor)
+            self.setCursor(Qt.BlankCursor)
             self._panning = False
 
         elif e.button() == Qt.LeftButton:
@@ -252,7 +258,7 @@ class Display(QGraphicsView):
 
                 else:
 
-                    self.setCursor(Qt.ArrowCursor)
+                    self.setCursor(Qt.BlankCursor)
 
         super(Display, self).mouseReleaseEvent(e)
 
@@ -288,7 +294,7 @@ class Display(QGraphicsView):
 
         if not self._spacePressed and not self._panning:
 
-            self.setCursor(Qt.ArrowCursor)
+            self.setCursor(Qt.BlankCursor)
 
         super(Display, self).keyReleaseEvent(e)
 
@@ -306,7 +312,5 @@ class Display(QGraphicsView):
             return
 
         scale = pow(2.0, steps)
-
-        print(self._zoom)
 
         self.zoom_to(scale)

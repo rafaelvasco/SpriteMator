@@ -22,6 +22,7 @@ options = {
     'build_exe' : {
         'excludes' : ['curses', 'email', 'tcl', 'ttk', 'tkinter'],
         'compressed' : True,
+        'packages': ['numpy.lib.format']
     }
 }
 
@@ -32,5 +33,5 @@ setup(
     version="0.6",
     description="A Sprite editor and animator",
     executables=[exe],
-    options=options, requires=['PyQt5', 'PIL']
+    options=options, requires=['PyQt5', 'PIL', 'numpy']
 )

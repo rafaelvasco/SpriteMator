@@ -77,7 +77,7 @@ class Tool(PropertyHolder):
     def on_mouse_release(self, canvas):
         self._isActive = False
 
-    def draw(self, canvas, event):
+    def draw(self, canvas, painter):
         pass
 
 # =================================================================================================
@@ -150,8 +150,18 @@ class Pen(Tool):
 
         self._default = True
 
-    def draw(self, canvas, event):
-        return
+    def draw(self, canvas, painter):
+
+        x = canvas.mouse_state.global_pos.x()
+        y = canvas.mouse_state.global_pos.y()
+
+        size = canvas.pixel_size * canvas.zoom
+
+        if size <= 0.0:
+            return
+
+        painter.fillRect(x, y, size, size, Qt.white)
+
         # x = canvas.mouse_state().canvas_mouse_position().x()
         # y = canvas.mouse_state().canvas_mouse_position().y()
         #
@@ -251,10 +261,12 @@ class Pen(Tool):
             painter.begin(canvas.sprite_object.active_surface)
 
             if delta_x > 1 or delta_y > 1:
-                drawing.draw_line(mouse_state.last_sprite_pos, mouse_state.sprite_pos, size, ink, color, painter)
+                drawing.draw_line(mouse_state.last_sprite_pos, mouse_state.sprite_pos, size, ink,
+                                  color, painter)
             elif delta_x == 1 or delta_y == 1 or just_pressed:
 
-                ink.blit(mouse_state.sprite_pos.x(), mouse_state.sprite_pos.y(), size, size, color, painter)
+                ink.blit(mouse_state.sprite_pos.x(), mouse_state.sprite_pos.y(), size, size, color,
+                         painter)
 
             painter.end()
 

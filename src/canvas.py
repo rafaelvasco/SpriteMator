@@ -9,8 +9,9 @@
 # Licence:     <your licence>
 #------------------------------------------------------------------------------
 
-from PyQt5.QtCore import Qt, pyqtSignal, QPoint
+from PyQt5.QtCore import Qt, pyqtSignal, QPoint, QRect
 from PyQt5.QtGui import QColor, QPainter
+from src.canvas_overlay import CanvasOverlay
 
 from src.display import Display
 import src.utils as utils
@@ -25,6 +26,7 @@ class CanvasMouseState(object):
         self._spritePos = QPoint()
         self._lastSpritePos = QPoint()
         self._canvasPos = QPoint()
+        self._globalPos = QPoint()
         self._lastCanvasPos = QPoint()
         self._pressedButton = None
         self._isCtrlPressed = False
@@ -64,6 +66,15 @@ class CanvasMouseState(object):
         self._lastCanvasPos = value
 
     @property
+    def global_pos(self):
+        return self._globalPos
+
+    @global_pos.setter
+    def global_pos(self, value):
+        self._globalPos = value
+
+
+    @property
     def pressed_button(self):
         return self._pressedButton
 
@@ -82,6 +93,8 @@ class Canvas(Display):
     def __init__(self):
 
         super(Canvas, self).__init__()
+
+        self._overlay = CanvasOverlay(self)
 
         self.turn_backlight_on()
 
@@ -241,11 +254,18 @@ class Canvas(Display):
 
     # -------------------------------------------------------------------------
 
+    def resizeEvent(self, e):
+
+        super(Canvas, self).resizeEvent(e)
+
+        self._overlay.setGeometry(QRect(0, 0, self.width(), self.height()))
+
     def mousePressEvent(self, e):
 
         super(Canvas, self).mousePressEvent(e)
 
         if self.is_panning:
+            self._overlay.disable()
             return
 
         self._mouseState.canvas_pos = self.mapToScene(e.pos())
@@ -277,7 +297,10 @@ class Canvas(Display):
 
         super(Canvas, self).mouseMoveEvent(e)
 
-        if not self.sprite_is_set() or self.is_panning or not self._currentTool.is_active:
+        self.mouse_state.global_pos.setX(e.pos().x())
+        self.mouse_state.global_pos.setY(e.pos().y())
+
+        if not self.sprite_is_set() or self.is_panning:
             return
 
         canvas_pos = self._mouseState.canvas_pos = self.mapToScene(e.pos())
@@ -288,10 +311,12 @@ class Canvas(Display):
         if self._pixelSize > 1 and self._snapEnabled:
             self._mouseState.sprite_pos = utils.snap_point(self._mouseState.sprite_pos,
                                                            self._pixelSize)
+            self._mouseState.canvas_pos = utils.snap_point(self._mouseState.canvas_pos,
+                                                           self._pixelSize)
 
-        self._currentTool.on_mouse_move(self)
+        if self._currentTool.is_active:
 
-        self._scene.update()
+            self._currentTool.on_mouse_move(self)
 
         self._mouseState.last_canvas_pos.setX(canvas_pos.x())
         self._mouseState.last_canvas_pos.setY(canvas_pos.y())
@@ -299,12 +324,15 @@ class Canvas(Display):
         self._mouseState.last_sprite_pos.setX(self._mouseState.sprite_pos.x())
         self._mouseState.last_sprite_pos.setY(self._mouseState.sprite_pos.y())
 
+        self._scene.update()
+
     def mouseReleaseEvent(self, e):
 
         super(Canvas, self).mouseReleaseEvent(e)
 
-        if self.is_panning:
-            return
+        if not self._overlay.isEnabled:
+
+            self._overlay.enable()
 
         self._mouseState.pressed_button = None
 
@@ -318,9 +346,13 @@ class Canvas(Display):
 
         super(Canvas, self).enterEvent(e)
 
+        self.setCursor(Qt.BlankCursor)
+
     def leaveEvent(self, e):
 
         super(Canvas, self).leaveEvent(e)
+
+        self.setCursor(Qt.ArrowCursor)
 
     def keyPressEvent(self, e):
 
@@ -343,7 +375,6 @@ class Canvas(Display):
 
     def dropEvent(self, e):
         if e.mimeData().hasUrls():
-            print('DROP')
             file_path = e.mimeData().urls()[0].toLocalFile()
 
             if utils.get_file_extension(file_path) == '.png':

@@ -8,9 +8,9 @@
 # Copyright:   (c) Rafael 2013
 # Licence:     <your licence>
 #------------------------------------------------------------------------------
-
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter
+
 from PyQt5.QtWidgets import QWidget
 
 #------------------------------------------------------------------------------
@@ -22,10 +22,10 @@ class CanvasOverlay(QWidget):
         
         super(CanvasOverlay, self).__init__(canvas)
         self._canvas = canvas
+        self._drawEnabled = True
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
         self.setAutoFillBackground(True)
-        self._drawEnabled = True
-    
+
     def enable(self):
         self._drawEnabled = True
         self.update()
@@ -33,13 +33,22 @@ class CanvasOverlay(QWidget):
     def disable(self):
         self._drawEnabled = False
         self.update()
-        
+
+    @property
+    def isEnabled(self):
+        return self._drawEnabled
+
     def paintEvent(self, e):
         
-        if not self._drawEnabled or self._canvas.current_tool() is None:
+        if not self._drawEnabled or self._canvas.current_tool is None:
             return
-        
+
         painter = QPainter(self)
+
+        painter.setOpacity(0.6)
+
         painter.setCompositionMode(QPainter.CompositionMode_Difference)
-        
-        self._canvas.current_tool().draw(self._canvas, painter)
+
+        #painter.fillRect(e.rect(), Qt.red)
+
+        self._canvas.current_tool.draw(self._canvas, painter)

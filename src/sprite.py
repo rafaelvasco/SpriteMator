@@ -123,6 +123,7 @@ class Sprite(object):
 
         new_sprite = Sprite(width, height)
         new_sprite.add_animation()
+        new_sprite.current_animation.add_empty_frame()
         return new_sprite
 
     @staticmethod
@@ -297,7 +298,6 @@ class Sprite(object):
 
         name = 'Animation ' + str(len(self._animations) + 1)
         new_animation = Animation(name, self)
-        new_animation.add_empty_frame()
 
         self._animations.append(new_animation)
 

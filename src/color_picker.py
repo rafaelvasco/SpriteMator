@@ -1069,8 +1069,6 @@ class ColorPicker(QWidget):
                  if self._activeColorIndex == ColorIndex.Primary
                  else self._secondarySelectedColor)
 
-        print('UPDATE SLIDERS: ', self._activeColorIndex)
-
         # HUE
         self._hueSlider.value = color.hue()
 

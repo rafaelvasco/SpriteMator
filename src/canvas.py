@@ -348,11 +348,19 @@ class Canvas(Display):
 
         self.setCursor(Qt.BlankCursor)
 
+        self._overlay.enable()
+
+        self._scene.update()
+
     def leaveEvent(self, e):
 
         super(Canvas, self).leaveEvent(e)
 
         self.setCursor(Qt.ArrowCursor)
+
+        self._overlay.disable()
+
+        self._scene.update()
 
     def keyPressEvent(self, e):
 

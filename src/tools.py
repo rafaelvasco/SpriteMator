@@ -152,71 +152,58 @@ class Pen(Tool):
 
     def draw(self, canvas, painter):
 
-        x = canvas.mouse_state.global_pos.x()
-        y = canvas.mouse_state.global_pos.y()
+        x = canvas.mouse_state.global_pos.x() + 2
+        y = canvas.mouse_state.global_pos.y() + 2
 
         size = canvas.pixel_size * canvas.zoom
 
         if size <= 0.0:
             return
 
-        painter.fillRect(x, y, size, size, Qt.white)
+        painter.setPen(Qt.white)
 
-        # x = canvas.mouse_state().canvas_mouse_position().x()
-        # y = canvas.mouse_state().canvas_mouse_position().y()
-        #
-        # size = canvas.pixel_size() * canvas.zoom_value()
-        #
-        # if size <= 0.0:
-        #     return
-        #
-        # if size == 1.0:
-        #
-        #     painter.fillRect(x, y, 1, 1, Qt.white)
-        #
-        #     painter.setPen(Qt.white)
-        #
-        #     painter.drawLine(x, y - 4, x, y - 8)
-        #     painter.drawLine(x, y + 4, x, y + 8)
-        #
-        #     painter.drawLine(x - 4, y, x - 8, y)
-        #     painter.drawLine(x + 4, y, x + 8, y)
-        #
-        # elif size == 2.0:
-        #
-        #     painter.fillRect(x - 1, y - 1, 2, 2, Qt.white)
-        #
-        #     painter.setPen(Qt.white)
-        #
-        #     painter.drawLine(x - 2, y - 8, x + 1, y - 8)
-        #     painter.drawLine(x - 2, y + 7, x + 1, y + 7)
-        #
-        #     painter.drawLine(x - 8, y - 2, x - 8, y + 1)
-        #     painter.drawLine(x + 7, y - 2, x + 7, y + 1)
-        #
-        # elif size == 4.0:
-        #
-        #     painter.setPen(Qt.white)
-        #
-        #     painter.drawRect(x - 2, y - 2, 4, 4)
-        #
-        #     painter.drawLine(x - 2, y - 8, x + 2, y - 8)
-        #     painter.drawLine(x - 2, y + 8, x + 2, y + 8)
-        #
-        #     painter.drawLine(x - 8, y - 2, x - 8, y + 2)
-        #     painter.drawLine(x + 8, y - 2, x + 8, y + 2)
-        #
-        # else:
-        #
-        #     painter.setPen(Qt.white)
-        #
-        #     half_size = size // 2
-        #     size_by_8 = size // 8
-        #
-        #     painter.drawRect(x - half_size, y - half_size, size, size)
-        #
-        #     painter.drawLine(x, y - size_by_8, x, y + size_by_8)
-        #     painter.drawLine(x - size_by_8, y, x + size_by_8, y)
+        #x -= size / 2
+        #y -= size / 2
+
+        if size == 1.0:
+            painter.fillRect(x, y, 1, 1, Qt.white)
+            painter.setPen(Qt.white)
+
+            painter.drawLine(x, y - 4, x, y - 8)
+            painter.drawLine(x, y + 4, x, y + 8)
+
+            painter.drawLine(x - 4, y, x - 8, y)
+            painter.drawLine(x + 4, y, x + 8, y)
+
+        elif size == 2.0:
+
+            painter.fillRect(x - 1, y - 1, 2, 2, Qt.white)
+            painter.setPen(Qt.white)
+
+            painter.drawLine(x - 2, y - 8, x + 1, y - 8)
+            painter.drawLine(x - 2, y + 7, x + 1, y + 7)
+
+            painter.drawLine(x - 8, y - 2, x - 8, y + 1)
+            painter.drawLine(x + 7, y - 2, x + 7, y + 1)
+
+        elif size == 4.0:
+
+            painter.setPen(Qt.white)
+
+            painter.drawRect(x - 2, y - 2, 4, 4)
+
+            painter.drawLine(x - 2, y - 8, x + 2, y - 8)
+            painter.drawLine(x - 2, y + 8, x + 2, y + 8)
+
+            painter.drawLine(x - 8, y - 2, x - 8, y + 2)
+            painter.drawLine(x + 8, y - 2, x + 8, y + 2)
+
+        else:
+
+            painter.drawRect(x-size/2, y-size/2, size, size)
+
+            painter.drawLine(x-2, y, x+2, y)
+            painter.drawLine(x, y-2, x, y+2)
 
     def _blit(self, canvas, just_pressed):
 

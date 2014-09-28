@@ -69,6 +69,8 @@ class Display(QGraphicsView):
 
         self.setMouseTracking(True)
 
+        self.setStyleSheet("border: 0px;")
+
     @property
     def scene(self):
         return self._scene

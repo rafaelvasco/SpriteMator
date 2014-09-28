@@ -291,7 +291,7 @@ class Canvas(Display):
 
         self._currentTool.on_mouse_press(self)
 
-        self._scene.update()
+        self.update()
 
     def mouseMoveEvent(self, e):
 
@@ -324,7 +324,7 @@ class Canvas(Display):
         self._mouseState.last_sprite_pos.setX(self._mouseState.sprite_pos.x())
         self._mouseState.last_sprite_pos.setY(self._mouseState.sprite_pos.y())
 
-        self._scene.update()
+        self.update()
 
     def mouseReleaseEvent(self, e):
 
@@ -340,7 +340,7 @@ class Canvas(Display):
 
         self.toolEnded.emit(self._currentTool)
 
-        self._scene.update()
+        self.update()
 
     def enterEvent(self, e):
 
@@ -350,7 +350,7 @@ class Canvas(Display):
 
         self._overlay.enable()
 
-        self._scene.update()
+        self.update()
 
     def leaveEvent(self, e):
 
@@ -360,7 +360,7 @@ class Canvas(Display):
 
         self._overlay.disable()
 
-        self._scene.update()
+        self.update()
 
     def keyPressEvent(self, e):
 

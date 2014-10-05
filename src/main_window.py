@@ -243,6 +243,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._toolbox.register_tool(self._canvas.find_tool_by_name('Pen'), is_default=True)
         self._toolbox.register_tool(self._canvas.find_tool_by_name('Picker'))
         self._toolbox.register_tool(self._canvas.find_tool_by_name('Filler'))
+        self._toolbox.register_tool(self._canvas.find_tool_by_name('Manipulator'))
 
         self._toolbox.register_ink(self._canvas.find_ink_by_name('Solid'), slot=0)
         self._toolbox.register_ink(self._canvas.find_ink_by_name('Eraser'), slot=1)
@@ -312,6 +313,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _on_tool_changed(self, tool_name):
 
         self._canvas.current_tool = tool_name
+        self._canvas.update()
 
     def _on_primary_ink_changed(self, ink_name):
 

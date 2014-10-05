@@ -337,6 +337,8 @@ class Application(QApplication):
                 target.switch_tool_slot(1)
             elif shortcut_name == 'TOOL_SLOT_2':
                 target.switch_tool_slot(2)
+            elif shortcut_name == 'TOOL_SLOT_3':
+                target.switch_tool_slot(3)
 
     def _raise_error(self, source, exception):
 

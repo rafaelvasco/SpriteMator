@@ -6,14 +6,15 @@
 # License:          
 #--------------------------------------------------------------------------------------------------
 
-from quickpixler import floodFill
+import quickpixler
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QPoint, QRect
 from PyQt5.QtGui import QPen, QColor, QIcon, QPixmap, QPainter
 
 import src.drawing as drawing
-from src.resources_cache import ResourcesCache
+import src.utils as utils
 from src.properties import PropertyHolder
+
 
 
 class Tool(PropertyHolder):
@@ -80,6 +81,12 @@ class Tool(PropertyHolder):
     def draw(self, canvas, painter):
         pass
 
+    def _load_icon(self, icon_path, icon_active_path):
+
+        self._icon = QIcon()
+        self._icon.addPixmap(QPixmap(icon_path), QIcon.Normal, QIcon.Off)
+        self._icon.addPixmap(QPixmap(icon_active_path), QIcon.Normal, QIcon.On)
+
 # =================================================================================================
 
 
@@ -88,9 +95,8 @@ class Picker(Tool):
         super(Picker, self).__init__()
         self._name = 'Picker'
 
-        self._icon = QIcon()
-        self._icon.addPixmap(QPixmap(":/icons/ico_picker"), QIcon.Normal, QIcon.Off)
-        self._icon.addPixmap(QPixmap(":/icons/ico_picker_hover"), QIcon.Normal, QIcon.On)
+        self._load_icon(":/icons/ico_picker", ":/icons/ico_picker_hover")
+
         self.add_property('returnlasttool', True, 'After Picking: Go back to last Tool')
 
     def draw(self, canvas, painter):
@@ -142,9 +148,7 @@ class Pen(Tool):
 
         self._wasLockingMouse = False
 
-        self._icon = QIcon()
-        self._icon.addPixmap(QPixmap(":/icons/ico_pen"), QIcon.Normal, QIcon.Off)
-        self._icon.addPixmap(QPixmap(":/icons/ico_pen_hover"), QIcon.Normal, QIcon.On)
+        self._load_icon(":/icons/ico_pen", ":/icons/ico_pen_hover")
 
         self._usesPainter = True
 
@@ -152,8 +156,8 @@ class Pen(Tool):
 
     def draw(self, canvas, painter):
 
-        x = canvas.mouse_state.global_pos.x() + 2
-        y = canvas.mouse_state.global_pos.y() + 2
+        x = canvas.mouse_state.global_pos.x() + 1
+        y = canvas.mouse_state.global_pos.y() + 1
 
         size = canvas.pixel_size * canvas.zoom
 
@@ -161,9 +165,8 @@ class Pen(Tool):
             return
 
         painter.setPen(Qt.white)
-
-        #x -= size / 2
-        #y -= size / 2
+        painter.setOpacity(0.6)
+        painter.setCompositionMode(QPainter.CompositionMode_Difference)
 
         if size == 1.0:
             painter.fillRect(x, y, 1, 1, Qt.white)
@@ -302,11 +305,8 @@ class Filler(Tool):
         self.name = 'Filler'
 
         self._refreshWaitTime = 500
-        self._icon = QIcon()
-        self._icon.addPixmap(QPixmap(":/icons/ico_fill"), QIcon.Normal, QIcon.Off)
-        self._icon.addPixmap(QPixmap(":/icons/ico_fill_hover"), QIcon.Normal, QIcon.On)
 
-        self._cursorPixmap = ResourcesCache.get("ToolCursor1")
+        self._load_icon(":/icons/ico_fill", ":/icons/ico_fill_hover")
 
     def draw(self, canvas, painter):
 
@@ -319,7 +319,6 @@ class Filler(Tool):
         image = canvas.sprite_object.active_surface
         button = canvas.mouse_state.pressed_button
         mouse_pos = canvas.mouse_state.sprite_pos
-
 
         sprite_bounding_box = canvas.sprite_object.area_rect
 
@@ -345,7 +344,132 @@ class Filler(Tool):
 
             if color is not None:
 
-                floodFill(image_data, mouse_pos.x(), mouse_pos.y(), image.width(), image.height(),
-                          color.red(), color.green(), color.blue())
+                quickpixler.floodFill(image_data, mouse_pos.x(), mouse_pos.y(), image.width(),
+                                      image.height(),
+                                      color.red(), color.green(), color.blue())
 
 # =================================================================================================
+
+
+ManipulatorState = utils.enum('Idle', 'MovingPixels', 'MovingSelection', 'Selecting',
+                              'ScalingSelection')
+
+
+class Manipulator(Tool):
+
+    def __init__(self):
+        super(Manipulator, self).__init__()
+
+        self._name = 'Manipulator'
+        self._load_icon(":/icons/ico_sel_move", ":/icons/ico_sel_move_hover")
+        self._cursor = QPixmap(":/images/mover_cursor")
+
+        self._pressMousePos = QPoint()
+        self._lastMousePos = QPoint()
+        self._curMousePos = QPoint()
+        self._selectionRectangle = QRect()
+
+        self._state = ManipulatorState.Idle
+
+    def draw(self, canvas, painter):
+
+        x = canvas.mouse_state.global_pos.x() + 1
+        y = canvas.mouse_state.global_pos.y() + 1
+    
+        if self._state == ManipulatorState.Idle \
+                or self._state == ManipulatorState.MovingSelection\
+                or self._state == ManipulatorState.MovingPixels:
+    
+            painter.drawPixmap(x - self._cursor.width()/2, y -
+                               self._cursor.height()/2, self._cursor)
+
+        elif self._state == ManipulatorState.Selecting:
+
+            pen = QPen()
+            pen.setStyle(Qt.DotLine)
+            pen.setBrush(Qt.black)
+
+            painter.setPen(pen)
+            print(self._selectionRectangle)
+            painter.drawRect(self._selectionRectangle)
+
+    def on_mouse_press(self, canvas):
+
+        super(Manipulator, self).on_mouse_press(canvas)
+
+        button = canvas.mouse_state.pressed_button
+        mouse_pos = canvas.mouse_state.sprite_pos
+        
+        self._lastMousePos.setX(mouse_pos.x())
+        self._lastMousePos.setY(mouse_pos.y())
+        self._curMousePos.setX(mouse_pos.x())
+        self._curMousePos.setY(mouse_pos.y())
+        self._pressMousePos.setX(canvas.mouse_state.global_pos.x())
+        self._pressMousePos.setY(canvas.mouse_state.global_pos.y())
+        
+        if button == Qt.LeftButton:
+    
+            sprite_bounding_box = canvas.sprite_object.area_rect
+    
+            if not sprite_bounding_box.contains(mouse_pos):
+                return
+    
+            self._state = ManipulatorState.MovingPixels
+            
+        elif button == Qt.RightButton:
+            
+            self._state = ManipulatorState.Selecting
+
+    def on_mouse_move(self, canvas):
+
+        mouse_pos = canvas.mouse_state.sprite_pos
+        global_mouse_pos = canvas.mouse_state.global_pos
+
+        if self._state == ManipulatorState.MovingPixels:
+
+            image = canvas.sprite_object.active_surface
+
+            self._lastMousePos.setX(self._curMousePos.x())
+            self._lastMousePos.setY(self._curMousePos.y())
+
+            self._curMousePos.setX(mouse_pos.x())
+            self._curMousePos.setY(mouse_pos.y())
+
+            dx = self._curMousePos.x() - self._lastMousePos.x()
+            dy = self._curMousePos.y() - self._lastMousePos.y()
+
+            if image is not None:
+
+                image_data = canvas.sprite_object.active_surface_pixel_data
+
+                if image_data is None:
+                    return
+
+                quickpixler.movePixels(image_data, image.width(), image.height(), dx, dy)
+                
+        elif self._state == ManipulatorState.Selecting:
+
+            top_left = QPoint(min(global_mouse_pos.x(), self._pressMousePos.x()),
+                              min(global_mouse_pos.y(), self._pressMousePos.y()))
+
+            width = abs(global_mouse_pos.x() - self._pressMousePos.x())
+            height = abs(global_mouse_pos.y() - self._pressMousePos.y())
+
+            self._selectionRectangle.setRect(top_left.x(), top_left.y(),
+                                             width, height)
+
+        elif self._state == ManipulatorState.MovingSelection:
+            pass
+        
+        elif self._state == ManipulatorState.ScalingSelection:
+            pass
+
+    def on_mouse_release(self, canvas):
+
+        super(Manipulator, self).on_mouse_press(canvas)
+
+        if self._state == ManipulatorState.Selecting:
+
+            self._selectionRectangle = QRect()
+
+        self._state = ManipulatorState.Idle

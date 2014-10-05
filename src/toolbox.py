@@ -110,7 +110,7 @@ class ToolBox(QWidget):
 
             self._build_tool_options_pane(tool)
 
-            if len(self._toolSlots) < 3:
+            if len(self._toolSlots) < 4:
                 slot_index = self._add_tool_slot(is_default)
                 self._assign_tool_to_slot(tool, slot_index)
 

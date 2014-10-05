@@ -8,6 +8,7 @@
   </qresource>
   <qresource prefix="images">
     <file alias="tool_cursor_1">resources/tool_cursor_1.png</file>
+    <file alias="mover_cursor">resources/mover_cursor.png</file>
     <file alias="logo">resources/spritemator-logo.png</file>
   </qresource>
   <qresource prefix="icons">

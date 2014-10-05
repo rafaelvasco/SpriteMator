@@ -45,9 +45,7 @@ class CanvasOverlay(QWidget):
 
         painter = QPainter(self)
 
-        painter.setOpacity(0.6)
-
-        painter.setCompositionMode(QPainter.CompositionMode_Difference)
+        painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
 
         #painter.fillRect(e.rect(), Qt.red)
 

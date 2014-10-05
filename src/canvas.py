@@ -145,6 +145,7 @@ class Canvas(Display):
         self._lastTool = self._currentTool
         self._currentTool = self.find_tool_by_name(value)
 
+
     @property
     def last_tool(self):
         return self._lastTool
@@ -403,6 +404,7 @@ class Canvas(Display):
         self._tools['Pen'] = tools.Pen()
         self._tools['Picker'] = tools.Picker()
         self._tools['Filler'] = tools.Filler()
+        self._tools['Manipulator'] = tools.Manipulator()
 
     def _load_inks(self):
 

@@ -7,12 +7,9 @@ SpriteMator
 
 > SpriteMator exists to make drawing and animating sprites much easier !
 > 
-> Made with love and with great joy (most of the time) in [Python][1] with [PyQt][2], and a little push from [Cython][3] :)
+> Made with love and with great joy (most of the time) in [Python][1] with [PyQt][2], and [Cython][3] :)
 
 
 [1]: http://www.python.org
 [2]: http://www.riverbankcomputing.co.uk/software/pyqt/intro
 [3]: http://cython.org/
-
-
-

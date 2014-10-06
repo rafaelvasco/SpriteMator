@@ -8,7 +8,7 @@
 
 import quickpixler
 
-from PyQt5.QtCore import Qt, QPoint, QRect
+from PyQt5.QtCore import Qt, QPoint, QRect, QTimer
 from PyQt5.QtGui import QPen, QColor, QIcon, QPixmap, QPainter
 
 import src.drawing as drawing
@@ -16,11 +16,12 @@ import src.utils as utils
 from src.properties import PropertyHolder
 
 
-
 class Tool(PropertyHolder):
-    def __init__(self):
+    def __init__(self, canvas):
 
         super(Tool, self).__init__()
+
+        self._canvas = canvas
 
         self._name = ''
         self._drawPen = QPen()
@@ -29,15 +30,15 @@ class Tool(PropertyHolder):
         self._drawPen.setWidth(0)
         self._drawPen.setCapStyle(Qt.SquareCap)
 
-        self._usesPainter = False
-
         self._isActive = False
-
-        self._refreshWaitTime = 0
 
         self._default = False
 
-        self._drawBrush = None
+        self._pointerBrush = None
+
+        self._enablePointerDraw = False
+
+        self._refreshWaitTime = 0
 
         self._icon = None
 
@@ -58,6 +59,18 @@ class Tool(PropertyHolder):
         return self._isActive
 
     @property
+    def icon(self):
+        return self._icon
+
+    @property
+    def enable_pointer_draw(self):
+        return self._enablePointerDraw
+
+    @enable_pointer_draw.setter
+    def enable_pointer_draw(self, value):
+        self._enablePointerDraw = value
+
+    @property
     def refresh_wait_time(self):
         return self._refreshWaitTime
 
@@ -65,20 +78,16 @@ class Tool(PropertyHolder):
     def refresh_wait_time(self, value):
         self._refreshWaitTime = value
 
-    @property
-    def icon(self):
-        return self._icon
-
-    def on_mouse_press(self, canvas):
+    def on_mouse_press(self):
         self._isActive = True
 
-    def on_mouse_move(self, canvas):
+    def on_mouse_move(self):
         pass
 
-    def on_mouse_release(self, canvas):
+    def on_mouse_release(self):
         self._isActive = False
 
-    def draw(self, canvas, painter):
+    def draw(self, painter):
         pass
 
     def _load_icon(self, icon_path, icon_active_path):
@@ -91,16 +100,19 @@ class Tool(PropertyHolder):
 
 
 class Picker(Tool):
-    def __init__(self):
-        super(Picker, self).__init__()
+    def __init__(self, canvas):
+        super(Picker, self).__init__(canvas)
         self._name = 'Picker'
 
         self._load_icon(":/icons/ico_picker", ":/icons/ico_picker_hover")
 
         self.add_property('returnlasttool', True, 'After Picking: Go back to last Tool')
 
-    def draw(self, canvas, painter):
-        return
+    def draw(self, painter):
+
+        if not self._enablePointerDraw:
+            return
+
         # x = canvas.mouse_state().canvas_mouse_position().x()
         # y = canvas.mouse_state().canvas_mouse_position().y()
         #
@@ -119,13 +131,13 @@ class Picker(Tool):
         # painter.drawLine(x, y - size_by_8, x, y + size_by_8)
         # painter.drawLine(x - size_by_8, y, x + size_by_8, y)
 
-    def on_mouse_press(self, canvas):
+    def on_mouse_press(self):
 
-        super(Picker, self).on_mouse_press(canvas)
+        super(Picker, self).on_mouse_press()
 
         picked_color = \
-            QColor(canvas.sprite_object.active_surface.pixel(canvas.mouse_state.sprite_pos))
-        canvas.colorPicked.emit(picked_color, canvas.mouse_state.pressed_button)
+            QColor(self._canvas.sprite_object.active_surface.pixel(self._canvas.mouse_state.sprite_pos))
+        self._canvas.colorPicked.emit(picked_color, self._canvas.mouse_state.pressed_button)
 
         #if self.propertyValue('returnlasttool'):
         #    canvas.tool_box().go_back_to_last_tool()
@@ -134,9 +146,9 @@ class Picker(Tool):
 # =================================================================================================
 
 class Pen(Tool):
-    def __init__(self):
+    def __init__(self, canvas):
 
-        super(Pen, self).__init__()
+        super(Pen, self).__init__(canvas)
 
         self._deltaX = 0
         self._deltaY = 0
@@ -150,11 +162,14 @@ class Pen(Tool):
 
         self._load_icon(":/icons/ico_pen", ":/icons/ico_pen_hover")
 
-        self._usesPainter = True
-
         self._default = True
 
-    def draw(self, canvas, painter):
+    def draw(self, painter):
+
+        if not self._enablePointerDraw:
+            return
+
+        canvas = self._canvas
 
         x = canvas.mouse_state.global_pos.x() + 1
         y = canvas.mouse_state.global_pos.y() + 1
@@ -208,7 +223,9 @@ class Pen(Tool):
             painter.drawLine(x-2, y, x+2, y)
             painter.drawLine(x, y-2, x, y+2)
 
-    def _blit(self, canvas, just_pressed):
+    def _blit(self, just_pressed):
+
+        canvas = self._canvas
 
         size = canvas.pixel_size
         mouse_state = canvas.mouse_state
@@ -260,13 +277,15 @@ class Pen(Tool):
 
             painter.end()
 
-    def on_mouse_press(self, canvas):
+    def on_mouse_press(self):
 
-        super(Pen, self).on_mouse_press(canvas)
+        super(Pen, self).on_mouse_press()
 
-        self._blit(canvas, just_pressed=True)
+        self._blit(just_pressed=True)
 
-    def on_mouse_move(self, canvas):
+    def on_mouse_move(self):
+
+        canvas = self._canvas
 
         mouse_state = canvas.mouse_state
 
@@ -287,34 +306,37 @@ class Pen(Tool):
         #    self._lockVertical = self._lockHorizontal = False
 
         if mouse_state.pressed_button is not None:
-            self._blit(canvas, just_pressed=False)
+            self._blit(just_pressed=False)
 
-    def on_mouse_release(self, canvas):
+    def on_mouse_release(self):
 
-        super(Pen, self).on_mouse_release(canvas)
+        super(Pen, self).on_mouse_release()
         self._lockHorizontal = self._lockVertical = False
 
 # =================================================================================================
 
 
 class Filler(Tool):
-    def __init__(self):
+    def __init__(self, canvas):
 
-        super(Filler, self).__init__()
+        super(Filler, self).__init__(canvas)
 
         self.name = 'Filler'
 
-        self._refreshWaitTime = 500
-
         self._load_icon(":/icons/ico_fill", ":/icons/ico_fill_hover")
 
-    def draw(self, canvas, painter):
+        self._refreshWaitTime = 500
 
-        return
+    def draw(self, painter):
 
-    def on_mouse_press(self, canvas):
+        if not self._enablePointerDraw:
+            return
 
-        super(Filler, self).on_mouse_press(canvas)
+    def on_mouse_press(self):
+
+        super(Filler, self).on_mouse_press()
+
+        canvas = self._canvas
 
         image = canvas.sprite_object.active_surface
         button = canvas.mouse_state.pressed_button
@@ -351,14 +373,18 @@ class Filler(Tool):
 # =================================================================================================
 
 
-ManipulatorState = utils.enum('Idle', 'MovingPixels', 'MovingSelection', 'Selecting',
+ManipulatorState = utils.enum('Idle',
+                              'MovingPixels',
+                              'MovingSelection',
+                              'MovingSelectedPixels',
+                              'Selecting',
                               'ScalingSelection')
 
 
 class Manipulator(Tool):
 
-    def __init__(self):
-        super(Manipulator, self).__init__()
+    def __init__(self, canvas):
+        super(Manipulator, self).__init__(canvas)
 
         self._name = 'Manipulator'
         self._load_icon(":/icons/ico_sel_move", ":/icons/ico_sel_move_hover")
@@ -368,37 +394,67 @@ class Manipulator(Tool):
         self._lastMousePos = QPoint()
         self._curMousePos = QPoint()
         self._selectionRectangle = QRect()
+        self._dashingAntsTimer = QTimer()
+        self._selectionBorderPen = QPen()
+        self._selectionBorderPen.setStyle(Qt.DashLine)
+        self._selectionBorderPen.setDashPattern([4.0, 2.0])
+        self._selectionBorderPen.setColor(Qt.white)
+        self._selectionRectColor = QColor(255, 255, 255, 50)
+        self._selectionRectDashOffset = 0
+        self._selectionImage = None
+
+        self._dashingAntsTimer.timeout.connect(self._animate_selection_border)
+        self._dashingAntsTimer.stop()
 
         self._state = ManipulatorState.Idle
 
-    def draw(self, canvas, painter):
+    def draw(self, painter):
+
+        canvas = self._canvas
 
         x = canvas.mouse_state.global_pos.x() + 1
         y = canvas.mouse_state.global_pos.y() + 1
     
-        if self._state == ManipulatorState.Idle \
+        if self._enablePointerDraw and self._state == ManipulatorState.Idle \
                 or self._state == ManipulatorState.MovingSelection\
                 or self._state == ManipulatorState.MovingPixels:
     
             painter.drawPixmap(x - self._cursor.width()/2, y -
                                self._cursor.height()/2, self._cursor)
 
-        elif self._state == ManipulatorState.Selecting:
+        if not self._selectionRectangle.isEmpty():
 
-            pen = QPen()
-            pen.setStyle(Qt.DotLine)
-            pen.setBrush(Qt.black)
+            painter.setCompositionMode(QPainter.CompositionMode_Difference)
+            painter.setPen(Qt.white)
 
-            painter.setPen(pen)
-            print(self._selectionRectangle)
+            painter.drawRect(self._selectionRectangle.topLeft().x() - 4,
+                             self._selectionRectangle.topLeft().y() - 4,
+                             8, 8)
+            painter.drawRect(self._selectionRectangle.topRight().x() - 4,
+                             self._selectionRectangle.topRight().y() - 4,
+                             8, 8)
+            painter.drawRect(self._selectionRectangle.bottomLeft().x() - 4,
+                             self._selectionRectangle.bottomLeft().y() - 4,
+                             8, 8)
+            painter.drawRect(self._selectionRectangle.bottomRight().x() - 4,
+                             self._selectionRectangle.bottomRight().y() - 4,
+                             8, 8)
+
+            painter.setPen(self._selectionBorderPen)
+
             painter.drawRect(self._selectionRectangle)
 
-    def on_mouse_press(self, canvas):
+            painter.fillRect(self._selectionRectangle, self._selectionRectColor)
 
-        super(Manipulator, self).on_mouse_press(canvas)
+    def on_mouse_press(self):
+
+        super(Manipulator, self).on_mouse_press()
+
+        canvas = self._canvas
 
         button = canvas.mouse_state.pressed_button
         mouse_pos = canvas.mouse_state.sprite_pos
+        global_pos = canvas.mouse_state.global_pos
         
         self._lastMousePos.setX(mouse_pos.x())
         self._lastMousePos.setY(mouse_pos.y())
@@ -413,30 +469,46 @@ class Manipulator(Tool):
     
             if not sprite_bounding_box.contains(mouse_pos):
                 return
+
+            if self._selectionRectangle.isEmpty():
     
-            self._state = ManipulatorState.MovingPixels
+                self._state = ManipulatorState.MovingPixels
+
+            else:
+
+                if self._selectionRectangle.contains(global_pos):
+
+                    self._state = ManipulatorState.MovingSelection
+
+                else:
+
+                    self._clear_selection_rect()
+                    self._state = ManipulatorState.Idle
             
         elif button == Qt.RightButton:
             
+            self._clear_selection_rect()
             self._state = ManipulatorState.Selecting
 
-    def on_mouse_move(self, canvas):
+    def on_mouse_move(self):
+
+        canvas = self._canvas
 
         mouse_pos = canvas.mouse_state.sprite_pos
         global_mouse_pos = canvas.mouse_state.global_pos
 
+        self._lastMousePos.setX(self._curMousePos.x())
+        self._lastMousePos.setY(self._curMousePos.y())
+
+        self._curMousePos.setX(mouse_pos.x())
+        self._curMousePos.setY(mouse_pos.y())
+
+        dx = self._curMousePos.x() - self._lastMousePos.x()
+        dy = self._curMousePos.y() - self._lastMousePos.y()
+
         if self._state == ManipulatorState.MovingPixels:
 
             image = canvas.sprite_object.active_surface
-
-            self._lastMousePos.setX(self._curMousePos.x())
-            self._lastMousePos.setY(self._curMousePos.y())
-
-            self._curMousePos.setX(mouse_pos.x())
-            self._curMousePos.setY(mouse_pos.y())
-
-            dx = self._curMousePos.x() - self._lastMousePos.x()
-            dy = self._curMousePos.y() - self._lastMousePos.y()
 
             if image is not None:
 
@@ -459,17 +531,58 @@ class Manipulator(Tool):
                                              width, height)
 
         elif self._state == ManipulatorState.MovingSelection:
-            pass
+
+            self._selectionRectangle.translate(dx, dy)
         
         elif self._state == ManipulatorState.ScalingSelection:
             pass
 
-    def on_mouse_release(self, canvas):
+    def on_mouse_release(self):
 
-        super(Manipulator, self).on_mouse_press(canvas)
+        super(Manipulator, self).on_mouse_press()
 
         if self._state == ManipulatorState.Selecting:
+            #self._dashingAntsTimer.start()
 
-            self._selectionRectangle = QRect()
+            if not self._selectionRectangle.isEmpty():
+                self._cut_selection()
 
         self._state = ManipulatorState.Idle
+
+    def _animate_selection_border(self):
+
+        self._selectionRectDashOffset += 1.0
+
+        if self._selectionRectDashOffset > 6.0:
+            self._selectionRectDashOffset = 0.0
+
+        self._selectionBorderPen.setDashOffset(self._selectionRectDashOffset)
+
+    def _clear_selection_rect(self):
+
+        self._selectionRectangle = QRect()
+        #self._dashingAntsTimer.stop()
+
+    def _normalize_selection_rect(self):
+
+        if self._selectionRectangle.left() < 0:
+            self._selectionRectangle.setLeft(0)
+
+        if self._selectionRectangle.right() > self._canvas.sprite_object.width:
+            self._selectionRectangle.setRight(self._canvas.sprite_object.width)
+
+        if self._selectionRectangle.top() < 0:
+            self._selectionRectangle.setTop(0)
+
+        if self._selectionRectangle.bottom() > self._canvas.sprite_object.height:
+            self._selectionRectangle.setBottom(self._canvas.sprite_object.height)
+
+    def _cut_selection(self):
+
+        self._normalize_selection_rect()
+
+        print('Selection Rect:',
+              self._canvas.map_global_rect_to_sprite_local_rect(self._selectionRectangle))
+
+    def _paste_selection(self):
+        pass

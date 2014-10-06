@@ -22,31 +22,16 @@ class CanvasOverlay(QWidget):
         
         super(CanvasOverlay, self).__init__(canvas)
         self._canvas = canvas
-        self._drawEnabled = True
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
         self.setAutoFillBackground(True)
 
-    def enable(self):
-        self._drawEnabled = True
-        self.update()
-        
-    def disable(self):
-        self._drawEnabled = False
-        self.update()
-
-    @property
-    def isEnabled(self):
-        return self._drawEnabled
-
     def paintEvent(self, e):
-        
-        if not self._drawEnabled or self._canvas.current_tool is None:
+
+        if self._canvas.current_tool is None:
             return
 
         painter = QPainter(self)
-
         painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
 
-        #painter.fillRect(e.rect(), Qt.red)
+        self._canvas.current_tool.draw(painter)
 
-        self._canvas.current_tool.draw(self._canvas, painter)

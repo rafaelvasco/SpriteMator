@@ -82,6 +82,14 @@ class DisplaySpriteObject(QGraphicsItem):
     def area_rect(self):
         return QRect(0, 0, self._boundingRect.width(), self._boundingRect.height())
 
+    @property
+    def width(self):
+        return self.boundingRect().width()
+
+    @property
+    def height(self):
+        return self.boundingRect().height()
+
     def set_sprite(self, sprite):
 
         self._sprite = sprite

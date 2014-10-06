@@ -253,6 +253,30 @@ class Canvas(Display):
     def rescale(self, scale_width, scale_height):
         pass
 
+    def map_global_point_to_sprite_local_point(self, point):
+
+        canvas_scene_point = self.mapToScene(point)
+
+        sprite_local_point = QPoint(canvas_scene_point.x() -
+                                    self._spriteObject.boundingRect().left(),
+                                    canvas_scene_point.y() -
+                                    self._spriteObject.boundingRect().top())
+
+        return sprite_local_point
+
+    def map_global_rect_to_sprite_local_rect(self, rect):
+
+        canvas_scene_rect = self.mapToScene(rect).boundingRect()
+
+        sprite_local_rect = QRect(int(canvas_scene_rect.left() -
+                                  self._spriteObject.boundingRect().left()),
+                                  int(canvas_scene_rect.top() -
+                                  self._spriteObject.boundingRect().top()),
+                                  canvas_scene_rect.width(),
+                                  canvas_scene_rect.height())
+
+        return sprite_local_rect
+
     # -------------------------------------------------------------------------
 
     def resizeEvent(self, e):
@@ -266,7 +290,7 @@ class Canvas(Display):
         super(Canvas, self).mousePressEvent(e)
 
         if self.is_panning:
-            self._overlay.disable()
+            self._currentTool.enable_pointer_draw = False
             return
 
         self._mouseState.canvas_pos = self.mapToScene(e.pos())
@@ -290,7 +314,7 @@ class Canvas(Display):
         self._mouseState.last_sprite_pos.setX(self._mouseState.sprite_pos.x())
         self._mouseState.last_sprite_pos.setY(self._mouseState.sprite_pos.y())
 
-        self._currentTool.on_mouse_press(self)
+        self._currentTool.on_mouse_press()
 
         self.update()
 
@@ -317,7 +341,7 @@ class Canvas(Display):
 
         if self._currentTool.is_active:
 
-            self._currentTool.on_mouse_move(self)
+            self._currentTool.on_mouse_move()
 
         self._mouseState.last_canvas_pos.setX(canvas_pos.x())
         self._mouseState.last_canvas_pos.setY(canvas_pos.y())
@@ -333,11 +357,11 @@ class Canvas(Display):
 
         if not self._overlay.isEnabled:
 
-            self._overlay.enable()
+            self._currentTool.enable_pointer_draw = True
 
         self._mouseState.pressed_button = None
 
-        self._currentTool.on_mouse_release(self)
+        self._currentTool.on_mouse_release()
 
         self.toolEnded.emit(self._currentTool)
 
@@ -349,7 +373,7 @@ class Canvas(Display):
 
         self.setCursor(Qt.BlankCursor)
 
-        self._overlay.enable()
+        self._currentTool.enable_pointer_draw = True
 
         self.update()
 
@@ -359,7 +383,7 @@ class Canvas(Display):
 
         self.setCursor(Qt.ArrowCursor)
 
-        self._overlay.disable()
+        self._currentTool.enable_pointer_draw = False
 
         self.update()
 
@@ -401,10 +425,10 @@ class Canvas(Display):
 
         # Default Tools
 
-        self._tools['Pen'] = tools.Pen()
-        self._tools['Picker'] = tools.Picker()
-        self._tools['Filler'] = tools.Filler()
-        self._tools['Manipulator'] = tools.Manipulator()
+        self._tools['Pen'] = tools.Pen(self)
+        self._tools['Picker'] = tools.Picker(self)
+        self._tools['Filler'] = tools.Filler(self)
+        self._tools['Manipulator'] = tools.Manipulator(self)
 
     def _load_inks(self):
 

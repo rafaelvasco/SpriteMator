@@ -25,11 +25,11 @@ class Display(QGraphicsView):
 
         super(Display, self).__init__()
 
-        self._scene = QGraphicsScene(self)
+        self.setScene(QGraphicsScene())
 
         self._spriteObject = DisplaySpriteObject()
 
-        self._scene.addItem(self._spriteObject)
+        self.scene().addItem(self._spriteObject)
 
         self._backgroundColor = None
 
@@ -53,8 +53,6 @@ class Display(QGraphicsView):
 
         self._dragPos = QPoint()
 
-        self.setScene(self._scene)
-
         self._storedTransform = QTransform()
 
         self.setTransformationAnchor(QGraphicsView.AnchorViewCenter)
@@ -70,10 +68,6 @@ class Display(QGraphicsView):
         self.setMouseTracking(True)
 
         self.setStyleSheet("border: 0px;")
-
-    @property
-    def scene(self):
-        return self._scene
 
     @property
     def is_panning(self):
@@ -112,10 +106,6 @@ class Display(QGraphicsView):
         else:
             self.turn_backlight_off()
 
-    def add_object(self, item):
-
-        self._scene.addItem(item)
-
     def is_fit_in_view(self):
         return self._fitInView
 
@@ -146,8 +136,8 @@ class Display(QGraphicsView):
             # Calculate scale factor to cover view increasing the scale by multiples of 2.0
             # to keep pixel perfectness
 
-            scale_factor_x = self.width() / self._scene.sceneRect().width()
-            scale_factor_y = self.height() / self._scene.sceneRect().height()
+            scale_factor_x = self.width() / self.sceneRect().width()
+            scale_factor_y = self.height() / self.sceneRect().height()
 
             scale_factor = max(scale_factor_x, scale_factor_y)
 
@@ -177,7 +167,7 @@ class Display(QGraphicsView):
 
             self._spriteObject.unload_sprite()
 
-        self._scene.update()
+        self.scene().update()
 
     def update_viewport(self):
 
@@ -188,11 +178,11 @@ class Display(QGraphicsView):
 
         self.setSceneRect(-w/2, -h/2, w, h)
 
-        self._scene.update()
+        self.scene().update()
 
     def refresh(self):
 
-        self._scene.update()
+        self.scene().update()
 
     def resizeEvent(self, e):
 

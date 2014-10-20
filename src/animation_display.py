@@ -192,7 +192,7 @@ class AnimationDisplay(Display):
         self._playPauseBtn.setChecked(False)
 
     def _refresh_event(self):
-        self._scene.update()
+        self.scene().update()
 
     def _animate_event(self):
         if self._spriteObject is not None and self._playing:
@@ -223,7 +223,7 @@ class AnimationDisplay(Display):
                 self._spriteObject.display_frame_index = frame_count - 1
                 self.pause()
 
-        self._scene.update()
+        self.scene().update()
 
     def set_sprite(self, sprite):
 
@@ -236,7 +236,7 @@ class AnimationDisplay(Display):
 
         self._spriteObject.display_frame_index = 0
 
-        self._scene.update()
+        self.scene().update()
 
     def unload_sprite(self):
 
@@ -261,7 +261,7 @@ class AnimationDisplay(Display):
 
         self.start_animating()
 
-        self._scene.update()
+        self.scene().update()
 
     def pause(self):
         if self._spriteObject is None:
@@ -269,7 +269,7 @@ class AnimationDisplay(Display):
 
         self.stop_animating()
 
-        self._scene.update()
+        self.scene().update()
 
     def go_to_frame(self, index):
         if self._spriteObject is None or self._playing:
@@ -277,7 +277,7 @@ class AnimationDisplay(Display):
 
         self._spriteObject.display_frame_index = index
 
-        self._scene.update()
+        self.scene().update()
 
     def go_to_next_frame(self):
         if self._spriteObject is None or self._playing:
@@ -290,7 +290,7 @@ class AnimationDisplay(Display):
         if self._spriteObject.display_frame_index > frame_count - 1:
             self._spriteObject.display_frame_index = frame_count - 1
 
-        self._scene.update()
+        self.scene().update()
 
     def go_to_previous_frame(self):
 
@@ -302,4 +302,4 @@ class AnimationDisplay(Display):
         if self._spriteObject.display_frame_index < 0:
             self._spriteObject.display_frame_index = 0
 
-        self._scene.update()
+        self.scene().update()

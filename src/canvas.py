@@ -9,11 +9,15 @@
 # Licence:     <your licence>
 #------------------------------------------------------------------------------
 
-from PyQt5.QtCore import Qt, pyqtSignal, QPoint, QRect
+import math
+
+from PyQt5.QtCore import Qt, pyqtSignal, QPoint, QRect, QPointF
 from PyQt5.QtGui import QColor, QPainter
+from PyQt5.QtWidgets import QGraphicsScene
 from src.canvas_overlay import CanvasOverlay
 
 from src.display import Display
+from src.display_sprite_object import DisplaySpriteObject
 import src.utils as utils
 from src import tools, inks
 from src.tools import Tool
@@ -83,6 +87,36 @@ class CanvasMouseState(object):
         self._pressedButton = value
 
 
+class CanvasScene(QGraphicsScene):
+
+    def __init__(self, canvas):
+        super(CanvasScene, self).__init__()
+
+        self._canvas = canvas
+        self.screenMousePos = QPoint()
+        self.sceneMousePos = QPointF()
+
+    def drawForeground(self, painter, rect):
+
+        self._canvas.current_tool.draw_on_canvas_foreground(painter)
+
+    def mousePressEvent(self, event):
+        pass
+
+    def mouseReleaseEvent(self, event):
+        pass
+
+    def mouseMoveEvent(self, event):
+
+        self.screenMousePos.setX(event.screenPos().x())
+        self.screenMousePos.setY(event.screenPos().y())
+
+        self.sceneMousePos.setX(event.scenePos().x())
+        self.sceneMousePos.setX(event.scenePos().y())
+
+        super(CanvasScene, self).mouseMoveEvent(event)
+
+
 class Canvas(Display):
     surfaceChanged = pyqtSignal()
     viewportChanged = pyqtSignal()
@@ -95,6 +129,12 @@ class Canvas(Display):
         super(Canvas, self).__init__()
 
         self._overlay = CanvasOverlay(self)
+
+        self.setScene(CanvasScene(self))
+
+        self._spriteObject = DisplaySpriteObject()
+
+        self.scene().addItem(self._spriteObject)
 
         self.turn_backlight_on()
 
@@ -144,7 +184,6 @@ class Canvas(Display):
     def current_tool(self, value):
         self._lastTool = self._currentTool
         self._currentTool = self.find_tool_by_name(value)
-
 
     @property
     def last_tool(self):
@@ -247,6 +286,12 @@ class Canvas(Display):
 
         self.update()
 
+    def draw_overlay(self, painter):
+
+        painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
+
+        self._currentTool.draw_on_canvas_overlay(painter)
+
     def resize(self, width, height, index=None):
         pass
 
@@ -266,16 +311,22 @@ class Canvas(Display):
 
     def map_global_rect_to_sprite_local_rect(self, rect):
 
-        canvas_scene_rect = self.mapToScene(rect).boundingRect()
-
-        sprite_local_rect = QRect(int(canvas_scene_rect.left() -
+        sprite_local_rect = QRect((rect.left() -
                                   self._spriteObject.boundingRect().left()),
-                                  int(canvas_scene_rect.top() -
+                                  (rect.top() -
                                   self._spriteObject.boundingRect().top()),
-                                  canvas_scene_rect.width(),
-                                  canvas_scene_rect.height())
+                                  rect.width(),
+                                  rect.height())
 
         return sprite_local_rect
+
+    def map_scene_rect_to_global_rect(self, rect):
+
+        return self.mapFromScene(rect).boundingRect()
+
+    def map_global_rect_to_scene_rect(self, rect):
+
+        return self.mapToScene(rect).boundingRect()
 
     # -------------------------------------------------------------------------
 

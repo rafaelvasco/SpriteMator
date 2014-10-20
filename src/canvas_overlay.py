@@ -8,7 +8,7 @@
 # Copyright:   (c) Rafael 2013
 # Licence:     <your licence>
 #------------------------------------------------------------------------------
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QPainter
 
 from PyQt5.QtWidgets import QWidget
@@ -23,7 +23,9 @@ class CanvasOverlay(QWidget):
         super(CanvasOverlay, self).__init__(canvas)
         self._canvas = canvas
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.setAutoFillBackground(True)
+
+    def sizeHint(self):
+        return QSize(self._canvas.width(), self._canvas.height())
 
     def paintEvent(self, e):
 
@@ -31,7 +33,6 @@ class CanvasOverlay(QWidget):
             return
 
         painter = QPainter(self)
-        painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
 
-        self._canvas.current_tool.draw(painter)
+        self._canvas.draw_overlay(painter)
 

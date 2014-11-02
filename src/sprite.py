@@ -1,4 +1,4 @@
-#--------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Name:             Sprite
 # Purpose:          Represents a graphic entity composed of Animations which are composed of Frames
 #                   which are composed of Surfaces (Layers) that can be edited by the Canvas
@@ -20,7 +20,6 @@ from src.packer import RectanglePacker
 
 
 class Sprite(object):
-
     def __init__(self, width, height):
 
         self._width = width
@@ -93,7 +92,6 @@ class Sprite(object):
         for animation in self._animations:
 
             for frame in animation.frames:
-
                 frame.resize(width, height)
 
     def scale(self, scale_width, scale_height=None):
@@ -102,13 +100,11 @@ class Sprite(object):
         self._height = int(round(self._height * scale_height))
 
         if scale_height is None:
-
             scale_height = scale_width
 
         for animation in self._animations:
 
             for frame in animation.frames():
-
                 frame.scale(scale_width, scale_height)
 
     def paste_image(self, image):
@@ -170,7 +166,6 @@ class Sprite(object):
         new_sprite.add_animation()
 
         for image in image_list:
-
             new_sprite.current_animation.add_frame(image)
 
         return new_sprite
@@ -234,7 +229,6 @@ class Sprite(object):
         spritesheet_regions = []
 
         for frame in frames:
-
             flattened_frame_image = frame.flatten()
 
             cropped_frame_image = cropper.crop(flattened_frame_image)
@@ -253,7 +247,6 @@ class Sprite(object):
                 point = packer.pack(image_width, image_height)
 
                 if point is None:
-
                     raise Exception("Can't fit all sprite frames. Max image size is 4096x4096.")
 
                 images_remaining -= 1
@@ -267,7 +260,6 @@ class Sprite(object):
         painter.begin(spritesheet)
 
         for sprRegion in spritesheet_regions:
-
             spr_image = sprRegion[0]
             target_point = QPoint(sprRegion[1].x, sprRegion[1].y)
 
@@ -310,7 +302,7 @@ class Sprite(object):
         del self._animations[self._currentAnimationIndex]
 
         if len(self._animations) > 0 and self._currentAnimationIndex == previous_length - 1:
-                self._currentAnimationIndex -= 1
+            self._currentAnimationIndex -= 1
 
         elif len(self._animations) == 0:
 
@@ -318,7 +310,6 @@ class Sprite(object):
 
 
 class Animation(object):
-
     def __init__(self, name, sprite):
 
         self._frames = []
@@ -395,7 +386,6 @@ class Animation(object):
         else:
 
             if self._frameWidth < image.width() or self._frameHeight < image.height():
-
                 self._sprite.resize(image.width(), image.height())
 
         new_frame = Frame(self, image)
@@ -476,7 +466,6 @@ class Animation(object):
 
 
 class Frame(object):
-
     def __init__(self, animation, image=None):
 
         self._surfaces = []
@@ -527,7 +516,6 @@ class Frame(object):
 
         if image.width() > self._animation.sprite.width or image.height() > \
                 self._animation.sprite.height:
-
             self._animation.sprite.resize(image.width(), image.height())
 
         self.current_surface.paste(image)
@@ -540,7 +528,6 @@ class Frame(object):
         frame_height = self._animation.sprite.height
 
         if image.width() > frame_width or image.height() > frame_height:
-
             frame_width = image.width()
             frame_height = image.height()
 
@@ -566,7 +553,7 @@ class Frame(object):
         del self._surfaces[self._current_surface_index]
 
         if len(self._surfaces) > 0 and self._current_surface_index == previous_length - 1:
-                self._current_surface_index -= 1
+            self._current_surface_index -= 1
 
         elif len(self._surfaces) == 0:
 
@@ -614,13 +601,11 @@ class Frame(object):
     def resize(self, width, height):
 
         for surface in self._surfaces:
-
             surface.resize(width, height)
 
     def scale(self, scale_width, scale_height):
 
         for surface in self._surfaces:
-
             surface.scale(scale_width, scale_height)
 
 
@@ -689,11 +674,9 @@ class Surface(object):
         painter = QPainter(self._image)
 
         if x is None:
-
             x = self._image.width() // 2 - image.width() // 2
 
         if y is None:
-
             y = self._image.height() // 2 - image.height() // 2
 
         painter.drawImage(x, y, image)
@@ -710,6 +693,7 @@ class Surface(object):
         state = self.__dict__.copy()
 
         del state['_image']
+        del state['_pixelData']
 
         return state
 

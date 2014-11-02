@@ -156,5 +156,5 @@ class PropertyHolder(object):
     def add_ranged_property(self, prop_name, prop_min, prop_max, prop_value=None,
                             prop_description=None):
         self._properties[prop_name] = RangedProperty(prop_name, prop_min, prop_max,
-                                                     prop_description, prop_value,)
+                                                     prop_description, prop_value, )
 

@@ -434,7 +434,7 @@ class ToolBox(QWidget):
             self._toolbarSubPanel.setVisible(False)
 
             if self._currentEditedInkSlot is not None:
-                self._inksButtonGroup.button(self._currentEditedInkSlot).\
+                self._inksButtonGroup.button(self._currentEditedInkSlot). \
                     setStyleSheet("border-color: rgb(56,56,56);")
                 self._currentEditedInkSlot = None
                 self._previousEditedInkSlot = None
@@ -480,8 +480,8 @@ class ToolBox(QWidget):
         self._currentEditedInkSlot = triggered_slot_id
 
         if self._previousEditedInkSlot is not None:
-            self._inksButtonGroup.\
-                button(self._previousEditedInkSlot).\
+            self._inksButtonGroup. \
+                button(self._previousEditedInkSlot). \
                 setStyleSheet("border-color: rgb(56,56,56);")
 
         slot_button.setStyleSheet("border-color: rgb(255,0,0);")

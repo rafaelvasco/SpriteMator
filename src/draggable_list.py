@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Name:        DraggableList
 # Purpose:     Generic draggable scroll list;
 #
@@ -135,7 +135,6 @@ class ListItem(object):
 #===============================================================================
 
 class DraggableListWidget(QWidget):
-
     orderChanged = pyqtSignal(int, int)
     selectedItemChanged = pyqtSignal(int)
 
@@ -340,7 +339,7 @@ class DraggableListWidget(QWidget):
         if not collided:
             item.move(point)
 
-        #-------------------------------------------------------------------------------
+            #-------------------------------------------------------------------------------
 
     def paintEvent(self, e):
 
@@ -356,7 +355,7 @@ class DraggableListWidget(QWidget):
         if self._draggedItem is not None:
             self._draggedItem.draw(painter)
 
-        #-------------------------------------------------------------------------------
+            #-------------------------------------------------------------------------------
 
     def mousePressEvent(self, e):
 
@@ -385,7 +384,7 @@ class DraggableListWidget(QWidget):
 
                 self.update()
 
-            #-------------------------------------------------------------------------------
+                #-------------------------------------------------------------------------------
 
     def mouseReleaseEvent(self, e):
 
@@ -394,7 +393,7 @@ class DraggableListWidget(QWidget):
             if self._draggedItem is not None:
                 self._item_drag_end(self._draggedItem)
 
-            #-------------------------------------------------------------------------------
+                #-------------------------------------------------------------------------------
 
     def mouseMoveEvent(self, e):
 
@@ -420,7 +419,7 @@ class DraggableListWidget(QWidget):
 
             self._item_drag_move(self._draggedItem, pointer_y)
 
-        #-------------------------------------------------------------------------------
+            #-------------------------------------------------------------------------------
 
     def wheelEvent(self, e):
 

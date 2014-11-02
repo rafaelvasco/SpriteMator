@@ -1,4 +1,4 @@
-#--------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Name:        MainWindow
 # Purpose:     Represents the Application MainWindow and hosts all components inside it:
 #              Canvas, Animation Display etc.
@@ -223,10 +223,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._colorPicker.secondaryColorChanged.connect(self._on_secondary_color_changed)
 
         self._canvas.surfaceChanged.connect(self._on_canvas_surface_changed)
+        self._canvas.surfaceChanging.connect(self._on_canvas_surface_changing)
         self._canvas.viewportChanged.connect(self._on_canvas_viewport_changed)
         self._canvas.colorPicked.connect(self._on_canvas_color_picked)
-        self._canvas.toolStarted.connect(self._on_canvas_tool_started)
-        self._canvas.toolEnded.connect(self._on_canvas_tool_endede)
 
         self._toolbox.toolChanged.connect(self._on_tool_changed)
         self._toolbox.primaryInkChanged.connect(self._on_primary_ink_changed)
@@ -267,11 +266,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _on_canvas_surface_changed(self):
 
-        self._animationDisplay.refresh()
-
+        self._animationDisplay.update()
+        self._animationManager.update()
         self._layerManager.update()
 
-        self._animationManager.update()
+    def _on_canvas_surface_changing(self):
+
+        self._animationDisplay.update()
 
     def _on_canvas_viewport_changed(self):
 
@@ -290,23 +291,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif button_pressed == Qt.RightButton:
 
             self._colorPicker.secondary_color = color
-
-    def _on_canvas_tool_started(self, tool):
-
-        self._animationDisplay.start_refreshing()
-
-    def _on_canvas_tool_endede(self, tool):
-
-        if tool.refresh_wait_time > 0:
-
-            QTimer.singleShot(tool.refresh_wait_time,
-                              lambda: self._animationDisplay.stop_refreshing())
-
-        else:
-            self._animationDisplay.stop_refreshing()
-
-        self._layerManager.update()
-        self._animationManager.update()
 
     # ------ ToolBox ----------------------------------------------------------
 
@@ -327,20 +311,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _on_current_frame_changed(self, index):
 
-        self._canvas.refresh()
-        self._layerManager.refresh()
+        self._canvas.update()
+        self._layerManager.rebuild()
         self._animationDisplay.go_to_frame(index)
 
     # ------- Layer Events ----------------------------------------------------
 
     def _on_current_layer_changed(self):
 
-        self._canvas.refresh()
+        self._canvas.update()
 
     def _on_layer_order_changed(self):
 
-        self._canvas.refresh()
-        self._animationDisplay.refresh()
+        self._canvas.update()
+        self._animationDisplay.update()
         self._animationManager.update()
 
     def _on_layer_imported(self):

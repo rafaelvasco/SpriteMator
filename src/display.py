@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Name:        Display
 # Purpose:     Represents the base transformable display that is inherited by the Canvas
-#              and the AnimationDisplay
+# and the AnimationDisplay
 #
 # Author:      Rafael Vasco
 #
@@ -20,7 +20,6 @@ import src.utils as utils
 
 
 class Display(QGraphicsView):
-
     def __init__(self):
 
         super(Display, self).__init__()
@@ -132,7 +131,6 @@ class Display(QGraphicsView):
         self.resetTransform()
 
         if self._fitInView:
-
             # Calculate scale factor to cover view increasing the scale by multiples of 2.0
             # to keep pixel perfectness
 
@@ -164,7 +162,6 @@ class Display(QGraphicsView):
         self.reset_view()
 
         if not self._spriteObject.is_empty:
-
             self._spriteObject.unload_sprite()
 
         self.scene().update()
@@ -176,11 +173,7 @@ class Display(QGraphicsView):
         w = self._spriteObject.sprite.width
         h = self._spriteObject.sprite.height
 
-        self.setSceneRect(-w/2, -h/2, w, h)
-
-        self.scene().update()
-
-    def refresh(self):
+        self.setSceneRect(-w / 2, -h / 2, w, h)
 
         self.scene().update()
 
@@ -189,7 +182,7 @@ class Display(QGraphicsView):
         w = self._spriteObject.sprite.width
         h = self._spriteObject.sprite.height
 
-        self.setSceneRect(-w/2, -h/2, w, h)
+        self.setSceneRect(-w / 2, -h / 2, w, h)
 
         if not self._fitInView:
 
@@ -260,7 +253,6 @@ class Display(QGraphicsView):
     def mouseMoveEvent(self, e):
 
         if self._panning:
-
             new_pos = e.pos()
             diff = new_pos - self._dragPos
             self._dragPos = new_pos
@@ -273,7 +265,6 @@ class Display(QGraphicsView):
     def keyPressEvent(self, e):
 
         if e.key() == Qt.Key_Space and not self._leftMousePressed:
-
             self._spacePressed = True
             self.setCursor(Qt.OpenHandCursor)
 
@@ -285,7 +276,6 @@ class Display(QGraphicsView):
             self._spacePressed = False
 
         if not self._spacePressed and not self._panning:
-
             self.setCursor(Qt.BlankCursor)
 
         super(Display, self).keyReleaseEvent(e)

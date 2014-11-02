@@ -1,4 +1,4 @@
-#--------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Name:        Layer Manager
 # Purpose:     Manages and displays current Sprite's layers;
 #
@@ -9,7 +9,7 @@
 # Licence:     <your licence>
 #--------------------------------------------------------------------------------------------------
 
-from PyQt5.QtCore import pyqtSignal, Qt, QTimer, QRect
+from PyQt5.QtCore import pyqtSignal, Qt, QRect
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QSizePolicy
 
 from src.draggable_list import DraggableListWidget, ListItem
@@ -20,7 +20,6 @@ import src.utils as utils
 
 class LayerListItem(ListItem):
     def __init__(self, parent, layer):
-
         super().__init__(parent, layer.name)
 
         self._layerImage = layer.image
@@ -28,7 +27,6 @@ class LayerListItem(ListItem):
         self._layer = layer
 
     def draw_content(self, painter, draw_area):
-
         painter.setPen(Qt.white)
 
         painter.drawText(20, self._top + 20, self._label)
@@ -58,13 +56,11 @@ class LayerListItem(ListItem):
         painter.fillRect(icon_draw_area, Qt.white)
 
         if icon is not None:
-
             painter.drawImage(icon_draw_area, icon,
                               QRect(0, 0, icon.width(), icon.height()))
 
 
 class LayerManager(QWidget):
-
     currentLayerChanged = pyqtSignal(int)
     layerOrderChanged = pyqtSignal()
     layerImported = pyqtSignal()
@@ -72,8 +68,6 @@ class LayerManager(QWidget):
     def __init__(self, parent=None):
 
         super().__init__(parent)
-
-        self._refreshing = False
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
@@ -91,12 +85,6 @@ class LayerManager(QWidget):
         self._layout.addWidget(self._listWidget)
         self._layout.addWidget(self._addLayerBtn)
 
-        self._refreshSpeed = 16
-
-        self._refreshTimer = QTimer()
-        self._refreshTimer.timeout.connect(self._refresh_event)
-        self._refreshTimer.stop()
-
         self._sprite = None
 
         self.setAcceptDrops(True)
@@ -105,7 +93,7 @@ class LayerManager(QWidget):
 
         self._sprite = sprite
 
-        self.refresh()
+        self.rebuild()
 
     def clear(self):
 
@@ -115,7 +103,7 @@ class LayerManager(QWidget):
 
         self.update()
 
-    def refresh(self):
+    def rebuild(self):
 
         if self._sprite is None:
             return
@@ -159,7 +147,7 @@ class LayerManager(QWidget):
 
             frame.add_surface(source_image, at)
 
-        self.refresh()
+        self.rebuild()
 
     def remove_layer(self):
 
@@ -170,7 +158,7 @@ class LayerManager(QWidget):
 
         frame.remove_current_surface()
 
-        self.refresh()
+        self.rebuild()
 
     def move_layer(self, from_index, to_index):
 
@@ -197,7 +185,6 @@ class LayerManager(QWidget):
         if e.mimeData().hasUrls():
 
             for url in e.mimeData().urls():
-
                 image = utils.load_image(url.toLocalFile())
 
                 self.add_layer(image)
@@ -215,7 +202,3 @@ class LayerManager(QWidget):
     def _on_layer_order_changed(self, from_index, to_index):
 
         self.move_layer(from_index, to_index)
-
-    def _refresh_event(self):
-
-        self.update()

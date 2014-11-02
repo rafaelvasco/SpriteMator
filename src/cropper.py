@@ -53,7 +53,6 @@ def _most_popular_edge_color(image):
 
 
 def crop(image, background_color=None):
-
     pil_image = qimage_to_pil_image(image)
 
     bbox = None

@@ -1,4 +1,4 @@
-#--------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Purpose:          Defines default set of Canvas Tools
 #
 # Author:           Rafael Vasco
@@ -8,7 +8,7 @@
 
 import quickpixler
 
-from PyQt5.QtCore import Qt, QPoint, QRect, QTimer, QRectF
+from PyQt5.QtCore import Qt, QPoint, QRect
 from PyQt5.QtGui import QPen, QColor, QIcon, QPixmap, QPainter
 
 import src.drawing as drawing
@@ -18,7 +18,6 @@ from src.properties import PropertyHolder
 
 class Tool(PropertyHolder):
     def __init__(self, canvas):
-
         super(Tool, self).__init__()
 
         self._canvas = canvas
@@ -31,6 +30,10 @@ class Tool(PropertyHolder):
         self._drawPen.setCapStyle(Qt.SquareCap)
 
         self._isActive = False
+
+        self._needsAnimating = False
+
+        self._isDrawing = False
 
         self._default = False
 
@@ -59,6 +62,10 @@ class Tool(PropertyHolder):
         return self._isActive
 
     @property
+    def needs_animating(self):
+        return self._needsAnimating
+
+    @property
     def icon(self):
         return self._icon
 
@@ -78,6 +85,11 @@ class Tool(PropertyHolder):
     def refresh_wait_time(self, value):
         self._refreshWaitTime = value
 
+
+    @property
+    def is_drawing(self):
+        return self._isDrawing
+
     def on_mouse_press(self):
         self._isActive = True
 
@@ -87,6 +99,9 @@ class Tool(PropertyHolder):
     def on_mouse_release(self):
         self._isActive = False
 
+    def on_key_press(self, key):
+        pass
+
     # Draw On Transformed Scene Foreground
     def draw_on_canvas_foreground(self, painter):
         pass
@@ -95,11 +110,15 @@ class Tool(PropertyHolder):
     def draw_on_canvas_overlay(self, painter):
         pass
 
-    def _load_icon(self, icon_path, icon_active_path):
+    # To be called when the tool needs to update itself continually
+    def update(self):
+        pass
 
+    def _load_icon(self, icon_path, icon_active_path):
         self._icon = QIcon()
         self._icon.addPixmap(QPixmap(icon_path), QIcon.Normal, QIcon.Off)
         self._icon.addPixmap(QPixmap(icon_active_path), QIcon.Normal, QIcon.On)
+
 
 # =================================================================================================
 
@@ -114,34 +133,34 @@ class Picker(Tool):
         self.add_property('returnlasttool', True, 'After Picking: Go back to last Tool')
 
     def draw_on_canvas_overlay(self, painter):
-
         if not self._enablePointerDraw:
             return
 
-        # x = canvas.mouse_state().canvas_mouse_position().x()
-        # y = canvas.mouse_state().canvas_mouse_position().y()
-        #
-        # size = 16 * canvas.zoom_value()
-        #
-        # if size > 32:
-        #     size = 32
-        #
-        # painter.setPen(Qt.white)
-        #
-        # half_size = size // 2
-        # size_by_8 = size // 8
-        #
-        # painter.drawRect(x - half_size, y - half_size, size, size)
-        #
-        # painter.drawLine(x, y - size_by_8, x, y + size_by_8)
-        # painter.drawLine(x - size_by_8, y, x + size_by_8, y)
+            # x = canvas.mouse_state().canvas_mouse_position().x()
+            # y = canvas.mouse_state().canvas_mouse_position().y()
+            #
+            # size = 16 * canvas.zoom_value()
+            #
+            # if size > 32:
+            #     size = 32
+            #
+            # painter.setPen(Qt.white)
+            #
+            # half_size = size // 2
+            # size_by_8 = size // 8
+            #
+            # painter.drawRect(x - half_size, y - half_size, size, size)
+            #
+            # painter.drawLine(x, y - size_by_8, x, y + size_by_8)
+            # painter.drawLine(x - size_by_8, y, x + size_by_8, y)
 
     def on_mouse_press(self):
-
         super(Picker, self).on_mouse_press()
 
         picked_color = \
-            QColor(self._canvas.sprite_object.active_surface.pixel(self._canvas.mouse_state.sprite_pos))
+            QColor(self._canvas.sprite_object.active_surface.pixel(
+                self._canvas.mouse_state.sprite_pos))
+
         self._canvas.colorPicked.emit(picked_color, self._canvas.mouse_state.pressed_button)
 
         #if self.propertyValue('returnlasttool'):
@@ -223,10 +242,10 @@ class Pen(Tool):
 
         else:
 
-            painter.drawRect(x-size/2, y-size/2, size, size)
+            painter.drawRect(x - size / 2, y - size / 2, size, size)
 
-            painter.drawLine(x-2, y, x+2, y)
-            painter.drawLine(x, y-2, x, y+2)
+            painter.drawLine(x - 2, y, x + 2, y)
+            painter.drawLine(x, y - 2, x, y + 2)
 
     def _blit(self, just_pressed):
 
@@ -280,11 +299,15 @@ class Pen(Tool):
                 ink.blit(mouse_state.sprite_pos.x(), mouse_state.sprite_pos.y(), size, size, color,
                          painter)
 
+            self._canvas.surfaceChanging.emit()
+
             painter.end()
 
     def on_mouse_press(self):
 
         super(Pen, self).on_mouse_press()
+
+        self._isDrawing = True
 
         self._blit(just_pressed=True)
 
@@ -316,7 +339,12 @@ class Pen(Tool):
     def on_mouse_release(self):
 
         super(Pen, self).on_mouse_release()
+
+        self._isDrawing = False
+
         self._lockHorizontal = self._lockVertical = False
+
+        self._canvas.surfaceChanged.emit()
 
 # =================================================================================================
 
@@ -370,10 +398,12 @@ class Filler(Tool):
                 color = canvas.secondary_color
 
             if color is not None:
-
                 quickpixler.floodFill(image_data, mouse_pos.x(), mouse_pos.y(), image.width(),
                                       image.height(),
                                       color.red(), color.green(), color.blue())
+
+                self._canvas.surfaceChanged.emit()
+
 
 # =================================================================================================
 
@@ -387,7 +417,6 @@ ManipulatorState = utils.enum('Idle',
 
 
 class Manipulator(Tool):
-
     def __init__(self, canvas):
         super(Manipulator, self).__init__(canvas)
 
@@ -399,8 +428,6 @@ class Manipulator(Tool):
         self._lastMousePos = QPoint()
         self._curMousePos = QPoint()
         self._selectionRectangle = QRect()
-        self._dashingAntsTimer = QTimer()
-
         self._selectionRectColor = QColor(255, 255, 255, 50)
         self._selectionRectDashOffset = 0
         self._selectionImage = None
@@ -413,9 +440,6 @@ class Manipulator(Tool):
         self._selectionRectNodesPen = QPen()
         self._selectionRectNodesPen.setWidth(0)
         self._selectionRectNodesPen.setColor(Qt.white)
-
-        self._dashingAntsTimer.timeout.connect(self._animate_selection_border)
-        self._dashingAntsTimer.stop()
 
         self._state = ManipulatorState.Idle
 
@@ -447,11 +471,13 @@ class Manipulator(Tool):
         y = canvas.mouse_state.global_pos.y() + 1
 
         if self._enablePointerDraw and self._state == ManipulatorState.Idle \
-                or self._state == ManipulatorState.MovingSelection\
+                or self._state == ManipulatorState.MovingSelection \
                 or self._state == ManipulatorState.MovingPixels:
+            painter.drawPixmap(x - self._cursor.width() / 2, y -
+                               self._cursor.height() / 2, self._cursor)
 
-            painter.drawPixmap(x - self._cursor.width()/2, y -
-                               self._cursor.height()/2, self._cursor)
+    def update(self):
+        self._animate_selection_border()
 
     def on_mouse_press(self):
 
@@ -470,9 +496,9 @@ class Manipulator(Tool):
         self._pressMousePos.setY(mouse_pos.y())
 
         if button == Qt.LeftButton:
-    
+
             if self._selectionRectangle.isEmpty():
-    
+
                 self._state = ManipulatorState.MovingPixels
 
             else:
@@ -484,11 +510,17 @@ class Manipulator(Tool):
 
                 else:
 
+                    if self._selectionImage is not None:
+                        self._paste_selection()
+
                     self._clear_selection()
                     self._state = ManipulatorState.Idle
-            
+
         elif button == Qt.RightButton:
-            
+
+            if self._selectionImage is not None:
+                self._paste_selection()
+
             self._clear_selection()
             self._state = ManipulatorState.Selecting
 
@@ -519,7 +551,9 @@ class Manipulator(Tool):
                     return
 
                 quickpixler.movePixels(image_data, image.width(), image.height(), dx, dy)
-                
+
+                self._canvas.surfaceChanging.emit()
+
         elif self._state == ManipulatorState.Selecting:
 
             top_left = QPoint(min(mouse_pos.x(), self._pressMousePos.x()),
@@ -542,7 +576,7 @@ class Manipulator(Tool):
             dx = self._curMousePos.x() - self._lastMousePos.x()
             dy = self._curMousePos.y() - self._lastMousePos.y()
 
-            self._selectionRectangle.translate(dx, dy)
+            self._move_selection(dx, dy)
 
         elif self._state == ManipulatorState.ScalingSelection:
             pass
@@ -552,12 +586,21 @@ class Manipulator(Tool):
         super(Manipulator, self).on_mouse_press()
 
         if self._state == ManipulatorState.Selecting:
-            #self._dashingAntsTimer.start()
-
             if not self._selectionRectangle.isEmpty():
                 self._cut_selection()
 
+        elif self._state == ManipulatorState.MovingPixels:
+            self._canvas.surfaceChanged.emit()
+
         self._state = ManipulatorState.Idle
+
+    def on_key_press(self, key):
+
+        if key == Qt.Key_Return:
+
+            if not self._selectionRectangle.isEmpty() and self._selectionImage is not None:
+                self._paste_selection()
+                self._clear_selection()
 
     def _animate_selection_border(self):
 
@@ -572,46 +615,60 @@ class Manipulator(Tool):
 
         self._selectionRectangle = QRect()
         self._selectionImage = None
-        #self._dashingAntsTimer.stop()
 
     def _normalize_selection_rect(self):
 
-        sprite_bounding_rect_global = self._canvas.map_scene_rect_to_global_rect(
-            self._canvas.sprite_object.boundingRect())
+        sprite_bounding_rect = self._canvas.sprite_object.bounding_rect_i
 
-        if self._selectionRectangle.left() < sprite_bounding_rect_global.left():
-            self._selectionRectangle.setLeft(sprite_bounding_rect_global.left())
+        if self._selectionRectangle.left() < sprite_bounding_rect.left():
+            self._selectionRectangle.setLeft(sprite_bounding_rect.left())
 
-        if self._selectionRectangle.right() > sprite_bounding_rect_global.right():
-            self._selectionRectangle.setRight(sprite_bounding_rect_global.right())
+        if self._selectionRectangle.right() > sprite_bounding_rect.right():
+            self._selectionRectangle.setRight(sprite_bounding_rect.right())
 
-        if self._selectionRectangle.top() < sprite_bounding_rect_global.top():
-            self._selectionRectangle.setTop(sprite_bounding_rect_global.top())
+        if self._selectionRectangle.top() < sprite_bounding_rect.top():
+            self._selectionRectangle.setTop(sprite_bounding_rect.top())
 
-        if self._selectionRectangle.bottom() > sprite_bounding_rect_global.bottom():
-            self._selectionRectangle.setBottom(sprite_bounding_rect_global.bottom())
+        if self._selectionRectangle.bottom() > sprite_bounding_rect.bottom():
+            self._selectionRectangle.setBottom(sprite_bounding_rect.bottom())
 
-        # if self._selectionRectangle.x() < 0:
-        #     self._selectionRectangle.setX(0)
-        #
-        # if self._selectionRectangle.y() < 0:
-        #     self._selectionRectangle.setY(0)
-        #
-        # if self._selectionRectangle.width() > self._canvas.sprite_object.boundingRect().width():
-        #     self._selectionRectangle.setWidth(self._canvas.sprite_object.boundingRect().width())
-        #
-        # if self._selectionRectangle.height() > self._canvas.sprite_object.boundingRect().height():
-        #     self._selectionRectangle.setHeight(self._canvas.sprite_object.boundingRect().height())
+    def _move_selection(self, dx, dy):
+
+        if not self._selectionRectangle.isEmpty():
+            self._selectionRectangle.translate(dx, dy)
 
     def _cut_selection(self):
 
-        #self._normalize_selection_rect()
+        self._normalize_selection_rect()
 
         sprite_rect = self._canvas.map_global_rect_to_sprite_local_rect(self._selectionRectangle)
 
-        print('CUT: Sel Rect: ', self._selectionRectangle, ', Final Rect: ', sprite_rect)
-
         self._selectionImage = self._canvas.sprite_object.active_surface.copy(sprite_rect)
 
+        painter = QPainter()
+        painter.begin(self._canvas.sprite_object.active_surface)
+
+        painter.setCompositionMode(QPainter.CompositionMode_Clear)
+        painter.fillRect(sprite_rect, Qt.transparent)
+
+        painter.end()
+
+        self._canvas.surfaceChanged.emit()
+
     def _paste_selection(self):
-        pass
+
+        if self._selectionImage is None:
+            return
+
+        sprite_rect = self._canvas.map_global_rect_to_sprite_local_rect(self._selectionRectangle)
+
+        painter = QPainter()
+        painter.begin(self._canvas.sprite_object.active_surface)
+
+        painter.drawImage(sprite_rect, self._selectionImage, QRect(0, 0,
+                                                                   self._selectionImage.width(),
+                                                                   self._selectionImage.height()))
+
+        painter.end()
+
+        self._canvas.surfaceChanged.emit()

@@ -1,4 +1,4 @@
-#--------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Name:        Resources Cache
 # Purpose:     Manages application resources;
 #
@@ -11,20 +11,16 @@
 
 
 class ResourcesCache(object):
-    
     _resources = {}
 
     @staticmethod
     def get(name):
-        
         return ResourcesCache._resources[name]
 
     @staticmethod
-    def register_resource(name,  resource):
-        
+    def register_resource(name, resource):
         ResourcesCache._resources[name] = resource
-        
+
     @staticmethod
     def dispose():
-        
         ResourcesCache._resources.clear()

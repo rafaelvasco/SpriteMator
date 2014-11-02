@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 # Name:        Inks
 # Purpose:     Inks module used by Canvas. An Ink is a visual representation of a tool acting
 #              on the Canvas
@@ -15,9 +15,7 @@ from src.properties import PropertyHolder
 
 
 class Ink(PropertyHolder):
-
     def __init__(self):
-
         super(Ink, self).__init__()
 
         self._name = ''
@@ -31,9 +29,7 @@ class Ink(PropertyHolder):
 
 
 class Solid(Ink):
-
     def __init__(self):
-        
         super(Solid, self).__init__()
         self._name = 'Solid'
         self.add_property(prop_name='Test', prop_value=True, prop_description='Test Property')
@@ -43,13 +39,11 @@ class Solid(Ink):
 
 
 class Eraser(Ink):
-
     def __init__(self):
         super(Eraser, self).__init__()
         self._name = 'Eraser'
 
     def blit(self, x, y, w, h, color, painter):
-
         if painter.compositionMode() != QPainter.CompositionMode_Clear:
             painter.setCompositionMode(QPainter.CompositionMode_Clear)
         painter.fillRect(x, y, w, h, Qt.white)

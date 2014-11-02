@@ -54,7 +54,6 @@ from array import array
 
 
 class Anchor(object):
-
     """
         Anchoring points are potential locations for the placement of new rectangles.
         Each time a rectangle is inserted, an anchor point is generated on its upper
@@ -292,7 +291,8 @@ class RectanglePacker(object):
         self_bitmatrix = self._bitmatrix
         pos = rect[0] + rect[1] * self._max_packing_area_width
         if self_bitmatrix[pos] or self_bitmatrix[pos + rect[2] - 1] or \
-                self_bitmatrix[rect[0] + (rect[1] + rect[3] - 1) * self._max_packing_area_width] or \
+                self_bitmatrix[rect[0] + (rect[1] + rect[3] - 1) * self._max_packing_area_width] \
+                or \
                 self_bitmatrix[rect[0] + rect[2] - 1 + (rect[1] + rect[3] - 1) *
                         self._max_packing_area_width]:
             return False

@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Name:        CanvasOverlay
 # Purpose:     Represents canvas overlay where tools icon, selection, etc is drawn on;
 #
@@ -17,9 +17,7 @@ from PyQt5.QtWidgets import QWidget
 
 
 class CanvasOverlay(QWidget):
-    
     def __init__(self, canvas):
-        
         super(CanvasOverlay, self).__init__(canvas)
         self._canvas = canvas
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
@@ -28,7 +26,6 @@ class CanvasOverlay(QWidget):
         return QSize(self._canvas.width(), self._canvas.height())
 
     def paintEvent(self, e):
-
         if self._canvas.current_tool is None:
             return
 

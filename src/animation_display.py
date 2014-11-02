@@ -7,7 +7,7 @@
 # Created:     07/07/2013
 # Copyright:   (c) Rafael 2013
 # Licence:
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import math
 
@@ -29,10 +29,6 @@ class AnimationDisplay(Display):
         self.background_color = QColor(220, 220, 220)
 
         self._playing = False
-
-        self._refreshing = False
-
-        self._refreshSpeed = 16
 
         style_sheet = \
             """
@@ -62,10 +58,6 @@ class AnimationDisplay(Display):
         self._pen.setColor(QColor(10, 10, 10))
         self._pen.setWidth(2)
         self._pen.setJoinStyle(Qt.MiterJoin)
-
-        self._refreshTimer = QTimer()
-        self._refreshTimer.timeout.connect(self._refresh_event)
-        self._refreshTimer.stop()
 
         self._animationTimer = QTimer()
         self._animationTimer.timeout.connect(self._animate_event)
@@ -167,14 +159,6 @@ class AnimationDisplay(Display):
     def animation_speed(self, value):
         self._animationFrameInterval = value
 
-    def start_refreshing(self):
-        self._refreshTimer.start(self._refreshSpeed)
-        self._refreshing = True
-
-    def stop_refreshing(self):
-        self._refreshTimer.stop()
-        self._refreshing = False
-
     def start_animating(self):
         self._animationTimer.start(self._animationFrameInterval)
         self._playing = True
@@ -186,13 +170,8 @@ class AnimationDisplay(Display):
     def reset(self):
 
         self._playing = False
-        self._refreshing = False
-        self._refreshTimer.stop()
         self._animationTimer.stop()
         self._playPauseBtn.setChecked(False)
-
-    def _refresh_event(self):
-        self.scene().update()
 
     def _animate_event(self):
         if self._spriteObject is not None and self._playing:

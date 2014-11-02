@@ -4,11 +4,9 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QPushButton, QButtonGroup
 
 
 class PixelSizeWidget(QWidget):
-
     pixelSizeChanged = pyqtSignal(int)
 
     def __init__(self):
-
         super(PixelSizeWidget, self).__init__()
 
         self._layout = QHBoxLayout()
@@ -59,6 +57,5 @@ class PixelSizeWidget(QWidget):
         self.setLayout(self._layout)
 
     def _on_btn_checked(self):
-
         pixel_size = self._button_group.checkedButton().property("pixel_size")
         self.pixelSizeChanged.emit(pixel_size)

@@ -7,7 +7,7 @@
 # Created:     10/08/2013
 # Copyright:   (c) Rafael 2013
 # Licence:     <your licence>
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import sys
 import logging
@@ -126,7 +126,8 @@ class Application(QApplication):
 
     def import_sprite(self):
 
-        image_files = utils.show_open_files_dialog('Select one or more images:', 'PNG Image (*.png)')
+        image_files = utils.show_open_files_dialog('Select one or more images:',
+                                                   'PNG Image (*.png)')
 
         if len(image_files) > 0:
 
@@ -141,9 +142,9 @@ class Application(QApplication):
         if self._currentSprite is None:
             return
 
-        if self._currentSprite.filePath:
+        if self._currentSprite.file_path:
 
-            save_path = self._currentSprite.filePath
+            save_path = self._currentSprite.file_path
 
         else:
 
@@ -173,7 +174,8 @@ class Application(QApplication):
         if self._currentSprite is None:
             return
 
-        target_folder = utils.show_save_to_folder_dialog('Choose a folder to save Sprite animations:')
+        target_folder = utils.show_save_to_folder_dialog(
+            'Choose a folder to save Sprite animations:')
 
         if target_folder:
 

@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Name:        ColorPicker
 # Purpose:     Represents a palette based color picker;
 #
@@ -129,6 +129,7 @@ class ColorBox(QWidget):
 
         return QSize(223, 17)
 
+
 # -----------------------------------------------------------------------------
 
 
@@ -227,18 +228,17 @@ class ColorRamp:
         first_color.setHsv(0, 0, 0)
         last_color.setHsv(0, 0, 255)
 
+
 # -----------------------------------------------------------------------------
 
 
 class PaletteCell(object):
-
     def __init__(self, index):
-
         self.index = index
 
     def add_to_index(self, v):
-
         self.index += v
+
 
 # -----------------------------------------------------------------------------
 
@@ -338,7 +338,7 @@ class ColorPalette(QWidget):
 
         if 0 <= self._activeCell.index + delta * 16 < 256:
 
-            self._activeCell.add_to_index(delta*16)
+            self._activeCell.add_to_index(delta * 16)
 
             if self._activeCell == self._selectedCellA2:
 
@@ -488,6 +488,7 @@ class ColorPalette(QWidget):
     def sizeHint(self):
 
         return QSize(223, 223)
+
 
 # -----------------------------------------------------------------------------
 
@@ -762,11 +763,11 @@ class ColorSlider(QWidget):
             label_rect.adjust(-200, 0, 0, 0)
             p.drawText(label_rect, Qt.AlignLeft, self._label)
 
+
 # -----------------------------------------------------------------------------
 
 
 class ColorPicker(QWidget):
-
     primaryColorChanged = pyqtSignal(QColor)
     secondaryColorChanged = pyqtSignal(QColor)
 

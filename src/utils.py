@@ -1,4 +1,4 @@
-#--------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Name:        Utils
 # Purpose:     Util methods;
 #
@@ -20,69 +20,57 @@ from PyQt5.QtWidgets import QFileDialog, QMessageBox
 
 
 def clamp(value, minimum, maximum):
-
     return max(minimum, min(value, maximum))
 
 
 def enum(*sequential, **named):
-
     enums = dict(zip(sequential, range(len(sequential))), **named)
     return type('Enum', (), enums)
 
 
 def sign(v):
-
     return cmp(v, 0)
 
 
 def cmp(a, b):
-
     return (a > b) - (a < b)
 
 
 def snap_ceil(value, increment):
-
     return math.ceil(value / increment) * increment
 
 
 def snap(value, increment):
-
     return int(math.floor(value // increment) * increment)
 
 
 def snap_point(point, increment):
-
     return QPoint(round(math.floor(point.x() / increment) * increment),
                   round(math.floor(point.y() / increment) * increment))
 
 
 def create_image(width, height):
-
     new_image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
     new_image.fill(Qt.transparent)
     return new_image
 
 
 def load_image(file):
-
     new_image = QImage(file)
     return new_image.convertToFormat(QImage.Format_ARGB32_Premultiplied)
 
 
 def get_file_extension(file_path):
-
     return os.path.splitext(file_path)[1].lower()
 
 
 def show_open_file_dialog(label, name_filter):
-
     return QFileDialog.getOpenFileName(caption=label,
                                        directory=QDir.currentPath(),
                                        filter=name_filter)[0]
 
 
 def show_open_files_dialog(label, name_filter):
-
     return QFileDialog.getOpenFileNames(caption=label,
                                         directory=QDir.currentPath(),
                                         filter=name_filter)[0]
@@ -99,12 +87,10 @@ def show_save_to_folder_dialog(label):
 
 
 def show_info_message(parent, title, msg):
-
     QMessageBox.information(parent, title, msg)
 
 
 def image_to_byte_array(image):
-
     byte_array = QByteArray()
     buffer = QBuffer(byte_array)
     buffer.open(QIODevice.WriteOnly)
@@ -114,7 +100,6 @@ def image_to_byte_array(image):
 
 
 def byte_array_to_image(byteArray):
-
     image = QImage()
     image.loadFromData(byteArray, 'png')
     return image
@@ -156,7 +141,6 @@ def generate_random_color(hue=None, sat=None, val=None):
 # --------------------------------------------------------
 
 def make_directory(root_folder, dir_name):
-
     path = os.path.join(root_folder, dir_name)
 
     try:

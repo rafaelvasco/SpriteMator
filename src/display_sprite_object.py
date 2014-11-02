@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Name:        DisplaySpriteItem
 # Purpose:     Represents a Sprite inside a Display, either a Canvas or an AnimationDisplay
 #              Reponsible to displaying the sprite and controlling it's state on screen.
@@ -16,7 +16,6 @@ from PyQt5.QtWidgets import QGraphicsItem
 
 
 class DisplaySpriteObject(QGraphicsItem):
-
     def __init__(self):
 
         super(DisplaySpriteObject, self).__init__()
@@ -79,6 +78,13 @@ class DisplaySpriteObject(QGraphicsItem):
         return self._boundingRect
 
     @property
+    def bounding_rect_i(self):
+        return QRect(self._boundingRect.left(),
+                     self._boundingRect.top(),
+                     self._boundingRect.width(),
+                     self._boundingRect.height())
+
+    @property
     def area_rect(self):
         return QRect(0, 0, self._boundingRect.width(), self._boundingRect.height())
 
@@ -100,7 +106,7 @@ class DisplaySpriteObject(QGraphicsItem):
 
         if self._boundingRect.size != self._sprite.size:
             self.prepareGeometryChange()
-            self._boundingRect = QRectF(-self._sprite.width/2, -self._sprite.height/2,
+            self._boundingRect = QRectF(-self._sprite.width / 2, -self._sprite.height / 2,
                                         self._sprite.width, self._sprite.height)
 
     def unload_sprite(self):
@@ -115,11 +121,9 @@ class DisplaySpriteObject(QGraphicsItem):
         painter.setClipRect(option.exposedRect)
 
         if self._backgroundColor is not None:
-
             painter.fillRect(option.rect, self._backgroundColor)
 
         if self._backgroundPixmap is not None:
-
             painter.drawTiledPixmap(option.rect, self._backgroundPixmap)
 
         if self._sprite is not None:
@@ -134,7 +138,7 @@ class DisplaySpriteObject(QGraphicsItem):
 
                 if last_frame_index >= 0:
 
-                    last_frame_layers = self._sprite.current_animation.\
+                    last_frame_layers = self._sprite.current_animation. \
                         frame_at(last_frame_index).surfaces
 
                     painter.setOpacity(0.4)
@@ -147,5 +151,4 @@ class DisplaySpriteObject(QGraphicsItem):
             layers = self._sprite.current_animation.frame_at(frame_index).surfaces
 
             for layer in layers:
-
                 painter.drawImage(option.rect, layer.image)

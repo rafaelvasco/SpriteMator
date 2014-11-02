@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Name:        Canvas
 # Purpose:     The Canvas is a Display in which the DisplaySpriteItem's pixels
-#              can be edited
+# can be edited
 # Author:      Rafael Vasco
 #
 # Created:     30/03/2013
@@ -88,7 +88,6 @@ class CanvasMouseState(object):
 
 
 class CanvasScene(QGraphicsScene):
-
     def __init__(self, canvas):
         super(CanvasScene, self).__init__()
 
@@ -97,7 +96,6 @@ class CanvasScene(QGraphicsScene):
         self.sceneMousePos = QPointF()
 
     def drawForeground(self, painter, rect):
-
         self._canvas.current_tool.draw_on_canvas_foreground(painter)
 
     def mousePressEvent(self, event):
@@ -107,7 +105,6 @@ class CanvasScene(QGraphicsScene):
         pass
 
     def mouseMoveEvent(self, event):
-
         self.screenMousePos.setX(event.screenPos().x())
         self.screenMousePos.setY(event.screenPos().y())
 
@@ -119,10 +116,9 @@ class CanvasScene(QGraphicsScene):
 
 class Canvas(Display):
     surfaceChanged = pyqtSignal()
+    surfaceChanging = pyqtSignal()
     viewportChanged = pyqtSignal()
     colorPicked = pyqtSignal(QColor, int)  # Color, Button Pressed
-    toolStarted = pyqtSignal(Tool)
-    toolEnded = pyqtSignal(Tool)
 
     def __init__(self):
 
@@ -312,9 +308,9 @@ class Canvas(Display):
     def map_global_rect_to_sprite_local_rect(self, rect):
 
         sprite_local_rect = QRect((rect.left() -
-                                  self._spriteObject.boundingRect().left()),
+                                   self._spriteObject.boundingRect().left()),
                                   (rect.top() -
-                                  self._spriteObject.boundingRect().top()),
+                                   self._spriteObject.boundingRect().top()),
                                   rect.width(),
                                   rect.height())
 
@@ -342,6 +338,7 @@ class Canvas(Display):
 
         if self.is_panning:
             self._currentTool.enable_pointer_draw = False
+            self.update()
             return
 
         self._mouseState.canvas_pos = self.mapToScene(e.pos())
@@ -352,8 +349,6 @@ class Canvas(Display):
             self._mouseState.canvas_pos.y() - self._spriteObject.boundingRect().top())
 
         self._mouseState.pressed_button = e.button()
-
-        self.toolStarted.emit(self._currentTool)
 
         if self._pixelSize > 1 and self._snapEnabled:
             self._mouseState.sprite_pos = utils.snap_point(self._mouseState.sprite_pos,
@@ -379,6 +374,10 @@ class Canvas(Display):
         if not self.sprite_is_set() or self.is_panning:
             return
 
+        if not self._currentTool.is_active:
+            self.update()
+            return
+
         canvas_pos = self._mouseState.canvas_pos = self.mapToScene(e.pos())
 
         self._mouseState.sprite_pos.setX(canvas_pos.x() - self._spriteObject.boundingRect().left())
@@ -390,9 +389,7 @@ class Canvas(Display):
             self._mouseState.canvas_pos = utils.snap_point(self._mouseState.canvas_pos,
                                                            self._pixelSize)
 
-        if self._currentTool.is_active:
-
-            self._currentTool.on_mouse_move()
+        self._currentTool.on_mouse_move()
 
         self._mouseState.last_canvas_pos.setX(canvas_pos.x())
         self._mouseState.last_canvas_pos.setY(canvas_pos.y())
@@ -406,15 +403,12 @@ class Canvas(Display):
 
         super(Canvas, self).mouseReleaseEvent(e)
 
-        if not self._overlay.isEnabled:
-
+        if not self._currentTool.enable_pointer_draw:
             self._currentTool.enable_pointer_draw = True
 
         self._mouseState.pressed_button = None
 
         self._currentTool.on_mouse_release()
-
-        self.toolEnded.emit(self._currentTool)
 
         self.update()
 
@@ -441,6 +435,11 @@ class Canvas(Display):
     def keyPressEvent(self, e):
 
         super(Canvas, self).keyPressEvent(e)
+
+        if self._currentTool is not None:
+            self._currentTool.on_key_press(e.key())
+
+            self.update()
 
     def keyReleaseEvent(self, e):
 
@@ -469,6 +468,9 @@ class Canvas(Display):
                 self.viewportChanged.emit()
 
                 self.update_viewport()
+
+    def animate(self):
+        self.update()
 
     # -------------------------------------------------------------------------
 

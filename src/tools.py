@@ -446,8 +446,6 @@ class Manipulator(Tool):
     def draw_on_canvas_foreground(self, painter):
 
         if not self._selectionRectangle.isEmpty():
-
-            painter.setCompositionMode(QPainter.CompositionMode_Difference)
             painter.setPen(self._selectionBorderPen)
 
             if self._selectionImage is None:

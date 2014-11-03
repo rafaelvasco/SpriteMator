@@ -24,7 +24,8 @@ shortcuts = {
 
         'CLEAR': 'C',
         'TOGGLE_VIEW': 'V',
-        'TOGGLE_FIT_IN_VIEW': 'F'
+        'TOGGLE_FIT_IN_VIEW': 'F',
+        'TOGGLE_GRID': 'G'
     },
 
     'COLORPICKER': {

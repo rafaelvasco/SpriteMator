@@ -296,6 +296,10 @@ class Application(QApplication):
 
                 target.toggle_view()
 
+            elif shortcut_name == "TOGGLE_GRID":
+
+                target.toogle_grid()
+
             elif shortcut_name == 'TOGGLE_FIT_IN_VIEW':
 
                 target.toggle_fit_in_view()

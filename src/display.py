@@ -111,6 +111,7 @@ class Display(QGraphicsView):
     def reset_view(self):
 
         self.resetTransform()
+        self._zoom = 1.0
 
     def toggle_view(self):
 
@@ -296,3 +297,14 @@ class Display(QGraphicsView):
         scale = pow(2.0, steps)
 
         self.zoom_to(scale)
+
+    def paintEvent(self, e):
+
+        super(Display, self).paintEvent(e)
+
+        painter = QPainter(self.viewport())
+
+        self.draw_overlay(painter)
+
+    def draw_overlay(self, painter):
+        pass

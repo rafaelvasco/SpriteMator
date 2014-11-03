@@ -9,18 +9,15 @@
 # Licence:     <your licence>
 #------------------------------------------------------------------------------
 
-import math
-
-from PyQt5.QtCore import Qt, pyqtSignal, QPoint, QRect, QPointF
+from PyQt5.QtCore import Qt, pyqtSignal, QPoint, QRect
 from PyQt5.QtGui import QColor, QPainter
-from PyQt5.QtWidgets import QGraphicsScene
-from src.canvas_overlay import CanvasOverlay
 
+from src.canvas_overlay_object import CanvasOverlayObject
 from src.display import Display
 from src.display_sprite_object import DisplaySpriteObject
 import src.utils as utils
 from src import tools, inks
-from src.tools import Tool
+
 
 #------------------------------------------------------------------------------
 
@@ -87,33 +84,6 @@ class CanvasMouseState(object):
         self._pressedButton = value
 
 
-class CanvasScene(QGraphicsScene):
-    def __init__(self, canvas):
-        super(CanvasScene, self).__init__()
-
-        self._canvas = canvas
-        self.screenMousePos = QPoint()
-        self.sceneMousePos = QPointF()
-
-    def drawForeground(self, painter, rect):
-        self._canvas.current_tool.draw_on_canvas_foreground(painter)
-
-    def mousePressEvent(self, event):
-        pass
-
-    def mouseReleaseEvent(self, event):
-        pass
-
-    def mouseMoveEvent(self, event):
-        self.screenMousePos.setX(event.screenPos().x())
-        self.screenMousePos.setY(event.screenPos().y())
-
-        self.sceneMousePos.setX(event.scenePos().x())
-        self.sceneMousePos.setX(event.scenePos().y())
-
-        super(CanvasScene, self).mouseMoveEvent(event)
-
-
 class Canvas(Display):
     surfaceChanged = pyqtSignal()
     surfaceChanging = pyqtSignal()
@@ -124,13 +94,11 @@ class Canvas(Display):
 
         super(Canvas, self).__init__()
 
-        self._overlay = CanvasOverlay(self)
-
-        self.setScene(CanvasScene(self))
-
         self._spriteObject = DisplaySpriteObject()
+        self._overlayObject = CanvasOverlayObject(self)
 
         self.scene().addItem(self._spriteObject)
+        self.scene().addItem(self._overlayObject)
 
         self.turn_backlight_on()
 
@@ -154,7 +122,7 @@ class Canvas(Display):
 
         self._isOnDragDrop = False
 
-        self._drawGrid = True
+        self._gridEnabled = True
 
         self._snapEnabled = True
 
@@ -234,6 +202,16 @@ class Canvas(Display):
         self._pixelSize = value
 
     @property
+    def grid_enabled(self):
+        return self._gridEnabled
+
+    @grid_enabled.setter
+    def grid_enabled(self, value):
+
+        if self._gridEnabled != value:
+            self._gridEnabled = value
+
+    @property
     def mouse_state(self):
         return self._mouseState
 
@@ -288,6 +266,17 @@ class Canvas(Display):
 
         self._currentTool.draw_on_canvas_overlay(painter)
 
+    def update_viewport(self):
+
+        super(Canvas, self).update_viewport()
+
+        self._overlayObject.update_bounding_rect()
+
+    def toogle_grid(self):
+
+        self._gridEnabled = not self._gridEnabled
+        self.update()
+
     def resize(self, width, height, index=None):
         pass
 
@@ -330,7 +319,7 @@ class Canvas(Display):
 
         super(Canvas, self).resizeEvent(e)
 
-        self._overlay.setGeometry(QRect(0, 0, self.width(), self.height()))
+        #self._overlay.setGeometry(QRect(0, 0, self.width(), self.height()))
 
     def mousePressEvent(self, e):
 
@@ -468,9 +457,6 @@ class Canvas(Display):
                 self.viewportChanged.emit()
 
                 self.update_viewport()
-
-    def animate(self):
-        self.update()
 
     # -------------------------------------------------------------------------
 

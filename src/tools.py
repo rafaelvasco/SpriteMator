@@ -102,12 +102,10 @@ class Tool(PropertyHolder):
     def on_key_press(self, key):
         pass
 
-    # Draw On Transformed Scene Foreground
-    def draw_on_canvas_foreground(self, painter):
+    def draw_transformed(self, painter):
         pass
 
-    # Draw on Un-Transformed Scene Foreground
-    def draw_on_canvas_overlay(self, painter):
+    def draw_untransformed(self, painter):
         pass
 
     # To be called when the tool needs to update itself continually
@@ -132,7 +130,7 @@ class Picker(Tool):
 
         self.add_property('returnlasttool', True, 'After Picking: Go back to last Tool')
 
-    def draw_on_canvas_overlay(self, painter):
+    def draw_untransformed(self, painter):
         if not self._enablePointerDraw:
             return
 
@@ -188,7 +186,7 @@ class Pen(Tool):
 
         self._default = True
 
-    def draw_on_canvas_overlay(self, painter):
+    def draw_untransformed(self, painter):
 
         if not self._enablePointerDraw:
             return
@@ -360,7 +358,7 @@ class Filler(Tool):
 
         self._refreshWaitTime = 500
 
-    def draw_on_canvas_overlay(self, painter):
+    def draw_untransformed(self, painter):
 
         if not self._enablePointerDraw:
             return
@@ -431,6 +429,8 @@ class Manipulator(Tool):
         self._selectionRectColor = QColor(255, 255, 255, 50)
         self._selectionRectDashOffset = 0
         self._selectionImage = None
+        self._cutOnSelection = False
+        self._doEraseOnSelectionMove = False
 
         self._selectionBorderPen = QPen()
         self._selectionBorderPen.setWidth(0)
@@ -443,13 +443,15 @@ class Manipulator(Tool):
 
         self._state = ManipulatorState.Idle
 
-    def draw_on_canvas_foreground(self, painter):
+    def draw_transformed(self, painter):
 
         if not self._selectionRectangle.isEmpty():
             painter.setPen(self._selectionBorderPen)
+            painter.setOpacity(1.0)
 
             if self._selectionImage is None:
 
+                painter.setCompositionMode(QPainter.CompositionMode_Difference)
                 painter.fillRect(self._selectionRectangle, self._selectionRectColor)
                 painter.drawRect(self._selectionRectangle)
 
@@ -461,7 +463,9 @@ class Manipulator(Tool):
                 painter.setCompositionMode(QPainter.CompositionMode_Difference)
                 painter.drawRect(self._selectionRectangle)
 
-    def draw_on_canvas_overlay(self, painter):
+            print('Selection Rect Draw')
+
+    def draw_untransformed(self, painter):
 
         canvas = self._canvas
 
@@ -585,7 +589,10 @@ class Manipulator(Tool):
 
         if self._state == ManipulatorState.Selecting:
             if not self._selectionRectangle.isEmpty():
-                self._cut_selection()
+                self._copy_selection()
+
+                if self._cutOnSelection:
+                    self._doEraseOnSelectionMove = True
 
         elif self._state == ManipulatorState.MovingPixels:
             self._canvas.surfaceChanged.emit()
@@ -632,10 +639,15 @@ class Manipulator(Tool):
 
     def _move_selection(self, dx, dy):
 
+        if self._doEraseOnSelectionMove:
+
+            self._erase_selection_below()
+            self._doEraseOnSelectionMove = False
+
         if not self._selectionRectangle.isEmpty():
             self._selectionRectangle.translate(dx, dy)
 
-    def _cut_selection(self):
+    def _copy_selection(self):
 
         self._normalize_selection_rect()
 
@@ -643,13 +655,16 @@ class Manipulator(Tool):
 
         self._selectionImage = self._canvas.sprite_object.active_surface.copy(sprite_rect)
 
-        painter = QPainter()
-        painter.begin(self._canvas.sprite_object.active_surface)
+    def _erase_selection_below(self):
 
-        painter.setCompositionMode(QPainter.CompositionMode_Clear)
-        painter.fillRect(sprite_rect, Qt.transparent)
+        sprite_rect_to_erase = self._canvas.map_global_rect_to_sprite_local_rect(
+            self._selectionRectangle)
 
-        painter.end()
+        drawing.erase_area(self._canvas.sprite_object.active_surface,
+                           sprite_rect_to_erase.left(),
+                           sprite_rect_to_erase.top(),
+                           sprite_rect_to_erase.width(),
+                           sprite_rect_to_erase.height())
 
         self._canvas.surfaceChanged.emit()
 

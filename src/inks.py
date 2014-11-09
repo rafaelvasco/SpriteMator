@@ -13,6 +13,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter
 from src.properties import PropertyHolder
 
+import src.drawing as drawing
 
 class Ink(PropertyHolder):
     def __init__(self):
@@ -44,6 +45,5 @@ class Eraser(Ink):
         self._name = 'Eraser'
 
     def blit(self, x, y, w, h, color, painter):
-        if painter.compositionMode() != QPainter.CompositionMode_Clear:
-            painter.setCompositionMode(QPainter.CompositionMode_Clear)
-        painter.fillRect(x, y, w, h, Qt.white)
+
+        drawing.erase_area_painter_ready(x, y, w, h, painter)

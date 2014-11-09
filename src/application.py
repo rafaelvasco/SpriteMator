@@ -12,9 +12,10 @@
 import sys
 import logging
 
-from PyQt5.QtCore import Qt, QFile, QIODevice
+from PyQt5.QtCore import Qt, QFile, QIODevice, QCoreApplication
 from PyQt5.QtGui import QFontDatabase, QFont, QKeySequence, QColor, QPixmap
-from PyQt5.QtWidgets import QApplication, QDialog, QShortcut, QMessageBox, QStyle
+from PyQt5.QtWidgets import QApplication, QDialog, QShortcut, QMessageBox, QStyle, QFileDialog
+from src.application_settings import ApplicationSettings
 
 from src.main_window import MainWindow
 from src.sprite import Sprite
@@ -24,6 +25,7 @@ import src.utils as utils
 
 
 class Application(QApplication):
+
     resources = {}
 
     #TODO add indication if file is modified / saved
@@ -41,6 +43,10 @@ class Application(QApplication):
     def __init__(self, args):
 
         super(Application, self).__init__(args)
+
+        QCoreApplication.setOrganizationName("Rafael Vasco")
+        QCoreApplication.setOrganizationDomain("rafaelvasco.com")
+        QCoreApplication.setApplicationName("SpriteMator")
 
         logging.basicConfig(
 
@@ -64,6 +70,8 @@ class Application(QApplication):
 
         self._shortCuts = {}
 
+        self._settings = ApplicationSettings()
+
         self._init_shortcuts()
 
         self.setQuitOnLastWindowClosed(True)
@@ -84,6 +92,8 @@ class Application(QApplication):
         self.setFont(ResourcesCache.get('SmallFont'))
 
         self._mainWindow.show()
+
+        self._settings.load_settings()
 
         self._update_top_menu()
 
@@ -116,26 +126,44 @@ class Application(QApplication):
 
     def load_sprite(self):
 
-        sprite_file = utils.show_open_file_dialog('Open Sprite:', 'Sprite (*.spr)')
+        last_opened_folder = self._settings.settings_map["last_folder_path"].value
+
+        sprite_file = utils.show_open_file_dialog('Open Sprite:',
+                                                  'Sprite (*.spr)',
+                                                  last_opened_folder)
         if sprite_file:
+
             sprite = Sprite.load_from_file(sprite_file)
 
             self.set_sprite(sprite)
 
             self._update_top_menu()
 
+            new_opened_folder = utils.get_folder_path_from_filepath(sprite_file)
+
+            if new_opened_folder != last_opened_folder:
+                self._settings.settings_map["last_folder_path"].value = new_opened_folder
+
     def import_sprite(self):
 
+        last_opened_folder = self._settings.settings_map["last_folder_path"].value
+
         image_files = utils.show_open_files_dialog('Select one or more images:',
-                                                   'PNG Image (*.png)')
+                                                   'PNG Image (*.png)', last_opened_folder)
 
         if len(image_files) > 0:
 
             sprite = Sprite.import_from_image_files(image_files)
-            if sprite:
-                self.set_sprite(sprite)
 
+            if sprite:
+
+                self.set_sprite(sprite)
                 self._update_top_menu()
+
+                new_opened_folder = utils.get_folder_path_from_filepath(image_files[0])
+
+                if new_opened_folder != last_opened_folder:
+                    self._settings.settings_map["last_folder_path"].value = new_opened_folder
 
     def save_sprite(self):
 
@@ -148,9 +176,15 @@ class Application(QApplication):
 
         else:
 
-            save_path = utils.show_save_file_dialog('Save Sprite...', 'Sprite (*.spr)')
+            last_opened_folder = self._settings.settings_map["last_folder_path"].value
+
+            save_path = utils.show_save_file_dialog('Save Sprite...',
+                                                    'Sprite (*.spr)',
+                                                    last_opened_folder)
 
         if save_path is not None and len(save_path) > 0:
+
+
             Sprite.save(self._currentSprite, save_path)
 
     def save_sprite_as(self):
@@ -226,6 +260,8 @@ class Application(QApplication):
         self._mainWindow.actionExport.triggered.connect(self.export_sprite)
         self._mainWindow.actionClose.triggered.connect(self.close_sprite)
         self._mainWindow.actionQuit.triggered.connect(self.terminate)
+
+        self._mainWindow.closed.connect(self._on_window_close)
 
     # -------------------------------------------------------------------------
 
@@ -345,6 +381,10 @@ class Application(QApplication):
                 target.switch_tool_slot(2)
             elif shortcut_name == 'TOOL_SLOT_3':
                 target.switch_tool_slot(3)
+
+    def _on_window_close(self):
+
+        self._settings.write_settings()
 
     def _raise_error(self, source, exception):
 

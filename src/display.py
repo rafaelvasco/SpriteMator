@@ -304,7 +304,10 @@ class Display(QGraphicsView):
 
         painter = QPainter(self.viewport())
 
-        self.draw_overlay(painter)
+        self.draw_over_display(painter)
 
-    def draw_overlay(self, painter):
+    '''
+    Draw over display with no transformation
+    '''
+    def draw_over_display(self, painter):
         pass

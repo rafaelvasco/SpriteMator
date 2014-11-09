@@ -9,7 +9,7 @@
 # Licence:     <your licence>
 #--------------------------------------------------------------------------------------------------
 
-from PyQt5.QtCore import Qt, QTimer, QEvent
+from PyQt5.QtCore import Qt, QTimer, QEvent, pyqtSignal
 from PyQt5.QtGui import QPixmap, QPainter
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QDockWidget, QHBoxLayout
 from src.pixel_size_widget import PixelSizeWidget
@@ -29,6 +29,9 @@ import src.appdata as app_data
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
+
+    closed = pyqtSignal()
+
     def __init__(self):
 
         QMainWindow.__init__(self)
@@ -152,6 +155,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return True
 
         return super(QMainWindow, self).eventFilter(target, event)
+
+    def closeEvent(self, e):
+
+        self.closed.emit()
+
+        super(QMainWindow, self).closeEvent(e)
 
     def _init_components(self):
 

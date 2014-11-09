@@ -35,12 +35,15 @@ class CanvasOverlayObject(QGraphicsItem):
 
             self._draw_grid(painter)
 
+        if self._canvas.current_tool is not None:
+            self._canvas.current_tool.draw_transformed(painter)
+
     def _draw_grid(self, painter):
         pen = QPen()
         pen.setWidth(0)
         pen.setColor(Qt.white)
         painter.setPen(pen)
-        painter.setOpacity(0.5)
+        painter.setOpacity(0.3)
 
         painter.setCompositionMode(QPainter.CompositionMode_Difference)
 

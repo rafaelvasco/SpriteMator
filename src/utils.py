@@ -64,30 +64,40 @@ def get_file_extension(file_path):
     return os.path.splitext(file_path)[1].lower()
 
 
-def show_open_file_dialog(label, name_filter):
+def show_open_file_dialog(label, name_filter, init_dir=None):
     return QFileDialog.getOpenFileName(caption=label,
-                                       directory=QDir.currentPath(),
+                                       directory=init_dir
+                                       if init_dir is not None else QDir.currentPath(),
                                        filter=name_filter)[0]
 
 
-def show_open_files_dialog(label, name_filter):
+def show_open_files_dialog(label, name_filter, init_dir=None):
     return QFileDialog.getOpenFileNames(caption=label,
-                                        directory=QDir.currentPath(),
+                                        directory=init_dir
+                                        if init_dir is not None else QDir.currentPath(),
                                         filter=name_filter)[0]
 
 
-def show_save_file_dialog(label, name_filter):
+def show_save_file_dialog(label, name_filter, init_dir=None):
     return QFileDialog.getSaveFileName(caption=label,
-                                       directory=QDir.currentPath(),
+                                       directory=init_dir
+                                       if init_dir is not None else QDir.currentPath(),
                                        filter=name_filter)[0]
 
 
-def show_save_to_folder_dialog(label):
-    return QFileDialog.getExistingDirectory(caption=label, directory=QDir.currentPath())
+def show_save_to_folder_dialog(label, init_dir=None):
+    return QFileDialog.getExistingDirectory(caption=label,
+                                            directory=init_dir
+                                            if init_dir is not None else QDir.currentPath())
 
 
 def show_info_message(parent, title, msg):
     QMessageBox.information(parent, title, msg)
+
+
+def get_folder_path_from_filepath(file_path):
+
+    return os.path.dirname(file_path)
 
 
 def image_to_byte_array(image):

@@ -8,6 +8,26 @@
 # Copyright:   (c) Rafael 2013
 # Licence:     <your licence>
 #--------------------------------------------------------------------------------------------------
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPainter
+
+
+def erase_area(image, x, y, w, h):
+
+    painter = QPainter()
+    painter.begin(image)
+    painter.setCompositionMode(QPainter.CompositionMode_Clear)
+    painter.fillRect(x, y, w, h, Qt.transparent)
+    painter.end()
+
+
+def erase_area_painter_ready(x, y, w, h, painter):
+
+    if painter.compositionMode() != QPainter.CompositionMode_Clear:
+        painter.setCompositionMode(QPainter.CompositionMode_Clear)
+
+    painter.setCompositionMode(QPainter.CompositionMode_Clear)
+    painter.fillRect(x, y, w, h, Qt.transparent)
 
 
 def draw_line(start, end, size, ink, color, painter):

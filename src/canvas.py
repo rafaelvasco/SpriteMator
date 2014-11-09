@@ -260,11 +260,11 @@ class Canvas(Display):
 
         self.update()
 
-    def draw_overlay(self, painter):
+    def draw_over_display(self, painter):
 
         painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
 
-        self._currentTool.draw_on_canvas_overlay(painter)
+        self._currentTool.draw_untransformed(painter)
 
     def update_viewport(self):
 

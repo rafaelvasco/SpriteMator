@@ -13,7 +13,7 @@ from PyQt5.QtCore import Qt, QSize, QRect, QPoint, pyqtSignal
 from PyQt5.QtGui import QBrush, QPen, QPainter, QColor, QLinearGradient, QPolygon, QImage, QPixmap
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSizePolicy
 
-import src.utils as utils
+import src.helpers.utils as utils
 
 
 ColorIndex = utils.enum('Primary', 'Secondary')

@@ -14,9 +14,9 @@ from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtGui import QPainter, QTransform
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene
 
-from src.display_sprite_object import DisplaySpriteObject
-from src.resources_cache import ResourcesCache
-import src.utils as utils
+from src.view.display_sprite_object import DisplaySpriteObject
+from src.model.resources_cache import ResourcesCache
+import src.helpers.utils as utils
 
 
 class Display(QGraphicsView):
@@ -40,8 +40,6 @@ class Display(QGraphicsView):
 
         self._lastFocusPoint = QPoint()
 
-        self._zoom = 1.0
-
         self._fitInView = False
 
         self._panning = False
@@ -64,6 +62,8 @@ class Display(QGraphicsView):
 
         self.setRenderHint(QPainter.Antialiasing, False)
 
+        self.setOptimizationFlag(QGraphicsView.DontAdjustForAntialiasing)
+
         self.setMouseTracking(True)
 
         self.setStyleSheet("border: 0px;")
@@ -74,7 +74,7 @@ class Display(QGraphicsView):
 
     @property
     def zoom(self):
-        return self._zoom
+        return self.transform().m11()
 
     @property
     def background_color(self):
@@ -111,7 +111,6 @@ class Display(QGraphicsView):
     def reset_view(self):
 
         self.resetTransform()
-        self._zoom = 1.0
 
     def toggle_view(self):
 
@@ -148,14 +147,12 @@ class Display(QGraphicsView):
 
         self.set_fit_in_view(not self._fitInView)
 
-    def zoom_to(self, target_zoom):
+    def zoom_to(self, targetoom):
 
         self._fitInView = False
 
-        self._zoom *= target_zoom
-
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
-        self.scale(target_zoom, target_zoom)
+        self.scale(targetoom, targetoom)
         self.setTransformationAnchor(QGraphicsView.AnchorViewCenter)
 
     def unload_sprite(self):
@@ -225,9 +222,11 @@ class Display(QGraphicsView):
 
     def mouseReleaseEvent(self, e):
 
+        print('DISPLAY MOUSE RELEASE')
+
         if self._panning and e.button() == Qt.MiddleButton:
 
-            self.setCursor(Qt.BlankCursor)
+            self.setCursor(Qt.ArrowCursor)
             self._panning = False
 
         elif e.button() == Qt.LeftButton:
@@ -265,13 +264,21 @@ class Display(QGraphicsView):
 
     def keyPressEvent(self, e):
 
+        super(Display, self).keyPressEvent(e)
+
+        if e.isAutoRepeat():
+            return
+
         if e.key() == Qt.Key_Space and not self._leftMousePressed:
             self._spacePressed = True
             self.setCursor(Qt.OpenHandCursor)
 
-        super(Display, self).keyPressEvent(e)
-
     def keyReleaseEvent(self, e):
+
+        super(Display, self).keyReleaseEvent(e)
+
+        if e.isAutoRepeat():
+            return
 
         if e.key() == Qt.Key_Space:
             self._spacePressed = False
@@ -279,7 +286,7 @@ class Display(QGraphicsView):
         if not self._spacePressed and not self._panning:
             self.setCursor(Qt.BlankCursor)
 
-        super(Display, self).keyReleaseEvent(e)
+        self.update()
 
     def wheelEvent(self, e):
 
@@ -301,6 +308,11 @@ class Display(QGraphicsView):
     def paintEvent(self, e):
 
         super(Display, self).paintEvent(e)
+
+        print('DRAWING')
+
+        if self._spacePressed or self._panning:
+            return
 
         painter = QPainter(self.viewport())
 

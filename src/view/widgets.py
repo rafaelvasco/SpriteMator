@@ -5,7 +5,7 @@ from PyQt5.QtGui import (QColor, QPainter,
 from PyQt5.QtWidgets import QWidget, QAbstractButton, QToolTip, \
     QPushButton
 
-import src.utils as utils
+import src.helpers.utils as utils
 
 
 class Button(QAbstractButton):

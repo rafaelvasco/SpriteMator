@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QSpinBox
 
-from src.widgets import OnOffButton, Slider
+from src.view.widgets import OnOffButton, Slider
 
 
 class Property(object):
@@ -157,4 +157,3 @@ class PropertyHolder(object):
                             prop_description=None):
         self._properties[prop_name] = RangedProperty(prop_name, prop_min, prop_max,
                                                      prop_description, prop_value, )
-

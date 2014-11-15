@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------------------------
-# Name:        ToolBox
+# Name:        ToolBar
 # Purpose:     Represents Canvas Toolbox. Manages Canvas Tools and Inks
 #
 # Author:      Rafael Vasco
@@ -14,10 +14,10 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QButtonGroup, \
     QStackedWidget, QLabel, \
     QListWidget, QPushButton
 
-from src.resources_cache import ResourcesCache
+from src.model.resources_cache import ResourcesCache
 
 
-class ToolBox(QWidget):
+class ToolBar(QWidget):
     mouseEntered = pyqtSignal()
     mouseLeft = pyqtSignal()
 
@@ -27,7 +27,7 @@ class ToolBox(QWidget):
 
     def __init__(self):
 
-        super(ToolBox, self).__init__()
+        super(ToolBar, self).__init__()
 
         self.setAttribute(Qt.WA_StaticContents)
         self.setAttribute(Qt.WA_NoSystemBackground)
@@ -223,7 +223,7 @@ class ToolBox(QWidget):
 
         if slot < 0 or slot > len(self._toolSlots) - 1:
             raise Exception(
-                '[ToolBox] > _assignToolToSlot : invalid slot parameter')
+                '[ToolBar] > _assignToolToSlot : invalid slot parameter')
 
         self._toolSlots[slot]['id'] = tool.name
 
@@ -238,7 +238,7 @@ class ToolBox(QWidget):
 
         if slot != 0 and slot != 1:
             raise Exception(
-                '[ToolBox] > _assignInkToSlot : invalid slot parameter')
+                '[ToolBar] > _assignInkToSlot : invalid slot parameter')
 
         ink_name = ink.name
 
@@ -351,7 +351,7 @@ class ToolBox(QWidget):
 
         self._inksOptionsPanel = QStackedWidget()
 
-        inks_options_sublayout.addWidget(QLabel("Inks Options"))
+        inks_options_sublayout.addWidget(QLabel("Ink Options"))
 
         inks_options_sublayout.addWidget(self._inksOptionsPanel)
 
@@ -420,28 +420,47 @@ class ToolBox(QWidget):
         if ink_list_item is not None:
             self._inksListWidget.setCurrentItem(ink_list_item)
 
+    def _toggle_edit_mode(self):
+
+        if not self._editMode:
+
+            self._show_sub_panel()
+
+        else:
+
+            self._hide_sub_panel()
+
+        self.update()
+
+    def _show_sub_panel(self):
+
+        self._editMode = True
+        self.resize(self.width(), 300)
+        self._toolbarSubPanel.setVisible(True)
+
+    def _hide_sub_panel(self):
+
+        self._editMode = False
+        self.resize(self.width(), 50)
+        self._toolbarSubPanel.setVisible(False)
+
+        self._finish_ink_edit_mode()
+
+    def _finish_ink_edit_mode(self):
+
+        if self._currentEditedInkSlot is not None:
+            self._inksButtonGroup.button(self._currentEditedInkSlot). \
+                setStyleSheet("border-color: rgb(56,56,56);")
+            self._currentEditedInkSlot = None
+            self._previousEditedInkSlot = None
+            self._inksListWidget.setCurrentRow(0)
+            self._toolbarSubPanel.setCurrentIndex(0)
+
     # -------------------------------------------------------------------------
 
     def mousePressEvent(self, e):
-        if not self._editMode:
-            self._editMode = True
-            self.resize(self.width(), 300)
-            self._toolbarSubPanel.setVisible(True)
 
-        else:
-            self._editMode = False
-            self.resize(self.width(), 50)
-            self._toolbarSubPanel.setVisible(False)
-
-            if self._currentEditedInkSlot is not None:
-                self._inksButtonGroup.button(self._currentEditedInkSlot). \
-                    setStyleSheet("border-color: rgb(56,56,56);")
-                self._currentEditedInkSlot = None
-                self._previousEditedInkSlot = None
-                self._inksListWidget.setCurrentRow(0)
-                self._toolbarSubPanel.setCurrentIndex(0)
-
-        self.update()
+        self._toggle_edit_mode()
 
         e.accept()
 
@@ -464,6 +483,9 @@ class ToolBox(QWidget):
 
         triggered_slot = self._toolsButtonGroup.checkedId()
 
+        if self._currentEditedInkSlot is not None:
+            self._finish_ink_edit_mode()
+
         self.switch_tool_slot(triggered_slot)
 
         self.update()
@@ -471,31 +493,37 @@ class ToolBox(QWidget):
     def _on_ink_slot_triggered(self, slot_button):
 
         if not self._editMode:
-            return
+            self._show_sub_panel()
 
         triggered_slot_id = self._inksButtonGroup.id(slot_button)
 
-        self._previousEditedInkSlot = self._currentEditedInkSlot
+        if triggered_slot_id != self._currentEditedInkSlot:
 
-        self._currentEditedInkSlot = triggered_slot_id
+            self._previousEditedInkSlot = self._currentEditedInkSlot
 
-        if self._previousEditedInkSlot is not None:
-            self._inksButtonGroup. \
-                button(self._previousEditedInkSlot). \
-                setStyleSheet("border-color: rgb(56,56,56);")
+            self._currentEditedInkSlot = triggered_slot_id
 
-        slot_button.setStyleSheet("border-color: rgb(255,0,0);")
+            if self._previousEditedInkSlot is not None:
+                self._inksButtonGroup. \
+                    button(self._previousEditedInkSlot). \
+                    setStyleSheet("border-color: rgb(56,56,56);")
 
-        self._toolbarSubPanel.setCurrentIndex(1)
+            slot_button.setStyleSheet("border-color: rgb(255,0,0);")
 
-        ink_name = self._inkSlots[triggered_slot_id]['id']
+            self._toolbarSubPanel.setCurrentIndex(1)
 
-        self._select_ink_on_list(ink_name)
+            ink_name = self._inkSlots[triggered_slot_id]['id']
 
-        if triggered_slot_id == 0:
-            self.primaryInkChanged.emit(ink_name)
-        elif triggered_slot_id == 1:
-            self.secondaryInkChanged.emit(ink_name)
+            self._select_ink_on_list(ink_name)
+
+            if triggered_slot_id == 0:
+                self.primaryInkChanged.emit(ink_name)
+            elif triggered_slot_id == 1:
+                self.secondaryInkChanged.emit(ink_name)
+
+        else:
+
+            self._hide_sub_panel()
 
     def _on_tool_list_item_clicked(self, new_item):
 

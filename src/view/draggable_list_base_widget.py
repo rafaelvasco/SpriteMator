@@ -13,7 +13,7 @@ from PyQt5.QtCore import Qt, pyqtSignal, QRect
 from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtWidgets import QWidget, QSizePolicy
 
-from src import utils
+from src.helpers import utils
 
 
 class ListItem(object):

@@ -109,9 +109,9 @@ def image_to_byte_array(image):
     return byte_array
 
 
-def byte_array_to_image(byteArray):
+def byte_array_to_image(byte_array):
     image = QImage()
-    image.loadFromData(byteArray, 'png')
+    image.loadFromData(byte_array, 'png')
     return image
 
 
@@ -164,7 +164,3 @@ def make_directory(root_folder, dir_name):
             raise exception
 
     return path
-        
-        
-
-

@@ -12,11 +12,11 @@
 from PyQt5.QtCore import pyqtSignal, Qt, QRect
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QSizePolicy
 
-from src.draggable_list import DraggableListWidget, ListItem
-import src.utils as utils
+from src.view.draggable_list_base_widget import DraggableListWidget, ListItem
+import src.helpers.utils as utils
+
 
 # -------------------------------------------------------------------------------------------------
-
 
 class LayerListItem(ListItem):
     def __init__(self, parent, layer):

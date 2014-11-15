@@ -6,14 +6,13 @@
 # License:          
 #--------------------------------------------------------------------------------------------------
 
-import quickpixler
-
 from PyQt5.QtCore import Qt, QPoint, QRect
 from PyQt5.QtGui import QPen, QColor, QIcon, QPixmap, QPainter
 
-import src.drawing as drawing
-import src.utils as utils
-from src.properties import PropertyHolder
+import src.helpers.quickpixler as quickpixler
+import src.helpers.drawing as drawing
+import src.helpers.utils as utils
+from src.model.properties import PropertyHolder
 
 
 class Tool(PropertyHolder):
@@ -85,7 +84,6 @@ class Tool(PropertyHolder):
     def refresh_wait_time(self, value):
         self._refreshWaitTime = value
 
-
     @property
     def is_drawing(self):
         return self._isDrawing
@@ -131,26 +129,64 @@ class Picker(Tool):
         self.add_property('returnlasttool', True, 'After Picking: Go back to last Tool')
 
     def draw_untransformed(self, painter):
+
         if not self._enablePointerDraw:
             return
 
-            # x = canvas.mouse_state().canvas_mouse_position().x()
-            # y = canvas.mouse_state().canvas_mouse_position().y()
-            #
-            # size = 16 * canvas.zoom_value()
-            #
-            # if size > 32:
-            #     size = 32
-            #
-            # painter.setPen(Qt.white)
-            #
-            # half_size = size // 2
-            # size_by_8 = size // 8
-            #
-            # painter.drawRect(x - half_size, y - half_size, size, size)
-            #
-            # painter.drawLine(x, y - size_by_8, x, y + size_by_8)
-            # painter.drawLine(x - size_by_8, y, x + size_by_8, y)
+        canvas = self._canvas
+
+        x = canvas.mouse_state.global_pos.x() + 1
+        y = canvas.mouse_state.global_pos.y() + 1
+
+        size = canvas.pixel_size * canvas.zoom
+
+        if size <= 0.0:
+            return
+
+        painter.setPen(Qt.white)
+        painter.setOpacity(0.6)
+        painter.setCompositionMode(QPainter.CompositionMode_Difference)
+
+        if size == 1.0:
+            painter.fillRect(x, y, 1, 1, Qt.white)
+            painter.setPen(Qt.white)
+
+            painter.drawLine(x, y - 4, x, y - 8)
+            painter.drawLine(x, y + 4, x, y + 8)
+
+            painter.drawLine(x - 4, y, x - 8, y)
+            painter.drawLine(x + 4, y, x + 8, y)
+
+        elif size == 2.0:
+
+            painter.fillRect(x - 1, y - 1, 2, 2, Qt.white)
+            painter.setPen(Qt.white)
+
+            painter.drawLine(x - 2, y - 8, x + 1, y - 8)
+            painter.drawLine(x - 2, y + 7, x + 1, y + 7)
+
+            painter.drawLine(x - 8, y - 2, x - 8, y + 1)
+            painter.drawLine(x + 7, y - 2, x + 7, y + 1)
+
+        elif size == 4.0:
+
+            painter.setPen(Qt.white)
+
+            painter.drawRect(x - 2, y - 2, 4, 4)
+
+            painter.drawLine(x - 2, y - 8, x + 2, y - 8)
+            painter.drawLine(x - 2, y + 8, x + 2, y + 8)
+
+            painter.drawLine(x - 8, y - 2, x - 8, y + 2)
+            painter.drawLine(x + 8, y - 2, x + 8, y + 2)
+
+        else:
+
+            rect = QRect(x - size / 2, y - size / 2, size, size)
+            painter.drawRect(rect)
+
+            rect.adjust(2, 2, -2, -2)
+            painter.drawRect(rect)
 
     def on_mouse_press(self):
         super(Picker, self).on_mouse_press()
@@ -241,7 +277,6 @@ class Pen(Tool):
         else:
 
             painter.drawRect(x - size / 2, y - size / 2, size, size)
-
             painter.drawLine(x - 2, y, x + 2, y)
             painter.drawLine(x, y - 2, x, y + 2)
 
@@ -363,6 +398,61 @@ class Filler(Tool):
         if not self._enablePointerDraw:
             return
 
+        canvas = self._canvas
+
+        x = canvas.mouse_state.global_pos.x() + 1
+        y = canvas.mouse_state.global_pos.y() + 1
+
+        size = canvas.pixel_size * canvas.zoom
+
+        if size <= 0.0:
+            return
+
+        painter.setPen(Qt.white)
+        painter.setOpacity(0.6)
+        painter.setCompositionMode(QPainter.CompositionMode_Difference)
+
+        if size == 1.0:
+            painter.fillRect(x, y, 1, 1, Qt.white)
+            painter.setPen(Qt.white)
+
+            painter.drawLine(x, y - 4, x, y - 8)
+            painter.drawLine(x, y + 4, x, y + 8)
+
+            painter.drawLine(x - 4, y, x - 8, y)
+            painter.drawLine(x + 4, y, x + 8, y)
+
+        elif size == 2.0:
+
+            painter.fillRect(x - 1, y - 1, 2, 2, Qt.white)
+            painter.setPen(Qt.white)
+
+            painter.drawLine(x - 2, y - 8, x + 1, y - 8)
+            painter.drawLine(x - 2, y + 7, x + 1, y + 7)
+
+            painter.drawLine(x - 8, y - 2, x - 8, y + 1)
+            painter.drawLine(x + 7, y - 2, x + 7, y + 1)
+
+        elif size == 4.0:
+
+            painter.setPen(Qt.white)
+
+            painter.drawRect(x - 2, y - 2, 4, 4)
+
+            painter.drawLine(x - 2, y - 8, x + 2, y - 8)
+            painter.drawLine(x - 2, y + 8, x + 2, y + 8)
+
+            painter.drawLine(x - 8, y - 2, x - 8, y + 2)
+            painter.drawLine(x + 8, y - 2, x + 8, y + 2)
+
+        else:
+
+            rect = QRect(x - size / 2, y - size / 2, size, size)
+            painter.drawRect(rect)
+
+            rect.adjust(2, 2, -2, -2)
+            painter.drawRect(rect)
+
     def on_mouse_press(self):
 
         super(Filler, self).on_mouse_press()
@@ -429,7 +519,7 @@ class Manipulator(Tool):
         self._selectionRectColor = QColor(255, 255, 255, 50)
         self._selectionRectDashOffset = 0
         self._selectionImage = None
-        self._cutOnSelection = False
+        self._cutOnSelection = True
         self._doEraseOnSelectionMove = False
 
         self._selectionBorderPen = QPen()

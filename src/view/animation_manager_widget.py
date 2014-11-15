@@ -15,8 +15,8 @@ from PyQt5.QtGui import QIcon, QPixmap, QPen, QPainter, QColor
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QComboBox, \
     QLabel, QPushButton
 
-import src.utils as utils
-from src.resources_cache import ResourcesCache
+import src.helpers.utils as utils
+from src.model.resources_cache import ResourcesCache
 
 
 # ------------------------------------------------------------------------------

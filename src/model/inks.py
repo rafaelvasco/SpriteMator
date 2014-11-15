@@ -9,11 +9,10 @@
 # Licence:     <your licence>
 #--------------------------------------------------------------------------------------------------
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPainter
-from src.properties import PropertyHolder
+from src.model.properties import PropertyHolder
 
-import src.drawing as drawing
+import src.helpers.drawing as drawing
+
 
 class Ink(PropertyHolder):
     def __init__(self):

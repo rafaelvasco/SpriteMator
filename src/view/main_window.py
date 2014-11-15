@@ -9,21 +9,22 @@
 # Licence:     <your licence>
 #--------------------------------------------------------------------------------------------------
 
-from PyQt5.QtCore import Qt, QTimer, QEvent, pyqtSignal
+from PyQt5.QtCore import Qt, QEvent, pyqtSignal
 from PyQt5.QtGui import QPixmap, QPainter
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QDockWidget, QHBoxLayout
-from src.pixel_size_widget import PixelSizeWidget
 
-from src.toolbox import ToolBox
+from src.view.pixel_size_widget import PixelSizeWidget
+from src.view.toolbar_widget import ToolBar
 from ui.mainwindow_ui import Ui_MainWindow
-from src.animation_display import AnimationDisplay
-from src.canvas import Canvas
-from src.color_picker import ColorPicker
-from src.layer_manager import LayerManager
-from src.new_sprite_dialog import NewSpriteDialog
-from src.animation_manager import AnimationManager
-from src.resources_cache import ResourcesCache
-import src.appdata as app_data
+from src.view.animation_display_widget import AnimationDisplay
+from src.view.canvas_widget import Canvas
+from src.view.color_picker_widget import ColorPicker
+from src.view.layer_manager_widget import LayerManager
+from src.view.new_sprite_dialog import NewSpriteDialog
+from src.view.animation_manager_widget import AnimationManager
+from src.model.resources_cache import ResourcesCache
+import src.model.appdata as app_data
+
 
 # -------------------------------------------------------------------------------------------------
 
@@ -51,7 +52,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._canvas.primary_color = self._colorPicker.primary_color
         self._canvas.secondary_color = self._colorPicker.secondary_color
 
-        self._toolbox = ToolBox()
+        self._toolbox = ToolBar()
 
         self._animationDisplay = AnimationDisplay()
 
@@ -301,7 +302,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self._colorPicker.secondary_color = color
 
-    # ------ ToolBox ----------------------------------------------------------
+    # ------ ToolBar ----------------------------------------------------------
 
     def _on_tool_changed(self, tool_name):
 

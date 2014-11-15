@@ -96,6 +96,14 @@ class DisplaySpriteObject(QGraphicsItem):
     def height(self):
         return self.boundingRect().height()
 
+    @property
+    def enable_onion_skin(self):
+        return self._enableOnionSkin
+
+    @enable_onion_skin.setter
+    def enable_onion_skin(self, value):
+        self._enableOnionSkin = value
+
     def set_sprite(self, sprite):
 
         self._sprite = sprite

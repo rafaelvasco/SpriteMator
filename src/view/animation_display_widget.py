@@ -16,7 +16,7 @@ from PyQt5.QtGui import QColor, QPen, QIcon, QPixmap
 from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QSlider, \
     QLabel, QFrame
 
-from src.display import Display
+from src.view.display_base_widget import Display
 
 # -----------------------------------------------------------------------------
 

@@ -12,11 +12,12 @@
 from PyQt5.QtCore import Qt, pyqtSignal, QPoint, QRect
 from PyQt5.QtGui import QColor, QPainter
 
-from src.canvas_overlay_object import CanvasOverlayObject
-from src.display import Display
-from src.display_sprite_object import DisplaySpriteObject
-import src.utils as utils
-from src import tools, inks
+from src.view.canvas_overlay_object import CanvasOverlayObject
+from src.model import inks
+from src.view.display_base_widget import Display
+from src.view.display_sprite_object import DisplaySpriteObject
+import src.helpers.utils as utils
+from src.model import tools
 
 
 #------------------------------------------------------------------------------
@@ -73,7 +74,6 @@ class CanvasMouseState(object):
     @global_pos.setter
     def global_pos(self, value):
         self._globalPos = value
-
 
     @property
     def pressed_button(self):
@@ -199,7 +199,10 @@ class Canvas(Display):
 
     @pixel_size.setter
     def pixel_size(self, value):
-        self._pixelSize = value
+
+        if value != self._pixelSize:
+            self._pixelSize = value
+            self.update()
 
     @property
     def grid_enabled(self):
@@ -263,7 +266,6 @@ class Canvas(Display):
     def draw_over_display(self, painter):
 
         painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
-
         self._currentTool.draw_untransformed(painter)
 
     def update_viewport(self):
@@ -390,10 +392,13 @@ class Canvas(Display):
 
     def mouseReleaseEvent(self, e):
 
+        was_panning = self.is_panning
+
         super(Canvas, self).mouseReleaseEvent(e)
 
-        if not self._currentTool.enable_pointer_draw:
+        if was_panning:
             self._currentTool.enable_pointer_draw = True
+            self.setCursor(Qt.BlankCursor)
 
         self._mouseState.pressed_button = None
 
@@ -425,6 +430,9 @@ class Canvas(Display):
 
         super(Canvas, self).keyPressEvent(e)
 
+        if e.isAutoRepeat():
+            return
+
         if self._currentTool is not None:
             self._currentTool.on_key_press(e.key())
 
@@ -433,6 +441,9 @@ class Canvas(Display):
     def keyReleaseEvent(self, e):
 
         super(Canvas, self).keyReleaseEvent(e)
+
+        if e.isAutoRepeat():
+            return
 
     def dragEnterEvent(self, e):
 

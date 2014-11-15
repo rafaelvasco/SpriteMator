@@ -49,11 +49,13 @@ class CanvasOverlayObject(QGraphicsItem):
 
         scene_rect = self._canvas.sceneRect()
 
-        for x in range(int(scene_rect.left()), int(scene_rect.right())):
+        grid_delta = self._canvas.pixel_size
+
+        for x in range(int(scene_rect.left()), int(scene_rect.right()), grid_delta):
 
             painter.drawLine(x, scene_rect.top(), x, scene_rect.bottom())
 
-        for y in range(int(scene_rect.top()), int(scene_rect.bottom())):
+        for y in range(int(scene_rect.top()), int(scene_rect.bottom()), grid_delta):
 
             painter.drawLine(scene_rect.left(), y, scene_rect.right(), y)
 

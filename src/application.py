@@ -14,14 +14,14 @@ import logging
 
 from PyQt5.QtCore import Qt, QFile, QIODevice, QCoreApplication
 from PyQt5.QtGui import QFontDatabase, QFont, QKeySequence, QColor, QPixmap
-from PyQt5.QtWidgets import QApplication, QDialog, QShortcut, QMessageBox, QStyle, QFileDialog
-from src.application_settings import ApplicationSettings
+from PyQt5.QtWidgets import QApplication, QDialog, QShortcut, QMessageBox, QStyle
 
-from src.main_window import MainWindow
-from src.sprite import Sprite
-from src.resources_cache import ResourcesCache
-import src.appdata as appdata
-import src.utils as utils
+from src.model.application_settings import ApplicationSettings
+from src.view.main_window import MainWindow
+from src.model.sprite import Sprite
+from src.model.resources_cache import ResourcesCache
+import src.model.appdata as appdata
+import src.helpers.utils as utils
 
 
 class Application(QApplication):
@@ -184,7 +184,6 @@ class Application(QApplication):
 
         if save_path is not None and len(save_path) > 0:
 
-
             Sprite.save(self._currentSprite, save_path)
 
     def save_sprite_as(self):
@@ -192,7 +191,11 @@ class Application(QApplication):
         if self._currentSprite is None:
             return
 
-        new_save_path = utils.show_save_file_dialog('Save Sprite As...', 'Sprite (*.spr)')
+        last_opened_path = self._settings.settings_map["last_folder_path"].value
+
+        new_save_path = utils.show_save_file_dialog('Save Sprite As...',
+                                                    'Sprite (*.spr)',
+                                                    last_opened_path)
 
         if new_save_path:
             Sprite.save(self._currentSprite, new_save_path)
@@ -208,8 +211,11 @@ class Application(QApplication):
         if self._currentSprite is None:
             return
 
+        last_opened_path = self._settings.settings_map["last_folder_path"].value
+
         target_folder = utils.show_save_to_folder_dialog(
-            'Choose a folder to save Sprite animations:')
+            'Choose a folder to save Sprite animations:',
+            last_opened_path)
 
         if target_folder:
 

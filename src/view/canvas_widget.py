@@ -11,6 +11,7 @@
 
 from PyQt5.QtCore import Qt, pyqtSignal, QPoint, QRect
 from PyQt5.QtGui import QColor, QPainter
+from PyQt5.QtWidgets import QVBoxLayout
 
 from src.view.canvas_overlay_object import CanvasOverlayObject
 from src.model import inks
@@ -21,6 +22,7 @@ from src.model import tools
 
 
 #------------------------------------------------------------------------------
+from src.view.options_bar_widget import OptionsBar
 
 
 class CanvasMouseState(object):

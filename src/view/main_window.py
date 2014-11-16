@@ -12,6 +12,7 @@
 from PyQt5.QtCore import Qt, QEvent, pyqtSignal
 from PyQt5.QtGui import QPixmap, QPainter
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QDockWidget, QHBoxLayout
+from src.view.options_bar_widget import OptionsBar
 
 from src.view.pixel_size_widget import PixelSizeWidget
 from src.view.toolbar_widget import ToolBar
@@ -52,7 +53,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._canvas.primary_color = self._colorPicker.primary_color
         self._canvas.secondary_color = self._colorPicker.secondary_color
 
-        self._toolbox = ToolBar()
+        self._toolbar = ToolBar()
+
+        self._optionsBar = OptionsBar()
 
         self._animationDisplay = AnimationDisplay()
 
@@ -108,7 +111,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @property
     def tool_box(self):
-        return self._toolbox
+        return self._toolbar
 
     def show_workspace(self):
 
@@ -185,8 +188,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         canvaslayout = QVBoxLayout()
         canvaslayout.setContentsMargins(0, 0, 0, 0)
 
-        canvaslayout.addWidget(self._toolbox)
+        canvaslayout.addWidget(self._toolbar)
         canvaslayout.addWidget(self._canvas)
+        canvaslayout.addWidget(self._optionsBar)
 
         self.canvasFrame.setLayout(canvaslayout)
 
@@ -237,9 +241,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._canvas.viewportChanged.connect(self._on_canvas_viewport_changed)
         self._canvas.colorPicked.connect(self._on_canvas_color_picked)
 
-        self._toolbox.toolChanged.connect(self._on_tool_changed)
-        self._toolbox.primaryInkChanged.connect(self._on_primary_ink_changed)
-        self._toolbox.secondaryInkChanged.connect(self._on_secondary_ink_changed)
+        self._toolbar.toolChanged.connect(self._on_tool_changed)
+        self._toolbar.primaryInkChanged.connect(self._on_primary_ink_changed)
+        self._toolbar.secondaryInkChanged.connect(self._on_secondary_ink_changed)
 
         self._animationManager.currentFrameChanged.connect(self._on_current_frame_changed)
 
@@ -249,13 +253,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _init_toolbox(self):
 
-        self._toolbox.register_tool(self._canvas.find_tool_by_name('Pen'), is_default=True)
-        self._toolbox.register_tool(self._canvas.find_tool_by_name('Picker'))
-        self._toolbox.register_tool(self._canvas.find_tool_by_name('Filler'))
-        self._toolbox.register_tool(self._canvas.find_tool_by_name('Manipulator'))
+        self._toolbar.register_tool(self._canvas.find_tool_by_name('Pen'), is_default=True)
+        self._toolbar.register_tool(self._canvas.find_tool_by_name('Picker'))
+        self._toolbar.register_tool(self._canvas.find_tool_by_name('Filler'))
+        self._toolbar.register_tool(self._canvas.find_tool_by_name('Manipulator'))
 
-        self._toolbox.register_ink(self._canvas.find_ink_by_name('Solid'), slot=0)
-        self._toolbox.register_ink(self._canvas.find_ink_by_name('Eraser'), slot=1)
+        self._toolbar.register_ink(self._canvas.find_ink_by_name('Solid'), slot=0)
+        self._toolbar.register_ink(self._canvas.find_ink_by_name('Eraser'), slot=1)
 
     # =================== Event Handlers ==============================
 

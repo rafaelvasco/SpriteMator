@@ -26,8 +26,6 @@ class AnimationDisplay(Display):
 
         super(AnimationDisplay, self).__init__()
 
-        self.background_color = QColor(220, 220, 220)
-
         self._playing = False
 
         style_sheet = \

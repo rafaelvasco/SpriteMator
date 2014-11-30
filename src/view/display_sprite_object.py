@@ -28,8 +28,6 @@ class DisplaySpriteObject(QGraphicsItem):
 
         self._boundingRect = QRectF()
 
-        self._backgroundColor = None
-
         self._backgroundPixmap = None
 
         self._enableOnionSkin = True
@@ -53,14 +51,6 @@ class DisplaySpriteObject(QGraphicsItem):
     @display_frame_index.setter
     def display_frame_index(self, value):
         self._displayFrameIndex = value
-
-    @property
-    def background_color(self):
-        return self._backgroundColor
-
-    @background_color.setter
-    def background_color(self, value):
-        self._backgroundColor = value
 
     @property
     def background_pixmap(self):
@@ -128,9 +118,6 @@ class DisplaySpriteObject(QGraphicsItem):
 
         painter.setClipRect(option.exposedRect)
 
-        if self._backgroundColor is not None:
-            painter.fillRect(option.rect, self._backgroundColor)
-
         if self._backgroundPixmap is not None:
             painter.drawTiledPixmap(option.rect, self._backgroundPixmap)
 
@@ -149,7 +136,7 @@ class DisplaySpriteObject(QGraphicsItem):
                     last_frame_layers = self._sprite.current_animation. \
                         frame_at(last_frame_index).surfaces
 
-                    painter.setOpacity(0.4)
+                    painter.setOpacity(0.2)
 
                     for layer in last_frame_layers:
                         painter.drawImage(option.rect, layer.image)

@@ -35,6 +35,7 @@ class Application(QApplication):
     #TODO Add Import from Spritesheets
     #TODO Finish Basic Ink Functionality
     #TODO Finish Color Palette
+    #TODO Handle error on loading images/sprites
 
     #TODO [Post 1.0] Add Effects Support
     #TODO [Post 1.0] Add More Tools : Move, Square, Circle, Line, Color Replacer, Text

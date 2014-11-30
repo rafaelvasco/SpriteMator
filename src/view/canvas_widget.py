@@ -102,7 +102,8 @@ class Canvas(Display):
         self.scene().addItem(self._spriteObject)
         self.scene().addItem(self._overlayObject)
 
-        self.turn_backlight_on()
+        self.backlight_enabled = True
+        self.onion_skin_enabled = False
 
         self._tools = {}
 
@@ -215,6 +216,7 @@ class Canvas(Display):
 
         if self._gridEnabled != value:
             self._gridEnabled = value
+            self.update()
 
     @property
     def mouse_state(self):

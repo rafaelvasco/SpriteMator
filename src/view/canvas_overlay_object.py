@@ -43,7 +43,7 @@ class CanvasOverlayObject(QGraphicsItem):
         pen.setWidth(0)
         pen.setColor(Qt.white)
         painter.setPen(pen)
-        painter.setOpacity(0.3)
+        painter.setOpacity(0.2)
 
         painter.setCompositionMode(QPainter.CompositionMode_Difference)
 

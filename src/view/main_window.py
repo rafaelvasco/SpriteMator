@@ -55,9 +55,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._toolbar = ToolBar()
 
-        self._optionsBar = OptionsBar()
+        self._optionsBar = OptionsBar(self._canvas)
 
         self._animationDisplay = AnimationDisplay()
+        self._animationDisplay.backlight_enabled = self._canvas.backlight_enabled
 
         self._animationDisplayDock = QDockWidget()
         self._animationDisplayDock.setFeatures(QDockWidget.DockWidgetFloatable)
@@ -245,6 +246,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._toolbar.primaryInkChanged.connect(self._on_primary_ink_changed)
         self._toolbar.secondaryInkChanged.connect(self._on_secondary_ink_changed)
 
+        self._optionsBar.toggledGrid.connect(self._on_options_grid_toggle)
+        self._optionsBar.toggledOnionSkin.connect(self._on_options_onion_skin_toggle)
+        self._optionsBar.toggledLights.connect(self._on_options_lights_toggle)
+
         self._animationManager.currentFrameChanged.connect(self._on_current_frame_changed)
 
         self._layerManager.currentLayerChanged.connect(self._on_current_layer_changed)
@@ -320,6 +325,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _on_secondary_ink_changed(self, ink_name):
 
         self._canvas.secondary_ink = self._canvas.find_ink_by_name(ink_name)
+
+    # ----- Options Bar --------------------------------------------------------
+
+    def _on_options_grid_toggle(self, grid_on):
+
+        self._canvas.grid_enabled = grid_on
+
+    def _on_options_onion_skin_toggle(self, onion_on):
+
+        self._canvas.onion_skin_enabled = onion_on
+        self._animationDisplay.onion_skin_enabled = onion_on
+
+    def _on_options_lights_toggle(self, lights_on):
+
+        self._canvas.backlight_enabled = lights_on
+        self._animationDisplay.backlight_enabled = lights_on
 
     # ------ Frame Events------------------------------------------------------
 

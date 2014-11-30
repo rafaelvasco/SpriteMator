@@ -10,7 +10,7 @@
 # Licence:     <your licence>
 #------------------------------------------------------------------------------
 
-from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtCore import Qt, QPoint, QRectF
 from PyQt5.QtGui import QPainter, QTransform
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene
 
@@ -77,33 +77,31 @@ class Display(QGraphicsView):
         return self.transform().m11()
 
     @property
-    def background_color(self):
-        return self._backgroundColor
+    def backlight_enabled(self):
+        return self._backLightOn
 
-    @background_color.setter
-    def background_color(self, value):
-
-        self._backgroundColor = value
-        self._spriteObject.background_color = value
-
-    def turn_backlight_on(self):
-
-        self._backLightOn = True
-        self._spriteObject.background_pixmap = self._lightBackgroundPixmap
-
-    def turn_backlight_off(self):
-
-        self._backLightOn = False
-        self._spriteObject.background_pixmap = self._darkBackgroundPixmap
-
-    def toggle_backlight(self):
-
-        self._backLightOn = not self._backLightOn
+    @backlight_enabled.setter
+    def backlight_enabled(self, value):
+        self._backLightOn = value
 
         if self._backLightOn:
-            self.turn_backlight_on()
+            self._spriteObject.background_pixmap = self._lightBackgroundPixmap
         else:
-            self.turn_backlight_off()
+            self._spriteObject.background_pixmap = self._darkBackgroundPixmap
+
+        self.update()
+
+    @property
+    def onion_skin_enabled(self):
+        return self.sprite_object.enable_onion_skin
+
+    @onion_skin_enabled.setter
+    def onion_skin_enabled(self, value):
+
+        if self._spriteObject.enable_onion_skin != value:
+
+            self._spriteObject.enable_onion_skin = value
+            self.update()
 
     def is_fit_in_view(self):
         return self._fitInView
@@ -147,12 +145,18 @@ class Display(QGraphicsView):
 
         self.set_fit_in_view(not self._fitInView)
 
-    def zoom_to(self, targetoom):
+    def zoom_to(self, scale_target):
+
+        scale_factor = scale_target / self.zoom
+
+        self.scale(scale_factor, scale_factor)
+
+    def zoom_by(self, scale_factor):
 
         self._fitInView = False
 
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
-        self.scale(targetoom, targetoom)
+        self.scale(scale_factor, scale_factor)
         self.setTransformationAnchor(QGraphicsView.AnchorViewCenter)
 
     def unload_sprite(self):
@@ -297,13 +301,19 @@ class Display(QGraphicsView):
 
         steps = e.angleDelta().y() / 120
 
-        if steps == 0:
+        if steps == 0 or (steps > 0 and self.zoom > 32.0) or (steps < 0 and self.zoom < 0.1):
             e.ignore()
             return
 
+        if steps > 1.0:
+            steps = 1.0
+
+        if steps < -1.0:
+            steps = -1.0
+
         scale = pow(2.0, steps)
 
-        self.zoom_to(scale)
+        self.zoom_by(scale)
 
     def paintEvent(self, e):
 

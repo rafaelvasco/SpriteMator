@@ -52,6 +52,10 @@ class AnimationDisplay(Display):
 
         self._loopEnabled = True
 
+        self.onion_skin_enabled = False
+
+        self.backlight_enabled = True
+
         self._pen = QPen()
         self._pen.setColor(QColor(10, 10, 10))
         self._pen.setWidth(2)

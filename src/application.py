@@ -25,21 +25,20 @@ import src.helpers.utils as utils
 
 
 class Application(QApplication):
-
     resources = {}
 
-    #TODO add indication if file is modified / saved
-    #TODO Decide on resizing logistic
-    #TODO Add tolerance to Filler
-    #TODO Layers: Add Change Opacity, Visibility
-    #TODO Add Import from Spritesheets
-    #TODO Finish Basic Ink Functionality
-    #TODO Finish Color Palette
-    #TODO Handle error on loading images/sprites
+    # TODO add indication if file is modified / saved
+    # TODO Decide on resizing logistic
+    # TODO Add tolerance to Filler
+    # TODO Layers: Add Change Opacity, Visibility
+    # TODO Add Import from Spritesheets
+    # TODO Finish Basic Ink Functionality
+    # TODO Finish Color Palette
+    # TODO Handle error on loading images/sprites
 
-    #TODO [Post 1.0] Add Effects Support
-    #TODO [Post 1.0] Add More Tools : Move, Square, Circle, Line, Color Replacer, Text
-    #TODO [Post 1.0] Add More Inks: Add, Bright, Dark, Tile, Grain, H. Grad, V. Grad, Jumnble, Sweep
+    # TODO [Post 1.0] Add Effects Support
+    # TODO [Post 1.0] Add More Tools : Move, Square, Circle, Line, Color Replacer, Text
+    # TODO [Post 1.0] Add More Inks: Add, Bright, Dark, Tile, Grain, H. Grad, V. Grad, Jumnble, Sweep
 
     def __init__(self, args):
 
@@ -184,7 +183,6 @@ class Application(QApplication):
                                                     last_opened_folder)
 
         if save_path is not None and len(save_path) > 0:
-
             Sprite.save(self._currentSprite, save_path)
 
     def save_sprite_as(self):
@@ -222,7 +220,7 @@ class Application(QApplication):
 
             try:
 
-                #Sprite.export(self._current_sprite, target_folder)
+                # Sprite.export(self._current_sprite, target_folder)
                 Sprite.export_to_spritesheet(self._currentSprite, target_folder)
 
             except Exception as e:

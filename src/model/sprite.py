@@ -168,6 +168,8 @@ class Sprite(object):
         for image in image_list:
             new_sprite.current_animation.add_frame(image)
 
+        new_sprite.current_animation.set_frame(0)
+
         return new_sprite
 
     @staticmethod

@@ -7,7 +7,7 @@
 # Created:     30/03/2013
 # Copyright:   (c) Rafael Vasco 2014
 # Licence:     <your licence>
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from PyQt5.QtCore import Qt, pyqtSignal, QPoint, QRect
 from PyQt5.QtGui import QColor, QPainter
@@ -21,8 +21,7 @@ import src.helpers.utils as utils
 from src.model import tools
 
 
-#------------------------------------------------------------------------------
-from src.view.options_bar_widget import OptionsBar
+# ------------------------------------------------------------------------------
 
 
 class CanvasMouseState(object):
@@ -101,9 +100,6 @@ class Canvas(Display):
 
         self.scene().addItem(self._spriteObject)
         self.scene().addItem(self._overlayObject)
-
-        self.backlight_enabled = True
-        self.onion_skin_enabled = False
 
         self._tools = {}
 
@@ -499,3 +495,7 @@ class Canvas(Display):
         self._currentTool = self.find_tool_by_name('Pen')
         self._primaryInk = self.find_ink_by_name('Solid')
         self._secondaryInk = self.find_ink_by_name('Eraser')
+
+        self.onion_skin_enabled = False
+
+        self.backlight_enabled = True

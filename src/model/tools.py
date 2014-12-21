@@ -4,7 +4,7 @@
 # Author:           Rafael Vasco
 # Date:             31/03/13
 # License:          
-#--------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 from PyQt5.QtCore import Qt, QPoint, QRect
 from PyQt5.QtGui import QPen, QColor, QIcon, QPixmap, QPainter

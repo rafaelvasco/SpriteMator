@@ -68,6 +68,7 @@ class Display(QGraphicsView):
 
         self.setStyleSheet("border: 0px;")
 
+
     @property
     def is_panning(self):
         return self._panning

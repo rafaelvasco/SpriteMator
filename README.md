@@ -14,3 +14,5 @@ SpriteMator
 [1]: http://www.python.org
 [2]: http://www.riverbankcomputing.co.uk/software/pyqt/intro
 [3]: http://cython.org/
+
+![alt text](https://github.com/rafaelvasco/SpriteMator/blob/master/spritemator.PNG "Screeshot")

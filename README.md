@@ -1,8 +1,5 @@
 SpriteMator
 ============
-(Obs: This repo is in freezed status currently.)
-
-![Fancy Logo](https://dl.dropboxusercontent.com/u/2472278/Images/spritemator-logo.png)
 
 ------------
 

@@ -2,9 +2,7 @@ SpriteMator
 ============
 
 ------------
-
-> SpriteMator exists to make drawing and animating sprites much easier !
-> 
+( I'm addicted to coding sprite editors and stuff :) )
 > Made with love and with great joy (most of the time) in [Python][1] with [PyQt][2], and [Cython][3] :)
 
 

@@ -1,7 +1,7 @@
 SpriteMator
 ============
 
-Obs: Some functions are unfinished.
+Obs: Obviously unmaintained :)
 
 ------------
 ( I'm addicted to coding sprite editors and stuff :) )
